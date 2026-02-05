@@ -22,5 +22,291 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Animation keyframes */
+@keyframes slideInFromLeft {
+  0% {
+    transform: translateX(-100px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromRight {
+  0% {
+    transform: translateX(100px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes timelineGrow {
+  0% {
+    height: 0;
+  }
+  100% {
+    height: 100%;
+  }
+}
+
+@keyframes stepFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes stepPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes floatComplex {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-20px) rotate(120deg);
+  }
+  66% {
+    transform: translateY(10px) rotate(240deg);
+  }
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes heightGrowSlow {
+  0% {
+    height: 0;
+  }
+  100% {
+    height: 100%;
+  }
+}
+
+@keyframes slideInFromLeftSlow {
+  0% {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromRightSlow {
+  0% {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInSlow {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animation utility classes */
+.animate-slideInFromLeft {
+  animation: slideInFromLeft 0.6s ease-out forwards;
+  animation-fill-mode: forwards;
+}
+
+.animate-slideInFromRight {
+  animation: slideInFromRight 0.6s ease-out forwards;
+  animation-fill-mode: forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out forwards;
+  animation-fill-mode: forwards;
+}
+
+.animate-timelineGrow {
+  animation: timelineGrow 1.5s ease-out forwards;
+  animation-fill-mode: forwards;
+}
+
+.animate-stepFadeIn {
+  animation: stepFadeIn 0.6s ease-out forwards;
+  animation-fill-mode: forwards;
+}
+
+.animate-stepPop {
+  animation: stepPop 0.5s ease-out forwards;
+  animation-fill-mode: forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+  animation-fill-mode: forwards;
+}
+
+.animate-popIn {
+  animation: popIn 0.5s ease-out forwards;
+  animation-fill-mode: forwards;
+}
+
+.animate-floatComplex {
+  animation: floatComplex 6s ease-in-out infinite;
+  animation-fill-mode: forwards;
+}
+
+.animate-heightGrowSlow {
+  animation: heightGrowSlow 2s ease-out forwards;
+  animation-fill-mode: forwards;
+}
+
+.animate-slideInFromLeftSlow {
+  animation: slideInFromLeftSlow 0.8s ease-out forwards;
+  animation-fill-mode: forwards;
+}
+
+.animate-slideInFromRightSlow {
+  animation: slideInFromRightSlow 0.8s ease-out forwards;
+  animation-fill-mode: forwards;
+}
+
+.animate-fadeInSlow {
+  animation: fadeInSlow 0.6s ease-out forwards;
+  animation-fill-mode: forwards;
+}
+
+/* Delay classes */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+.delay-700 { animation-delay: 700ms; }
+.delay-800 { animation-delay: 800ms; }
+.delay-900 { animation-delay: 900ms; }
+.delay-1000 { animation-delay: 1000ms; }
+.delay-1100 { animation-delay: 1100ms; }
+.delay-1200 { animation-delay: 1200ms; }
+.delay-1300 { animation-delay: 1300ms; }
+.delay-1400 { animation-delay: 1400ms; }
+.delay-1500 { animation-delay: 1500ms; }
+.delay-1600 { animation-delay: 1600ms; }
+.delay-1700 { animation-delay: 1700ms; }
+.delay-1800 { animation-delay: 1800ms; }
+.delay-1900 { animation-delay: 1900ms; }
+.delay-2000 { animation-delay: 2000ms; }
+
+/* Smoother scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure animations are visible */
+[class*="animate-"] {
+  animation-fill-mode: forwards;
+}
+
+/* Optimize animation performance */
+.animate-slideInFromLeft,
+.animate-slideInFromRight,
+.animate-fadeIn,
+.animate-stepFadeIn,
+.animate-slideInFromLeftSlow,
+.animate-slideInFromRightSlow,
+.animate-fadeInSlow {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  .delay-100,
+  .delay-200,
+  .delay-300,
+  .delay-400,
+  .delay-500,
+  .delay-600,
+  .delay-700,
+  .delay-800,
+  .delay-900,
+  .delay-1000,
+  .delay-1100,
+  .delay-1200,
+  .delay-1300,
+  .delay-1400,
+  .delay-1500,
+  .delay-1600,
+  .delay-1700,
+  .delay-1800,
+  .delay-1900,
+  .delay-2000 {
+    animation: none !important;
+  }
 }
