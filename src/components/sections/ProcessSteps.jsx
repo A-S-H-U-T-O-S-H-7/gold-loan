@@ -231,31 +231,31 @@ export default function ProcessSteps() {
             </div>
             
             {/* Compact Buttons */}
-            <div className="flex flex-col  sm:flex-row gap-2 justify-center items-center mb-4">
+            <div className="flex flex-row gap-2 justify-center items-center mb-4">
               <Link href="/apply">
-              <button className="px-5 py-2.5 cursor-pointer bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-1.5">
+              <button className=" px-2 md:px-5 py-2.5 cursor-pointer bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-1 md:gap-1.5">
                 <FileText className="h-4 w-4" />
                 Apply Online Now
               </button>
               </Link>
-              <button className="px-5 py-2.5 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-1.5">
+              <button className=" px-2 md:px-5 py-2.5 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-1.5">
                 <MapPin className="h-4 w-4" />
                 Find Nearest Branch
               </button>
             </div>
             
             {/* Compact Additional Info */}
-            <div className="mt-4 pt-3 border-t border-gray-200">
+            <div className="mt-2 md:mt-4 pt-3 border-t border-gray-200">
               <div className="flex flex-wrap justify-center gap-2 text-xs text-gray-600">
-                <span className="flex items-center gap-1 px-2 py-1 bg-green-50 rounded">
+                <span className="flex items-center gap-0.5 px-1 md:px-2 py-1 bg-green-50 rounded">
                   <CheckCircle className="h-3 w-3 text-green-600" />
                   No CIBIL check
                 </span>
-                <span className="flex items-center gap-1 px-2 py-1 bg-blue-50 rounded">
+                <span className="flex items-center gap-0.5 px-1 md:px-2 py-1 bg-blue-50 rounded">
                   <CheckCircle className="h-3 w-3 text-blue-600" />
                   Lowest rates
                 </span>
-                <span className="flex items-center gap-1 px-2 py-1 bg-purple-50 rounded">
+                <span className="flex items-center gap-0.5 px-1 md:px-2 py-1 bg-purple-50 rounded">
                   <CheckCircle className="h-3 w-3 text-purple-600" />
                   100% Transparent
                 </span>

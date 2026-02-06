@@ -59,7 +59,7 @@ export default function GoldCalculator() {
           {/* Left: Calculator Form */}
           <div className="lg:col-span-2 space-y-4">
             {/* Gold Weight Input */}
-            <div className="bg-white rounded-2xl shadow-lg px-4 py-2 md:py-4 md:px-6 border border-gray-100">
+            <div className="bg-white rounded-2xl shadow-lg px-4 py-2 md:py-4 md:px-6 border border-gray-300 md:border-gray-200">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-amber-50 rounded-lg">
@@ -107,7 +107,7 @@ export default function GoldCalculator() {
             </div>
 
             {/* Gold Purity Selection */}
-            <div className="bg-white rounded-2xl shadow-lg p-3 md:p-6 border border-gray-100">
+            <div className="bg-white rounded-2xl shadow-lg p-3 md:p-6 border border-gray-300 md:border-gray-200">
   <div className="flex items-center gap-3 mb-4">
     <div className="p-2 bg-blue-50 rounded-lg">
       <Gem className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
@@ -163,7 +163,7 @@ export default function GoldCalculator() {
 </div>
 
             {/* Gold Rate Selection */}
-            <div className="bg-white rounded-2xl shadow-lg px-4 py-2 md:px-6 md:py-4 border border-gray-100">
+            <div className="bg-white rounded-2xl shadow-lg px-4 py-2 md:px-6 md:py-4 border border-gray-300 md:border-gray-200">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-green-50 rounded-lg">
@@ -278,7 +278,7 @@ export default function GoldCalculator() {
             </div>
 
             {/* Features Card */}
-<div className="bg-white rounded-2xl shadow-lg p-3 border border-gray-100">
+<div className="bg-white rounded-2xl shadow-lg p-3 border border-gray-300 md:border-gray-200">
   {/* Header with colored icon */}
   <div className="flex items-center gap-3 mb-4">
       <Sparkles className="h-5 w-5 text-purple-500" />

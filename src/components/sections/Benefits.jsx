@@ -28,7 +28,10 @@ export default function Benefits() {
       description: 'Bank-grade vaults with 24/7 CCTV monitoring',
       color: 'blue',
       stats: 'Insured',
-      linear: 'from-blue-500 to-cyan-500'
+      bgColor: 'bg-linear-to-br from-blue-50 via-blue-50 to-white',
+      borderColor: 'border-blue-100',
+      iconBg: 'bg-linear-to-br from-blue-500 to-blue-600',
+      textColor: 'text-blue-800'
     },
     {
       icon: TrendingDown,
@@ -36,7 +39,10 @@ export default function Benefits() {
       description: 'Starting from 0.79% per month',
       color: 'green',
       stats: '0.79%',
-      linear: 'from-emerald-500 to-green-500'
+      bgColor: 'bg-linear-to-br from-emerald-50 via-emerald-50 to-white',
+      borderColor: 'border-emerald-100',
+      iconBg: 'bg-linear-to-br from-emerald-500 to-emerald-600',
+      textColor: 'text-emerald-800'
     },
     {
       icon: Clock,
@@ -44,15 +50,21 @@ export default function Benefits() {
       description: 'Get money in just 30 minutes',
       color: 'purple',
       stats: '30 min',
-      linear: 'from-violet-500 to-purple-500'
+      bgColor: 'bg-linear-to-br from-violet-50 via-violet-50 to-white',
+      borderColor: 'border-violet-100',
+      iconBg: 'bg-linear-to-br from-violet-500 to-violet-600',
+      textColor: 'text-violet-800'
     },
     {
       icon: IndianRupee,
       title: 'Zero Fee',
       description: 'No processing charges above ₹1 Lakh loan',
-      color: 'emerald',
+      color: 'teal',
       stats: '0%',
-      linear: 'from-teal-500 to-emerald-500'
+      bgColor: 'bg-linear-to-br from-teal-50 via-teal-50 to-white',
+      borderColor: 'border-teal-100',
+      iconBg: 'bg-linear-to-br from-teal-500 to-teal-600',
+      textColor: 'text-teal-800'
     },
     {
       icon: RefreshCw,
@@ -60,7 +72,10 @@ export default function Benefits() {
       description: 'Simple renewal with same gold',
       color: 'orange',
       stats: 'Renew',
-      linear: 'from-orange-500 to-amber-500'
+      bgColor: 'bg-linear-to-br from-orange-50 via-orange-50 to-white',
+      borderColor: 'border-orange-100',
+      iconBg: 'bg-linear-to-br from-orange-500 to-orange-600',
+      textColor: 'text-orange-800'
     },
     {
       icon: CreditCard,
@@ -68,7 +83,10 @@ export default function Benefits() {
       description: 'Cash, UPI, bank transfer',
       color: 'pink',
       stats: '4 Ways',
-      linear: 'from-pink-500 to-rose-500'
+      bgColor: 'bg-linear-to-br from-pink-50 via-pink-50 to-white',
+      borderColor: 'border-pink-100',
+      iconBg: 'bg-linear-to-br from-pink-500 to-pink-600',
+      textColor: 'text-pink-800'
     },
     {
       icon: BarChart,
@@ -76,7 +94,10 @@ export default function Benefits() {
       description: 'Up to 75% of gold value',
       color: 'rose',
       stats: '75%',
-      linear: 'from-rose-500 to-red-500'
+      bgColor: 'bg-linear-to-br from-rose-50 via-rose-50 to-white',
+      borderColor: 'border-rose-100',
+      iconBg: 'bg-linear-to-br from-rose-500 to-rose-600',
+      textColor: 'text-rose-800'
     },
     {
       icon: Heart,
@@ -84,7 +105,10 @@ export default function Benefits() {
       description: 'Close anytime after 6 months',
       color: 'red',
       stats: 'Free',
-      linear: 'from-rose-500 to-pink-500'
+      bgColor: 'bg-linear-to-br from-red-50 via-red-50 to-white',
+      borderColor: 'border-red-100',
+      iconBg: 'bg-linear-to-br from-red-500 to-red-600',
+      textColor: 'text-red-800'
     }
   ];
 
@@ -94,36 +118,44 @@ export default function Benefits() {
       description: 'Credit score doesn\'t matter',
       icon: Award,
       highlight: 'All Credit Scores',
-      iconColor: 'text-blue-500',
+      bgColor: 'bg-linear-to-br from-blue-50/70 via-white to-blue-50/30',
       borderColor: 'border-blue-200',
-      bgColor: 'bg-linear-to-br from-blue-50 to-indigo-50'
+      iconBg: 'bg-linear-to-br from-blue-500 to-blue-600',
+      iconColor: 'text-white',
+      textColor: 'text-blue-900'
     },
     {
       title: 'No Income Proof',
       description: 'No salary slips needed',
       icon: Target,
       highlight: 'Everyone Eligible',
-      iconColor: 'text-emerald-500',
+      bgColor: 'bg-linear-to-br from-emerald-50/70 via-white to-emerald-50/30',
       borderColor: 'border-emerald-200',
-      bgColor: 'bg-linear-to-br from-emerald-50 to-teal-50'
+      iconBg: 'bg-linear-to-br from-emerald-500 to-emerald-600',
+      iconColor: 'text-white',
+      textColor: 'text-emerald-900'
     },
     {
       title: 'Get Gold Back',
       description: 'Repay and reclaim anytime',
       icon: Sparkles,
       highlight: 'Temporary Pledge',
-      iconColor: 'text-amber-500',
+      bgColor: 'bg-linear-to-br from-amber-50/70 via-white to-amber-50/30',
       borderColor: 'border-amber-200',
-      bgColor: 'bg-linear-to-br from-amber-50 to-orange-50'
+      iconBg: 'bg-linear-to-br from-amber-500 to-amber-600',
+      iconColor: 'text-white',
+      textColor: 'text-amber-900'
     },
     {
       title: 'Transparent',
       description: 'No hidden charges',
       icon: Star,
       highlight: 'Full Disclosure',
-      iconColor: 'text-violet-500',
+      bgColor: 'bg-linear-to-br from-violet-50/70 via-white to-violet-50/30',
       borderColor: 'border-violet-200',
-      bgColor: 'bg-linear-to-br from-violet-50 to-purple-50'
+      iconBg: 'bg-linear-to-br from-violet-500 to-violet-600',
+      iconColor: 'text-white',
+      textColor: 'text-violet-900'
     }
   ];
 
@@ -166,246 +198,250 @@ export default function Benefits() {
   ];
 
   return (
-    <section className="relative py-3 md:py-6  bg-white overflow-hidden">
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-0 left-0 right-0 h-32 bg-linear-to-b from-amber-50/10 to-transparent"></div>
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-blue-50/10 to-transparent"></div>
-      </div>
-
-      <div className="container mx-auto px-4 max-w-7xl relative z-10">
-        {/* Header Section */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center p-2 bg-linear-to-br from-amber-500 to-orange-500 rounded-full shadow-lg mb-2">
+    <section className="relative overflow-hidden">
+      {/* Section 1: Benefits That Make Sense - White/Blue linear */}
+      <div className="relative py-6  md:py-8 bg-linear-to-b from-white via-blue-50 to-blue-300">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-300 to-cyan-300"></div>
+        <div className="container mx-auto pb-8 px-4 sm:px-6 max-w-7xl relative z-10">
+          {/* Header Section */}
+          <div className="text-center mb-4 md:mb-6">
+            <div className="inline-flex items-center justify-center p-2 bg-linear-to-br from-amber-500 to-orange-500 rounded-full shadow-lg mb-2">
             <div className="bg-white/20 backdrop-blur-sm p-3 rounded-full">
               <Gem className="h-7 w-7 text-white" />
             </div>
-          </div>
           
-          <div className="mb-4">
-            <span className="inline-flex items-center gap-2 text-sm font-semibold text-amber-700 bg-amber-50 px-4 py-2 rounded-full border border-amber-100">
-              <Trophy className="h-4 w-4" />
-              EXCLUSIVE BENEFITS
-            </span>
-          </div>
-          
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Benefits That Make Sense
-          </h2>
-          
-          <p className="text-gray-600 max-w-2xl mx-auto text-base md:text-lg mb-6">
-            Experience gold loans redefined with customer-first benefits and complete transparency
-          </p>
-          
-          <div className="flex justify-center">
-            <div className="w-20 h-1 bg-linear-to-r from-amber-400 to-orange-400 rounded-full"></div>
-          </div>
-        </div>
-
-        {/* Benefits Grid with Visible linears */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
-          {benefits.map((benefit, index) => (
-            <div 
-              key={index}
-              className="group relative overflow-hidden rounded-2xl p-4 transition-all duration-300 hover:shadow-xl hover:border hover:border-gray-200 border border-gray-100"
-            >
-              {/* linear Background - Always Visible */}
-              <div 
-                className={`absolute inset-0 bg-linear-to-br shadow-2xl ${benefit.linear} opacity-[1] rounded-2xl`}
-              ></div>
-              
-              {/* Content */}
-              <div className="relative">
-                {/* Icon Container with linear */}
-                <div className={`inline-flex items-center justify-center p-3 rounded-xl bg-linear-to-br ${benefit.linear} shadow-sm mb-3`}>
-                  <benefit.icon className="h-6 w-6 text-white" />
-                </div>
-                
-                {/* Stats Badge */}
-                <div className={`absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-sm font-bold px-3 py-1.5 rounded-full border border-white/20 shadow-sm`}>
-                  <span className={`bg-linear-to-r ${benefit.linear} bg-clip-text text-transparent`}>
-                    {benefit.stats}
-                  </span>
-                </div>
-
-                {/* Content */}
-                <h4 className="font-bold text-gray-100 text-base mb-2">
-                  {benefit.title}
-                </h4>
-                <p className="text-gray-200 text-sm leading-relaxed mb-3">
-                  {benefit.description}
-                </p>
-                
-                
-              </div>
-              
-              {/* Hover Effect Border */}
-              <div className={`absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-opacity-30 group-hover:border-linear-to-br ${benefit.linear} transition-all duration-300`}></div>
             </div>
-          ))}
-        </div>
+            
+            <div className="mb-4">
+              <span className="inline-flex items-center gap-2 text-xs font-bold text-blue-700 bg-blue-50 px-4 py-2 rounded-full border border-blue-200 shadow-sm">
+                <Trophy className="h-3 w-3 text-blue-600" />
+                EXCLUSIVE BENEFITS
+              </span>
+            </div>
+            
+            <h2 className="text-3xl md:text-4xl font-bold bg-linear-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent mb-2 tracking-tight">
+              Benefits That Make Sense
+            </h2>
+            
+            <p className="text-gray-700 max-w-2xl mx-auto text-base md:text-lg mb-6 leading-relaxed">
+              Experience gold loans redefined with customer-first benefits and complete transparency
+            </p>
+            
+            <div className="flex justify-center">
+              <div className="w-24 h-1 bg-linear-to-r from-blue-400 to-cyan-500 rounded-full"></div>
+            </div>
+          </div>
 
-        {/* Key Differentiators Section */}
-        <div className="mb-12">
-          <div className="text-center mb-6">
-            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+          {/* Benefits Grid - Compact spacing */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+            {benefits.map((benefit, index) => (
+              <div 
+                key={index}
+                className={`group relative overflow-hidden rounded-xl p-5 transition-all duration-300 hover:shadow-lg hover:scale-[1.01] ${benefit.bgColor} border ${benefit.borderColor} hover:border-opacity-60`}
+              >
+                {/* Content */}
+                <div className="relative">
+                  {/* Icon Container */}
+                  <div className={`inline-flex items-center justify-center p-3 rounded-lg ${benefit.iconBg} shadow-md mb-4`}>
+                    <benefit.icon className="h-5 w-5 text-white" />
+                  </div>
+                  
+                  {/* Stats Badge */}
+                  <div className={`absolute top-0 right-0 bg-white/90 text-xs font-bold px-3 py-1.5 rounded-full border ${benefit.borderColor}`}>
+                    <span className={`${benefit.textColor}`}>
+                      {benefit.stats}
+                    </span>
+                  </div>
+
+                  {/* Content */}
+                  <h4 className={`font-bold ${benefit.textColor} text-lg mb-2 group-hover:text-gray-900 transition-colors`}>
+                    {benefit.title}
+                  </h4>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    {benefit.description}
+                  </p>
+                </div>
+                
+                {/* Corner accent */}
+                <div className={`absolute top-0 right-0 w-8 h-8 bg-linear-to-bl ${benefit.iconBg} opacity-5 rounded-tr-xl`}></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Section 2: What Makes Us Different - Green/Gold linear */}
+      <div className="relative py-4 md:py-6 bg-linear-to-b from-gray-50 via-emerald-50 to-white">
+        <div className="container mx-auto px-4 sm:px-6 max-w-7xl relative z-10">
+          <div className="text-center mb-10 md:mb-12">
+            
+            <h3 className="text-2xl md:text-3xl font-bold bg-linear-to-r from-gray-900 to-emerald-800 bg-clip-text text-transparent mb-3 tracking-tight">
               What Makes Us Different
             </h3>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-700 max-w-2xl mx-auto text-base md:text-lg">
               Unique advantages that set us apart from traditional lenders
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             {keyDifferentiators.map((item, index) => (
               <div 
                 key={index}
-                className={`relative rounded-xl p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${item.bgColor} ${item.borderColor} border`}
+                className={`relative rounded-xl p-2 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${item.bgColor} border ${item.borderColor} hover:border-opacity-80 group`}
               >
-                {/* Icon with Background */}
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg ${item.iconColor} bg-white border ${item.borderColor} shadow-sm mb-3`}>
-                  <item.icon className="h-6 w-6" strokeWidth={2} />
+                {/* Icon with background */}
+                <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${item.iconBg} shadow-md mb-2`}>
+                  <item.icon className="h-6 w-6 text-white" strokeWidth={2.5} />
                 </div>
                 
                 {/* Content */}
-                <div className="space-y-2">
-                  <h4 className="font-bold text-gray-900 text-base">
+                <div className="space-y-1">
+                  <h4 className={`font-bold ${item.textColor} text-lg group-hover:text-gray-900 transition-colors`}>
                     {item.title}
                   </h4>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-gray-600 text-sm leading-relaxed">
                     {item.description}
                   </p>
                   
                   {/* Highlight Badge */}
-                  <div className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/80 backdrop-blur-sm rounded-full border border-white/50 shadow-sm">
-                    <span className="text-xs font-medium text-gray-700">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/80 rounded-full border border-white shadow-sm mt-2">
+                    <span className={`text-xs font-semibold ${item.textColor}`}>
                       {item.highlight}
                     </span>
                   </div>
                 </div>
                 
                 {/* Number Indicator */}
-                <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center">
-                  <span className="text-xs font-bold text-gray-600">
+                <div className={`absolute top-4 right-4 w-6 h-6 rounded-full ${item.iconBg} flex items-center justify-center shadow-sm`}>
+                  <span className="text-xs font-bold text-white">
                     {index + 1}
                   </span>
                 </div>
+
+                {/* Bottom accent */}
+                <div className={`absolute bottom-0 left-0 right-0 h-1 ${item.borderColor.replace('border-', 'bg-')} opacity-0 group-hover:opacity-50 transition-opacity duration-300 rounded-b-xl`}></div>
               </div>
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Comparison Table */}
-        <div className="bg-white rounded-xl p-4 md:p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-center mb-4 md:mb-6">
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-10 h-10 bg-linear-to-r from-amber-500 to-amber-600 rounded-lg mb-2">
-                <Target className="h-5 w-5 text-white" />
+      {/* Section 3: Comparison Table - White/Amber linear */}
+      <div className="relative py-4 md:py-6 bg-linear-to-b from-purple-50  to-purple-200">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-amber-400 to-orange-400"></div>
+        <div className="container mx-auto px-3 sm:px-5 max-w-7xl relative z-10">
+          {/* Comparison Table - Keep original as requested */}
+          <div className="bg-white rounded-xl p-3 md:p-4 border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-center mb-5 md:mb-6">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-10 h-10 bg-linear-to-r from-amber-500 to-orange-500 rounded-lg mb-2 shadow-sm">
+                  <Target className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
+                  Gold Loan vs Other Loans
+                </h3>
+                <p className="text-gray-600 text-sm">See why gold loans are the smarter choice</p>
               </div>
-              <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1">
-                Gold Loan vs Other Loans
-              </h3>
-              <p className="text-sm text-gray-600">See why gold loans are the smarter choice</p>
             </div>
-          </div>
-          
-          {/* Mobile View - Cards */}
-          <div className="md:hidden space-y-3">
-            {comparisonData.map((row, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
-                <div className="bg-gray-50 px-3 py-2 font-bold text-gray-900 text-sm border-b">
-                  {row.feature}
-                </div>
-                <div className="p-2 space-y-1.5">
-                  <div className="flex justify-between items-center bg-linear-to-r from-amber-50 to-amber-100 p-2 rounded border border-amber-200">
-                    <span className="text-xs font-medium text-gray-700">Gold Loan</span>
-                    <span className="text-sm font-bold text-amber-700 flex items-center">
-                      <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
-                      {row.goldLoan}
-                    </span>
+            
+            {/* Mobile View - Cards */}
+            <div className="sm:hidden space-y-3">
+              {comparisonData.map((row, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                  <div className="bg-linear-to-r from-gray-50 to-gray-100 px-3 py-2.5 font-bold text-gray-900 text-sm border-b border-gray-200">
+                    {row.feature}
                   </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                    <span className="text-xs text-gray-600">Personal Loan</span>
-                    <span className="text-sm text-gray-700">{row.personal}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                    <span className="text-xs text-gray-600">Credit Card</span>
-                    <span className="text-sm text-gray-700">{row.credit}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                    <span className="text-xs text-gray-600">Property Loan</span>
-                    <span className="text-sm text-gray-700">{row.property}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Desktop View - Enhanced Table */}
-          <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200">
-            <table className="w-full min-w-full">
-              <thead>
-                <tr className="bg-linear-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-bold text-gray-900 text-sm">Feature</th>
-                  <th className="text-center py-3 px-4 font-bold text-white bg-linear-to-r from-amber-500 to-amber-600 text-sm">
-                    <div className="flex items-center justify-center">
-                      <Zap className="h-4 w-4 mr-2" />
-                      Gold Loan
-                    </div>
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-600 text-sm bg-gray-50">Personal Loan</th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-600 text-sm bg-gray-50">Credit Card</th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-600 text-sm bg-gray-50">Property Loan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparisonData.map((row, rowIndex) => (
-                  <tr key={rowIndex} className={`border-b border-gray-100 ${rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-                    <td className="py-3 px-4 font-semibold text-gray-900 text-sm">
-                      {row.feature}
-                    </td>
-                    <td className="py-3 px-4 text-center bg-linear-to-r from-amber-50 to-amber-100">
-                      <div className="flex items-center justify-center font-bold text-amber-700 text-sm">
-                        <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                  <div className="p-3 space-y-2">
+                    <div className="flex justify-between items-center bg-linear-to-r from-amber-50 to-amber-100/80 p-2.5 rounded-lg border border-amber-200">
+                      <span className="text-sm font-semibold text-gray-800">Gold Loan</span>
+                      <span className="text-sm font-bold text-amber-700 flex items-center">
+                        <CheckCircle className="h-3 w-3 mr-1.5 text-green-500" />
                         {row.goldLoan}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+                      <span className="text-sm text-gray-700">Personal Loan</span>
+                      <span className="text-sm text-gray-700">{row.personal}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+                      <span className="text-sm text-gray-700">Credit Card</span>
+                      <span className="text-sm text-gray-700">{row.credit}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+                      <span className="text-sm text-gray-700">Property Loan</span>
+                      <span className="text-sm text-gray-700">{row.property}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View - Enhanced Table */}
+            <div className="hidden sm:block overflow-hidden rounded-lg border border-gray-200">
+              <table className="w-full min-w-full">
+                <thead>
+                  <tr className="bg-linear-to-r from-purple-50 to-gray-100 border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-bold text-gray-900 text-sm uppercase tracking-wider">Feature</th>
+                    <th className="text-center py-3 px-4 font-bold text-white bg-linear-to-r from-amber-500 to-amber-600 text-sm">
+                      <div className="flex items-center justify-center">
+                        <Zap className="h-4 w-4 mr-2" />
+                        Gold Loan
                       </div>
-                    </td>
-                    <td className="py-3 px-4 text-center text-gray-600 text-sm">
-                      {row.personal === 'Yes' ? (
-                        <span className="text-red-600 flex items-center justify-center">
-                          <X className="h-4 w-4 mr-1" />
-                          {row.personal}
-                        </span>
-                      ) : row.personal}
-                    </td>
-                    <td className="py-3 px-4 text-center text-gray-600 text-sm">
-                      {row.credit === 'Yes' ? (
-                        <span className="text-red-600 flex items-center justify-center">
-                          <X className="h-4 w-4 mr-1" />
-                          {row.credit}
-                        </span>
-                      ) : row.credit}
-                    </td>
-                    <td className="py-3 px-4 text-center text-gray-600 text-sm">
-                      {row.property === 'Yes' ? (
-                        <span className="text-red-600 flex items-center justify-center">
-                          <X className="h-4 w-4 mr-1" />
-                          {row.property}
-                        </span>
-                      ) : row.property}
-                    </td>
+                    </th>
+                    <th className="text-center py-3 px-4 font-medium text-gray-600 text-sm bg-gray-50">Personal Loan</th>
+                    <th className="text-center py-3 px-4 font-medium text-gray-600 text-sm bg-gray-50">Credit Card</th>
+                    <th className="text-center py-3 px-4 font-medium text-gray-600 text-sm bg-gray-50">Property Loan</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Conclusion */}
-          <div className="mt-4 p-3 bg-linear-to-r from-blue-50 to-amber-50 rounded-lg border border-amber-200">
-            <p className="text-sm text-gray-700 text-center">
-              <span className="font-bold text-amber-700">Bottom Line:</span> Gold loans are 
-              <span className="font-semibold text-gray-900"> faster, cheaper, and easier</span> to get than other loan options.
-            </p>
+                </thead>
+                <tbody>
+                  {comparisonData.map((row, rowIndex) => (
+                    <tr key={rowIndex} className={`border-b border-gray-100 ${rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                      <td className="py-3 px-4 font-semibold text-gray-900 text-sm">
+                        {row.feature}
+                      </td>
+                      <td className="py-3 px-4 text-center bg-linear-to-r from-amber-50/50 to-amber-100/50">
+                        <div className="flex items-center justify-center font-bold text-amber-700 text-sm">
+                          <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                          {row.goldLoan}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-center text-gray-600 text-sm">
+                        {row.personal === 'Yes' ? (
+                          <span className="text-red-600 flex items-center justify-center">
+                            <X className="h-4 w-4 mr-1" />
+                            {row.personal}
+                          </span>
+                        ) : row.personal}
+                      </td>
+                      <td className="py-3 px-4 text-center text-gray-600 text-sm">
+                        {row.credit === 'Yes' ? (
+                          <span className="text-red-600 flex items-center justify-center">
+                            <X className="h-4 w-4 mr-1" />
+                            {row.credit}
+                          </span>
+                        ) : row.credit}
+                      </td>
+                      <td className="py-3 px-4 text-center text-gray-600 text-sm">
+                        {row.property === 'Yes' ? (
+                          <span className="text-red-600 flex items-center justify-center">
+                            <X className="h-4 w-4 mr-1" />
+                            {row.property}
+                          </span>
+                        ) : row.property}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Conclusion */}
+            <div className="mt-5 p-3 bg-linear-to-r from-blue-50/80 to-amber-50/80 rounded-lg border border-amber-200/50">
+              <p className="text-sm text-gray-700 text-center">
+                <span className="font-bold text-amber-700">Bottom Line:</span> Gold loans are 
+                <span className="font-semibold text-gray-900"> faster, cheaper, and easier</span> to get than other loan options.
+              </p>
+            </div>
           </div>
         </div>
       </div>

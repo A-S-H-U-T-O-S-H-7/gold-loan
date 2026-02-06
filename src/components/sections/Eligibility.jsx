@@ -75,7 +75,7 @@ export default function Eligibility() {
   ];
 
   return (
-    <section className="py-8 md:py-10 bg-linear-to-b from-white  to-gray-50/80">
+    <section className="py-6 md:py-8 bg-linear-to-b from-white  to-gray-100">
       <div className="container mx-auto px-4">
         {/* Compact Header */}
         <div className="text-center mb-8">
@@ -111,10 +111,10 @@ export default function Eligibility() {
               {/* Solid Color Accent */}
               <div className={`absolute top-0 left-0 right-0 h-1 ${item.badgeColor}`}></div>
               
-              <div className="p-4">
+              <div className="p-3 md:p-4">
                 {/* Header with Icon */}
                 <div className="flex items-start mb-3">
-                  <div className={`p-2.5 rounded-lg bg-${item.color}-50`}>
+                  <div className={`p-2 rounded-lg bg-${item.color}-100`}>
                     <item.icon className={`h-5 w-5 ${item.iconColor}`} />
                   </div>
                   <div className="ml-3">
@@ -142,10 +142,10 @@ export default function Eligibility() {
                 </div>
                 
                 {/* Eligibility Badge */}
-                <div className="mt-4 pt-3 border-t border-gray-100">
-                  <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-green-50 border border-green-200">
-                    <div className={`w-6 h-6 ${item.badgeColor} rounded-full flex items-center justify-center mr-2`}>
-                      <CheckCircle className="h-3 w-3 text-white" />
+                <div className=" mt-2 md:mt-4 pt-1 md:pt-3 border-t border-gray-100">
+                  <div className="inline-flex items-center px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-green-50 border border-green-200">
+                    <div className={`w-5 h-5 md:w-6 md:h-6 ${item.badgeColor} rounded-full flex items-center justify-center mr-2`}>
+                      <CheckCircle className=" h-3 w-3  text-white" />
                     </div>
                     <span className="font-semibold text-green-700 text-sm">Eligible</span>
                   </div>
