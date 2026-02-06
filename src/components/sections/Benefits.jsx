@@ -223,7 +223,7 @@ export default function Benefits() {
               Benefits That Make Sense
             </h2>
             
-            <p className="text-gray-700 max-w-2xl mx-auto text-base md:text-lg mb-6 leading-relaxed">
+            <p className="text-gray-700 max-w-3xl mx-auto text-base md:text-lg mb-6 leading-relaxed">
               Experience gold loans redefined with customer-first benefits and complete transparency
             </p>
             
