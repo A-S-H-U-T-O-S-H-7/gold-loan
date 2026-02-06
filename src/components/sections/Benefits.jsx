@@ -199,7 +199,7 @@ export default function Benefits() {
 
   return (
     <section className="relative overflow-hidden">
-      {/* Section 1: Benefits That Make Sense - White/Blue linear */}
+      {/* Section 1: Benefits That Make Sense */}
       <div className="relative py-6  md:py-8 bg-linear-to-b from-white via-blue-50 to-blue-300">
         <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-300 to-cyan-300"></div>
         <div className="container mx-auto pb-8 px-4 sm:px-6 max-w-7xl relative z-10">

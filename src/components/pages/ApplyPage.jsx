@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export default function ApplyPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-100 via-white to-amber-50 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-linear-to-br from-amber-100 via-white to-amber-50 py-8 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 z-0 opacity-5">
         <div className="absolute inset-0" style={{
@@ -17,18 +17,18 @@ export default function ApplyPage() {
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Page Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex  items-center px-6 py-3 bg-gradient-to-r from-gray-400 to-gray-600 text-white rounded-full font-semibold mb-6 shadow-lg">
+        <div className="text-center mb-8 md:mb-12">
+          <div className="inline-flex  items-center px-4 md:px-6 py-3 bg-linear-to-r from-gray-400 to-gray-600 text-white rounded-full font-semibold mb-6 shadow-lg">
             <Zap className="h-5 w-5 mr-2" />
             <span>Get Pre-approved in 30 Seconds</span>
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+          <h1 className="text-4xl md:text-5xl  font-bold text-gray-900 mb-4 md:mb-6">
             Apply online for{' '}
-            <span className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent">
               Gold Loan
             </span>
           </h1>
-          <p className="text-gray-600 text-lg max-w-3xl mx-auto mb-8">
+          <p className="text-gray-600 text-md md:text-lg max-w-3xl mx-auto mb-8">
             Start your application online, visit branch with gold, and get cash in 60 minutes.
             No commitment until you accept the final offer.
           </p>
@@ -46,21 +46,21 @@ export default function ApplyPage() {
           {/* Right Column - Info Cards */}
           <div className="space-y-6">
             {/* Why Apply Online Card */}
-            <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl p-6 border border-gray-200 hover:shadow-2xl transition-shadow duration-300">
+            <div className="bg-linear-to-br from-white to-gray-50 rounded-2xl shadow-xl p-4 border border-gray-200 hover:shadow-2xl transition-shadow duration-300">
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4">
+                <div className=" w-10 h-10 md:w-12 md:h-12 bg-linear-to-br from-blue-500 to-blue-600 rounded-lg md:rounded-xl flex items-center justify-center mr-4">
                   <Zap className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900">Why Apply Online?</h3>
+                <h3 className= "text-xl md:text-2xl font-bold text-gray-900">Why Apply Online?</h3>
               </div>
               
-              <div className="space-y-5">
+              <div className=" space-y-2 md:space-y-5">
                 <div className="flex items-start group hover:bg-blue-50 p-3 rounded-lg transition">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:scale-110 transition">
                     <CheckCircle className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 text-lg mb-1">Pre-approval</h4>
+                    <h4 className="font-bold text-gray-900 text-md md:text-lg mb-1">Pre-approval</h4>
                     <p className="text-gray-600 text-sm">Know your eligibility instantly</p>
                   </div>
                 </div>
@@ -70,7 +70,7 @@ export default function ApplyPage() {
                     <Clock className="h-5 w-5 text-amber-600" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 text-lg mb-1">Skip Queues</h4>
+                    <h4 className="font-bold text-gray-900 text-md md:text-lg mb-1">Skip Queues</h4>
                     <p className="text-gray-600 text-sm">Fast-track processing at branch</p>
                   </div>
                 </div>
@@ -80,7 +80,7 @@ export default function ApplyPage() {
                     <UserCheck className="h-5 w-5 text-purple-600" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 text-lg mb-1">Dedicated Executive</h4>
+                    <h4 className="font-bold text-gray-900 text-md md:text-lg mb-1">Dedicated Executive</h4>
                     <p className="text-gray-600 text-sm">Personal assistance throughout</p>
                   </div>
                 </div>
@@ -88,12 +88,12 @@ export default function ApplyPage() {
             </div>
 
             {/* Branch Visit Info */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl shadow-xl p-2 md:p-4 border border-amber-200 hover:shadow-2xl transition-shadow duration-300">
+            <div className="bg-linear-to-br from-amber-50 to-orange-50 rounded-2xl shadow-xl p-2 md:p-4 border border-amber-200 hover:shadow-2xl transition-shadow duration-300">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center mr-4">
+                <div className=" w-8 h-8 md:w-12 md:h-12 bg-linear-to-br from-amber-500 to-amber-600 rounded-lg md:rounded-xl flex items-center justify-center mr-4">
                   <FileText className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900">Branch Visit Checklist</h3>
+                <h3 className=" text-xl md:text-2xl font-bold text-gray-900">Branch Visit Checklist</h3>
               </div>
               
               <div className="space-y-2">
@@ -127,9 +127,9 @@ export default function ApplyPage() {
         
 
      {/* Bottom CTA - Professional Emerald Theme */}
-<div className="mt-8 md:mt-12 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl p-6 md:p-8 text-center shadow-2xl border border-emerald-500/20 relative overflow-hidden">
+<div className="mt-8 md:mt-12 bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl p-6 md:p-8 text-center shadow-2xl border border-emerald-500/20 relative overflow-hidden">
   {/* Emerald accent */}
-  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-400"></div>
+  <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-emerald-400 via-green-400 to-emerald-400"></div>
   
   <div className="relative z-10">
     <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 text-white">
@@ -143,14 +143,14 @@ export default function ApplyPage() {
     <div className="flex flex-col sm:flex-row gap-4 justify-center">
       <Link
         href="/calculator"
-        className="bg-gradient-to-r from-emerald-600 to-green-500 text-white px-8 py-4 rounded-xl font-bold hover:from-emerald-700 hover:to-green-600 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] text-lg"
+        className="bg-linear-to-r from-emerald-600 to-green-500 text-white px-8 py-4 rounded-xl font-bold hover:from-emerald-700 hover:to-green-600 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] text-lg"
       >
         Calculate Loan Amount
       </Link>
       
       <Link
         href="/branches"
-        className="bg-gradient-to-r from-gray-800 to-gray-700 text-emerald-100 border border-emerald-500/30 px-8 py-4 rounded-xl font-bold hover:border-emerald-400 hover:bg-gray-700 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] text-lg"
+        className="bg-linear-to-r from-gray-800 to-gray-700 text-emerald-100 border border-emerald-500/30 px-8 py-4 rounded-xl font-bold hover:border-emerald-400 hover:bg-gray-700 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] text-lg"
       >
         Visit Nearest Branch
       </Link>

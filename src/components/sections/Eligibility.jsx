@@ -96,8 +96,7 @@ export default function Eligibility() {
           </h2>
           
           <p className="text-gray-600 max-w-2xl mx-auto text-base">
-            Get your gold loan with minimal requirements. No income proof, no CIBIL check, 
-            no employment verification needed.
+            Get your gold loan with minimal requirements.
           </p>
         </div>
 
