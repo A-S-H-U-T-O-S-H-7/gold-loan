@@ -22,8 +22,8 @@ export default function ProcessSteps() {
     {
       number: '01',
       icon: FileText,
-      title: 'Apply Online or Visit Branch',
-      description: 'Fill simple 2-minute form or walk into any of our 200+ branches',
+      title: 'Visit Branch',
+      description: 'walk into any of our branches',
       color: 'bg-blue-500',
       iconColor: 'text-blue-500',
     },
@@ -117,11 +117,11 @@ export default function ProcessSteps() {
             </span>
           </div>
           
-          <h2 className="text-2xl md:text-3xl font-bold mb-2">
-            <span className="bg-linear-to-r from-blue-600 via-amber-500 to-amber-600 bg-clip-text text-transparent">
-              Get Your Gold Loan in 6 Steps
-            </span>
+          
+            <h2 className="text-2xl md:text-3xl font-bold text-blue-900 mb-3">
+            Get Your Gold Loan in <span className="text-amber-600">6 Steps</span>
           </h2>
+          
           
           <p className="text-gray-600 max-w-2xl mx-auto text-sm md:text-base">
             Complete process in <span className="font-bold text-amber-600">under 60 minutes</span>
@@ -231,7 +231,7 @@ export default function ProcessSteps() {
             </div>
             
             {/* Compact Buttons */}
-            <div className="flex flex-col  sm:flex-row gap-2 justify-center mb-4">
+            <div className="flex flex-col  sm:flex-row gap-2 justify-center items-center mb-4">
               <Link href="/apply">
               <button className="px-5 py-2.5 cursor-pointer bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-1.5">
                 <FileText className="h-4 w-4" />

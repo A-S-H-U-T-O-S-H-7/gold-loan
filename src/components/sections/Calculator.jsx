@@ -39,11 +39,11 @@ export default function GoldCalculator() {
   };
 
   return (
-    <section className="py-6 md:py-8 bg-gradient-to-b from-gray-50 to-white">
+    <section className="py-6 md:py-8 bg-linear-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4 w-full ">
         {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 text-amber-700 mb-4">
+        <div className="text-center mb-8 md:mb-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 md:py-2.5 rounded-full bg-linear-to-r from-amber-50 to-orange-50 border border-amber-200 text-amber-700 mb-4">
             <Sparkles className="h-4 w-4" />
             <span className="text-sm font-semibold">Gold Loan Calculator</span>
           </div>
@@ -66,8 +66,8 @@ export default function GoldCalculator() {
                     <Scale className="h-6 w-6 text-amber-600" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">Gold Weight</h3>
-                    <p className="text-sm text-gray-500">Enter weight in grams</p>
+                    <h3 className=" text-lg md:text-xl font-bold text-gray-900">Gold Weight</h3>
+                    <p className=" text-sm text-gray-500">Enter weight in grams</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -76,13 +76,13 @@ export default function GoldCalculator() {
                 </div>
               </div>
               
-              <div className="relative text-gray-800">
+              <div className="relative  text-gray-800">
                 <input
                   type="number"
                   value={weight}
                   onChange={(e) => setWeight(e.target.value)}
                   placeholder="Enter gold weight"
-                  className="w-full px-6 py-2 text-xl font-semibold bg-gray-50 border-2 border-gray-200 text-gray-800 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-100 transition-all outline-none"
+                  className="w-full px-4 md:px-6 py-1 md:py-2 text-lg md:text-xl font-semibold bg-gray-50 border-2 border-gray-200 text-gray-800 rounded-lg md:rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-100 transition-all outline-none"
                   min="1"
                   max="1000"
                   step="0.1"
@@ -90,12 +90,12 @@ export default function GoldCalculator() {
                 <div className="absolute right-4 top-1/2 -translate-y-1/2  font-medium">grams</div>
               </div>
               
-              <div className="grid grid-cols-4 gap-3 mt-6">
+              <div className="grid grid-cols-4 gap-2 md:gap-3 mt-4 md:mt-6">
                 {[10, 20, 50, 100].map((value) => (
                   <button
                     key={value}
                     onClick={() => setWeight(value.toString())}
-                    className={`py-2 rounded-xl font-semibold transition-all ${weight === value.toString()
+                    className={`py-1 md:py-2 rounded-lg md:rounded-xl font-semibold transition-all ${weight === value.toString()
                         ? 'bg-amber-500 text-white shadow-lg shadow-amber-200'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
@@ -210,7 +210,7 @@ export default function GoldCalculator() {
           {/* Right: Results Panel */}
           <div className="space-y-3">
             {/* Loan Amount Card */}
-            <div className="bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white rounded-2xl px-4 py-2 md:px-6 md:py-3 shadow-2xl relative overflow-hidden">
+            <div className="bg-linear-to-br from-amber-500 via-amber-600 to-orange-600 text-white rounded-2xl px-4 py-2 md:px-6 md:py-3 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
               <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full translate-y-20 -translate-x-20"></div>
               
@@ -264,7 +264,7 @@ export default function GoldCalculator() {
                   </div>
 
                   <Link  href="/apply">
-                  <button className="w-full mt-3 cursor-pointer bg-white text-amber-600 py-2 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center group">
+                  <button className="w-full mt-3 cursor-pointer bg-white text-amber-600 py-1 md:py-2 rounded-lg md:rounded-xl font-bold text-lg hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center group">
                     Apply Now
                     <ChevronRight className="h-5 w-5 ml-2  group-hover:translate-x-1 transition-transform" />
                   </button>
@@ -293,11 +293,11 @@ export default function GoldCalculator() {
       { icon: IndianRupee, text: 'No Hidden Charges', color: 'text-amber-600' },
       { icon: Percent, text: 'Lowest Interest Rates', color: 'text-purple-600' },
     ].map((item, index) => (
-      <div key={index} className="flex items-center gap-1 px-1 py-1 bg-gradient-to-r from-gray-50 to-white border border-gray-200 shadow-sm hover:shadow-md hover:border-amber-200 rounded-xl transition-all duration-300">
+      <div key={index} className="flex items-center gap-1 px-1 py-1 bg-linear-to-r from-gray-50 to-white border border-gray-200 shadow-sm hover:shadow-md hover:border-amber-200 rounded-xl transition-all duration-300">
         <div className={`p-2 rounded-lg ${item.color.replace('text-', 'bg-')}/20`}>
           <item.icon className={`h-5 w-5 ${item.color}`} />
         </div>
-        <span className="text-gray-800 font-semibold text-sm md:text-base">{item.text}</span>
+        <span className="text-gray-800 font-semibold text-sm">{item.text}</span>
       </div>
     ))}
   </div>
@@ -305,20 +305,20 @@ export default function GoldCalculator() {
   {/* Stats Section - 2 columns grid */}
   <div className="mt-3 md:mt-1 pt-2 border-t border-gray-200">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-      <div className="flex items-center justify-between px-1 py-1 bg-gradient-to-r from-green-50 to-white border border-green-100 rounded-xl shadow-sm">
+      <div className="flex text-sm items-center justify-between px-1 py-1 bg-linear-to-r from-green-50 to-white border border-green-100 rounded-lg md:rounded-xl shadow-sm">
         <div className="flex items-center gap-1">
           <IndianRupee className="h-5 w-5 text-green-600" />
           <span className="text-gray-600 font-medium">Processing Fee</span>
         </div>
-        <span className="font-bold text-green-700 text-lg">0% - 1%</span>
+        <span className="font-bold text-green-700 text-sm">0% - 1%</span>
       </div>
       
-      <div className="flex items-center justify-between px-1 py-1 bg-gradient-to-r from-blue-50 to-white border border-blue-100 rounded-xl shadow-sm">
+      <div className="flex text-sm items-center justify-between px-1 py-1 bg-linear-to-r from-blue-50 to-white border border-blue-100 rounded-xl shadow-sm">
         <div className="flex items-center gap-1">
           <Calendar className="h-5 w-5 text-blue-600" />
           <span className="text-gray-600 font-medium">Tenure</span>
         </div>
-        <span className="font-bold text-blue-700 text-lg">3 to 36 Months</span>
+        <span className="font-bold text-blue-700 text-sm">3 to 36 Months</span>
       </div>
     </div>
   </div>

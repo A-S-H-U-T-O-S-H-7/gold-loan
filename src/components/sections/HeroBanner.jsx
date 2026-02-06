@@ -98,7 +98,7 @@ export default function HeroBanner() {
             <div className="relative w-full max-w-lg mx-auto lg:max-w-none">
               <div className="relative aspect-square overflow-hidden rounded-2xl transform lg:translate-x-4 ">
                 <Image
-                  src="/heromodel4.png"
+                  src="/heromodel1.png"
                   alt="Gold Loan Services"
                   fill
                   className='object-contain'
