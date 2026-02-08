@@ -1,11 +1,10 @@
-
-import ApplyPage from '@/components/pages/apply/ApplyPage'
+import ProfileLayout from '@/components/profile/layout/ProfileLayout'
 import React from 'react'
 
 function page() {
   return (
     <div>
-      <ApplyPage/>
+      <ProfileLayout/>
     </div>
   )
 }

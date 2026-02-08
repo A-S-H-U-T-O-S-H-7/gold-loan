@@ -13,8 +13,8 @@ export default function Header() {
 
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '/about', label: 'About Us' },
-    { href: '/contact', label: 'Contact Us' },
+    { href: '/about-us', label: 'About Us' },
+    { href: '/contact-us', label: 'Contact Us' },
   ];
 
   const learnLinks = [
@@ -151,6 +151,13 @@ export default function Header() {
                 className="bg-linear-to-r from-amber-500 to-amber-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all hover:scale-105"
               >
                 Apply Now
+              </Link>
+
+              <Link
+                href="/profile"
+                className="bg-linear-to-r from-amber-500 to-amber-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all hover:scale-105"
+              >
+                Profile
               </Link>
               
             </div>

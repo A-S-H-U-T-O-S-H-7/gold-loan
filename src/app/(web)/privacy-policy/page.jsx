@@ -1,11 +1,10 @@
-
-import ApplyPage from '@/components/pages/apply/ApplyPage'
+import PrivacyPolicy from '@/components/pages/PrivacyPolicies'
 import React from 'react'
 
 function page() {
   return (
     <div>
-      <ApplyPage/>
+      <PrivacyPolicy/>
     </div>
   )
 }

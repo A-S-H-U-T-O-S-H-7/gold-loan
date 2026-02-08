@@ -1,11 +1,10 @@
-
-import ApplyPage from '@/components/pages/apply/ApplyPage'
+import FAQs from '@/components/pages/FAQ'
 import React from 'react'
 
 function page() {
   return (
     <div>
-      <ApplyPage/>
+      <FAQs/>
     </div>
   )
 }
