@@ -54,7 +54,7 @@ export default function LoginPage() {
               <input
                 type="tel"
                 placeholder="Enter mobile number"
-                className="flex-1 h-full px-4 border border-gray-300 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="flex-1 text-gray-900 h-full px-4 border border-gray-300 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 maxLength="10"
                 inputMode="numeric"
               />
