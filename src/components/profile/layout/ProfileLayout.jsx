@@ -6,6 +6,7 @@ import LoanCard from '../sections/LoanCard';
 import LoanHistory from '../sections/LoanHistory';
 import ReferEarn from '../sections/ReferEarn';
 import Footer from '@/components/layout/Footer';
+import ReviewSection from '../sections/ReviewSection';
 
 export default function ProfilePage() {
   return (
@@ -18,6 +19,7 @@ export default function ProfilePage() {
           <div className="lg:col-span-1">
             <PersonalInfo/>
             <QuickActions />
+            <ReviewSection/>
           </div>
         
         <div className="lg:col-span-2">

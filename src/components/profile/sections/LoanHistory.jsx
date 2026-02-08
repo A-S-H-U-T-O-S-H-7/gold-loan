@@ -29,46 +29,46 @@ export default function LoanHistory() {
       interestPaid: 'INR 28,500',
       closureDate: '12 Sep 2024'
     },
-    {
-      id: 'GL20230607890',
-      amount: 'INR 1,25,000',
-      type: 'Gold Loan',
-      date: '07 Jun 2023',
-      tenure: '3 months',
-      status: 'Closed',
-      interestPaid: 'INR 3,375',
-      closureDate: '07 Sep 2023'
-    },
-    {
-      id: 'GL20230304567',
-      amount: 'INR 2,50,000',
-      type: 'Gold Loan',
-      date: '04 Mar 2023',
-      tenure: '6 months',
-      status: 'Closed',
-      interestPaid: 'INR 12,000',
-      closureDate: '04 Sep 2023'
-    },
-    {
-      id: 'GL20221120123',
-      amount: 'INR 2,00,000',
-      type: 'Gold Loan',
-      date: '20 Nov 2022',
-      tenure: '9 months',
-      status: 'Closed',
-      interestPaid: 'INR 15,800',
-      closureDate: '20 Aug 2023'
-    },
-    {
-      id: 'GL20220815789',
-      amount: 'INR 1,50,000',
-      type: 'Gold Loan',
-      date: '15 Aug 2022',
-      tenure: '6 months',
-      status: 'Closed',
-      interestPaid: 'INR 7,200',
-      closureDate: '15 Feb 2023'
-    }
+    // {
+    //   id: 'GL20230607890',
+    //   amount: 'INR 1,25,000',
+    //   type: 'Gold Loan',
+    //   date: '07 Jun 2023',
+    //   tenure: '3 months',
+    //   status: 'Closed',
+    //   interestPaid: 'INR 3,375',
+    //   closureDate: '07 Sep 2023'
+    // },
+    // {
+    //   id: 'GL20230304567',
+    //   amount: 'INR 2,50,000',
+    //   type: 'Gold Loan',
+    //   date: '04 Mar 2023',
+    //   tenure: '6 months',
+    //   status: 'Closed',
+    //   interestPaid: 'INR 12,000',
+    //   closureDate: '04 Sep 2023'
+    // },
+    // {
+    //   id: 'GL20221120123',
+    //   amount: 'INR 2,00,000',
+    //   type: 'Gold Loan',
+    //   date: '20 Nov 2022',
+    //   tenure: '9 months',
+    //   status: 'Closed',
+    //   interestPaid: 'INR 15,800',
+    //   closureDate: '20 Aug 2023'
+    // },
+    // {
+    //   id: 'GL20220815789',
+    //   amount: 'INR 1,50,000',
+    //   type: 'Gold Loan',
+    //   date: '15 Aug 2022',
+    //   tenure: '6 months',
+    //   status: 'Closed',
+    //   interestPaid: 'INR 7,200',
+    //   closureDate: '15 Feb 2023'
+    // }
   ];
 
   const filteredLoans =
