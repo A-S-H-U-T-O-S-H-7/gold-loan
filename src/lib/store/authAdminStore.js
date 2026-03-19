@@ -5,6 +5,14 @@ import { persist } from "zustand/middleware";
 
 const encodeToken = (token) => (token ? btoa(token) : null);
 const decodeToken = (encoded) => (encoded ? atob(encoded) : null);
+const getLoggedOutState = () => ({
+  token: null,
+  user: null,
+  permissions: null,
+  isAuthenticated: false,
+  loading: false,
+  error: null,
+});
 
 export const useAdminAuthStore = create(
   persist(
@@ -40,15 +48,18 @@ export const useAdminAuthStore = create(
         }
       },
       
-      logout: () => {
-        set({
-          token: null,
-          user: null,
-          permissions: null,
-          isAuthenticated: false,
-          loading: false,
-          error: null,
-        });
+      logout: async () => {
+        const token = get().getToken();
+
+        try {
+          if (token) {
+            await api.get("/crm/logout");
+          }
+        } catch (err) {
+          console.error("Logout API failed:", err.response?.data?.message || err.message);
+        } finally {
+          set(getLoggedOutState());
+        }
       },
       
       setUser: (user) => set({ user }),

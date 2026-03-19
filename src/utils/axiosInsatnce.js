@@ -2,13 +2,13 @@ import axios from "axios";
 import { useAdminAuthStore } from "@/lib/store/authAdminStore";
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || "https://live.atdmoney.com/api/",
+    baseURL: process.env.NEXT_PUBLIC_API_URL || "https://api.atdmoney.in/api/",
     timeout: 10000,
 });
 
 // Helper to check if the request is authentication-related
 const isAuthRequest = (url) => {
-    const authEndpoints = ['/crm/login', '/login', '/auth', '/signin'];
+    const authEndpoints = ['/crm/login', '/crm/logout', '/login', '/auth', '/signin'];
     return authEndpoints.some(endpoint => url.includes(endpoint));
 };
 

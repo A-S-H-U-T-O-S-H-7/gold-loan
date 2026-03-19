@@ -49,6 +49,17 @@ export const adminService = {
     return await api.get(`/crm/admin/status/${id}`);
   },
 
+  //get branch options for admin assignment
+  getAdminBranches: async () => {
+    const response = await api.get('/crm/admin/branch');
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to fetch branches');
+    }
+
+    return response;
+  },
+
   //get persmission of specific admin
   getPermissions: async (adminId) => {
     const response = await api.get(`/crm/admin/edit/${adminId}`);
@@ -72,6 +83,8 @@ export const adminService = {
 
 export const formatAdminForUI = (admin) => ({
   id: admin.id,
+  branchId: admin.branch_id ?? admin.branch?.id ?? '',
+  branchName: admin.branch_name || admin.branch?.branch_name || 'N/A',
   username: admin.username || '',
   name: admin.name || '',
   email: admin.email || '',

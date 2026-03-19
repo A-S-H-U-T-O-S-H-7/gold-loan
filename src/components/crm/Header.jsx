@@ -10,8 +10,8 @@ const AdminHeader = () => {
   const { user, logout } = useAdminAuthStore();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const router = useRouter()
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setDropdownOpen(false);
     router.replace("/crm");
   };

@@ -18,9 +18,10 @@ const adminSchema = Yup.object().shape({
     .transform((value) => (value === '' ? null : value))
     .min(8, 'Password must be at least 8 characters')
     .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-      'Password must contain uppercase, lowercase, number and special character'
+      /^(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).+$/,
+      'Password must contain lowercase, number and special character'
     ),
+  branch_id: Yup.string().required('Branch is required'),
   name: Yup.string()
     .required('Full name is required')
     .min(3, 'Name must be at least 3 characters')
@@ -33,7 +34,7 @@ const adminSchema = Yup.object().shape({
   phone: Yup.string()
     .nullable()
     .transform((value) => (value === '' ? null : value))
-    .matches(/^[0-9+\s()-]*$/, 'Please enter a valid phone number'),
+    .matches(/^\d{10}$/, 'Phone number must be exactly 10 digits'),
   type: Yup.string()
     .required('Admin type is required')
     .oneOf(['user', 'verifier', 'account', 'manager', 'admin', 'superadmin', 'collection', 'agency']),
@@ -70,11 +71,12 @@ const AdminForm = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
   const [usernameAvailable, setUsernameAvailable] = useState(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
   const [backendErrors, setBackendErrors] = useState({});
+  const [branches, setBranches] = useState([]);
+  const [isLoadingBranches, setIsLoadingBranches] = useState(false);
   const fileInputRef = useRef(null);
 
   const getInitialValues = () => {
@@ -82,6 +84,7 @@ const AdminForm = ({
       return {
         username: initialData.username || '',
         password: '',
+        branch_id: initialData.branchId?.toString() || '',
         name: initialData.name || '',
         email: initialData.email || '',
         phone: initialData.phone || '',
@@ -93,6 +96,7 @@ const AdminForm = ({
     return {
       username: '',
       password: '',
+      branch_id: '',
       name: '',
       email: '',
       phone: '',
@@ -101,6 +105,35 @@ const AdminForm = ({
       selfie: null
     };
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadBranches = async () => {
+      try {
+        setIsLoadingBranches(true);
+        const response = await adminService.getAdminBranches();
+
+        if (isMounted) {
+          setBranches(response.data || []);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setBranches([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingBranches(false);
+        }
+      }
+    };
+
+    loadBranches();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (initialData?.selfieUrl) {
@@ -136,6 +169,12 @@ const AdminForm = ({
       await handleSubmit(values);
     }
   });
+
+  useEffect(() => {
+    if (initialData) {
+      formik.setFieldValue('branch_id', initialData.branchId?.toString() || '', false);
+    }
+  }, [initialData, branches]);
 
   const checkUsername = async (username) => {
     if (!username || username.length < 3) {
@@ -212,6 +251,7 @@ const AdminForm = ({
       const formData = new FormData();
       
       formData.append('username', values.username || '');
+      formData.append('branch_id', values.branch_id || '');
       formData.append('name', values.name || '');
       formData.append('type', values.type || 'user');
       formData.append('isActive', values.isActive || '1');
@@ -228,6 +268,8 @@ const AdminForm = ({
       }
       
       await onSubmit(formData);
+
+      toast.success(isEditMode ? 'Admin updated successfully!' : 'Admin added successfully!');
       
       if (!isEditMode) {
         formik.resetForm();
@@ -278,9 +320,17 @@ const AdminForm = ({
   };
 
   const handleFieldChange = (e) => {
-    formik.handleChange(e);
+    const { name, value } = e.target;
+    const fieldName = name;
+
+    if (fieldName === 'phone') {
+      const sanitizedPhone = value.replace(/\D/g, '').slice(0, 10);
+      formik.setFieldValue('phone', sanitizedPhone);
+    } else {
+      formik.handleChange(e);
+    }
+
     // Clear backend error for this field when user starts typing
-    const fieldName = e.target.name;
     if (backendErrors[fieldName]) {
       setBackendErrors(prev => {
         const newErrors = { ...prev };
@@ -429,6 +479,35 @@ const AdminForm = ({
                   isDark ? 'text-gray-100' : 'text-gray-700'
                 }`}>
                   <div className="p-1.5 rounded-md bg-crm-primary-soft">
+                    <Shield className="w-4 h-4 text-crm-primary-strong" />
+                  </div>
+                  <span>Branch *</span>
+                </label>
+                <select
+                  name="branch_id"
+                  value={formik.values.branch_id}
+                  onChange={handleFieldChange}
+                  onBlur={formik.handleBlur}
+                  disabled={isLoadingBranches}
+                  className={`${inputClasses} ${getErrorMessage('branch_id') ? 'border-red-500' : ''}`}
+                >
+                  <option value="">{isLoadingBranches ? 'Loading branches...' : 'Select branch'}</option>
+                  {branches.map((branch) => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.branch_name}
+                    </option>
+                  ))}
+                </select>
+                {getErrorMessage('branch_id') && (
+                  <p className="mt-1 text-xs text-red-500">{getErrorMessage('branch_id')}</p>
+                )}
+              </div>
+
+              <div>
+                <label className={`flex items-center space-x-2 text-sm font-bold mb-2 ${
+                  isDark ? 'text-gray-100' : 'text-gray-700'
+                }`}>
+                  <div className="p-1.5 rounded-md bg-crm-primary-soft">
                     <User className="w-4 h-4 text-crm-primary-strong" />
                   </div>
                   <span>Full Name *</span>
@@ -480,12 +559,14 @@ const AdminForm = ({
                   <span>Phone Number</span>
                 </label>
                 <input
-                  type="text"
+                  type="tel"
                   name="phone"
                   value={formik.values.phone || ''}
                   onChange={handleFieldChange}
                   onBlur={formik.handleBlur}
-                  placeholder="+91 9876543210"
+                  inputMode="numeric"
+                  maxLength={10}
+                  placeholder="Enter 10-digit mobile number"
                   className={`${inputClasses} ${getErrorMessage('phone') ? 'border-red-500' : ''}`}
                 />
                 {getErrorMessage('phone') && (

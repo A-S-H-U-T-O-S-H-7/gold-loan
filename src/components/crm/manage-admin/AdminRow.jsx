@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { User, Mail, Phone, Shield, UserCheck, Calendar, Edit2, Key, CheckCircle, XCircle, Power, Lock } from 'lucide-react';
+import { User, Mail, Phone, Building2, Calendar, Edit2, CheckCircle, XCircle, Power, Lock } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Swal from 'sweetalert2';
 
@@ -90,7 +90,6 @@ const AdminRow = ({ admin, index, isDark, onEdit, onToggleStatus, onOpenPermissi
       try {
         setIsTogglingStatus(true);
         await onToggleStatus(admin.id);
-        toast.success(`Admin ${actionText}d successfully!`);
       } catch (error) {
         toast.error(`Failed to ${actionText} admin. Please try again.`);
         console.error('Error toggling admin status:', error);
@@ -160,6 +159,14 @@ const AdminRow = ({ admin, index, isDark, onEdit, onToggleStatus, onOpenPermissi
               )}
             </div>
           </div>
+        </div>
+      </td>
+
+      {/* Branch */}
+      <td className={`${cellStyle} text-left`}>
+        <div className="flex items-center space-x-2">
+          <Building2 className={iconBlue} />
+          <span className={`text-sm ${textSecondary}`}>{admin.branchName || 'N/A'}</span>
         </div>
       </td>
 

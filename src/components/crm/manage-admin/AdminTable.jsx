@@ -29,6 +29,7 @@ const AdminTable = ({
           <tr>
             <th className={styles.headerClass} style={{ minWidth: "60px" }}>S.No.</th>
             <th className={styles.headerClass} style={{ minWidth: "250px" }}>Admin Details</th>
+            <th className={styles.headerClass} style={{ minWidth: "180px" }}>Branch</th>
             <th className={styles.headerClass} style={{ minWidth: "200px" }}>Contact</th>
             <th className={styles.headerClass} style={{ minWidth: "180px" }}>Added Details</th>
             <th className={styles.headerClass} style={{ minWidth: "100px" }}>Status</th>
@@ -38,7 +39,7 @@ const AdminTable = ({
         <tbody>
           {isLoading ? (
             <tr>
-              <td colSpan="6" className="px-4 py-8 text-center">
+              <td colSpan="7" className="px-4 py-8 text-center">
                 <div className="flex items-center justify-center space-x-2">
                   <Loader className="w-5 h-5 animate-spin" />
                   <span className={isDark ? "text-gray-300" : "text-gray-600"}>

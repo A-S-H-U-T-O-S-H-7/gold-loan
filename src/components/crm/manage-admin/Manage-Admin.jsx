@@ -9,7 +9,6 @@ import AdminTable from './AdminTable';
 import PermissionsModal from './PermissionsModal';
 import { adminService, formatAdminForUI } from '@/lib/services/AdminServices';
 import Pagination from '../Pagination';
-import { useAdminAuthStore } from '@/lib/store/authAdminStore';
 
 const ManageAdminPage = () => {
   const { theme } = useThemeStore();
@@ -123,20 +122,6 @@ const ManageAdminPage = () => {
 
   const handleSubmitAdmin = async (formData) => {
     try {
-      const { user: currentAdmin } = useAdminAuthStore.getState();
-      
-      if (currentAdmin?.id) {
-        formData.append('admin_id', currentAdmin.id);
-      }
-      
-      if (!isEditMode && currentAdmin?.id) {
-        formData.append('created_by', currentAdmin.id);
-      }
-      
-      if (isEditMode && selectedAdmin) {
-        formData.append('id', selectedAdmin.id);
-      }
-      
       if (isEditMode && selectedAdmin) {
         await adminService.updateAdmin(selectedAdmin.id, formData);
       } else {
@@ -173,7 +158,7 @@ const ManageAdminPage = () => {
       const response = await adminService.toggleStatus(id);
       if (response.success) {
         await fetchAdmins(currentPage, searchTerm, filterType, filterStatus);
-        toast.success('Status updated successfully!');
+        toast.success(response.message || "Status updated successfully!");
       } else {
         throw new Error(response.message || "Failed to update status");
       }
