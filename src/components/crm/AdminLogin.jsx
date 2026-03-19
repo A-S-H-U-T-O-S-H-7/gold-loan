@@ -7,7 +7,7 @@ import { useAdminAuthStore } from '@/lib/store/authAdminStore'
 
 const AdminLogin = () => {
   const { theme, toggleTheme } = useThemeStore();
-  const { isAuthenticated, loading, error, login, permissions } = useAdminAuthStore();
+  const { isAuthenticated, loading, error, login } = useAdminAuthStore();
   const router = useRouter()
   const [formData, setFormData] = useState({
     username: '',
@@ -15,10 +15,10 @@ const AdminLogin = () => {
   })
 
   useEffect(() => {
-    if (isAuthenticated && permissions) {
+    if (isAuthenticated) {
       router.replace("/crm/dashboard");
     }
-  }, [isAuthenticated, permissions, router]);
+  }, [isAuthenticated, router]);
 
   const handleInputChange = (e) => {
     setFormData(prev => ({
@@ -30,7 +30,6 @@ const AdminLogin = () => {
   const handleLogin = (e) => {
     e.preventDefault();
     login({
-      provider: 1,
       username: formData.username,
       password: formData.password
     });

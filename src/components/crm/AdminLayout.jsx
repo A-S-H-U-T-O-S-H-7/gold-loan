@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 import AdminHeader from './Header'
 import Sidebar from './Sidebar'
 import Footer from './Footer'
+import { Toaster } from 'react-hot-toast'
 import { useAdminAuthStore } from '@/lib/store/authAdminStore'
 import { useThemeStore } from '@/lib/store/useThemeStore'
 import { useRouter } from 'next/navigation'
@@ -32,6 +33,7 @@ const AdminLayout = ({ children }) => {
 
   return (
     <div className={`min-h-screen ${theme === "dark" ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
+      <Toaster position="top-right" />
       <AdminHeader />
       <Sidebar />
       <main className="ml:0 md:ml-20 pt-20 min-h-screen">

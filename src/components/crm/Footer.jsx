@@ -10,7 +10,7 @@ const Footer = () => {
   return (
     <footer className={`py-2 px-4 border-t transition-colors duration-300 ${theme === "dark"
       ? 'bg-gray-900 border-gray-700 text-gray-300'
-      : 'bg-gray-100 border-emerald-400 text-gray-600'
+      : 'bg-crm-accent-soft border-crm-border-strong text-gray-600'
       }`}>
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col items-center justify-center space-y-2">
@@ -26,3 +26,4 @@ const Footer = () => {
 };
 
 export default Footer;
+

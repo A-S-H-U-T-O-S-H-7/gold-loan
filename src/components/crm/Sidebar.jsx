@@ -11,9 +11,6 @@ import {
   MdReviews, MdReportProblem, MdOutlineAccessTimeFilled, MdFlashAuto, MdOutlineQrCode2,
   MdAssignmentTurnedIn, MdCreditScore, MdPendingActions, MdDoneAll, MdCancel, MdMenuBook,
   MdDownload, MdSupportAgent, MdAttachMoney, MdOutlineHistoryEdu, MdSettings, MdAccountBalance,
-  MdOutlineSwapHorizontalCircle,
-  MdOutlineDescription,
-  MdOutlineSettings
 } from "react-icons/md";
 import { SiBlogger } from "react-icons/si";
 import { RiAccountPinBoxFill, RiAdminFill } from "react-icons/ri";
@@ -214,31 +211,17 @@ const allMenuItems = [
         permissionKey: 'manage_bank'
       },
       { 
+        name: 'Manage Branches', 
+        link: '/crm/manage-branch', 
+        icon: <MdAccountBalance />,
+        permissionKey: 'manage_branch'
+      },
+      { 
         name: 'Manage Admin', 
         link: '/crm/manage-admin', 
         icon: <RiAdminFill />,
         // permissionKey: 'manage_admin'
       },
-    ]
-  },
-  {
-    name: 'Migration Settings',
-    icon: <MdOutlineSettings />,
-    isDropdown: true,
-    subItems: [
-      { 
-        name: 'Users Migration', 
-        link: '/crm/users-migration', 
-        icon: <MdOutlineSwapHorizontalCircle/>,
-        
-      },
-      { 
-        name: 'Application', 
-        link: '/crm/application', 
-        icon: <MdOutlineDescription />,
-        
-      },
-      
     ]
   },
   {
@@ -349,7 +332,7 @@ const allMenuItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { theme } = useThemeStore();
-  const { hasPermission } = useAdminAuthStore();
+  const { hasPermission, permissions } = useAdminAuthStore();
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -362,6 +345,10 @@ export default function Sidebar() {
 
   // Filter menu based on user permissions
   const filteredMenu = useMemo(() => {
+    if (!permissions) {
+      return allMenuItems;
+    }
+
     return allMenuItems
       .map(item => {
         // Handle dropdown items
@@ -383,7 +370,7 @@ export default function Sidebar() {
         return hasPermission(item.permissionKey) ? item : null;
       })
       .filter(Boolean);
-  }, [hasPermission]);
+  }, [hasPermission, permissions]);
 
   const toggleDropdown = (itemName) => {
     setOpenDropdowns(prev => ({
@@ -412,8 +399,8 @@ export default function Sidebar() {
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         className={`fixed top-3 left-4 z-[50] lg:hidden p-3 rounded-xl shadow-lg transition-all duration-300 ${theme === "dark"
-          ? 'bg-gray-800/90 hover:bg-gray-700/90 text-emerald-400 border border-gray-600'
-          : 'bg-white/90 hover:bg-emerald-50/90 text-emerald-600 border border-emerald-200'
+          ? 'bg-gray-800/90 hover:bg-gray-700/90 text-crm-primary-strong border border-gray-600'
+          : 'bg-white/90 hover:bg-crm-accent-soft text-crm-primary-strong border border-crm-border'
           } backdrop-blur-sm`}
       >
         {isMobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
@@ -431,7 +418,7 @@ export default function Sidebar() {
       <div
         className={`fixed top-0 left-0 h-full shadow-xl z-50 transition-all duration-300 ease-in-out ${theme === "dark"
           ? 'bg-gray-900/95 text-white border-r border-gray-700'
-          : 'bg-white/98 text-gray-900 border-r border-emerald-200'
+          : 'bg-white/98 text-gray-900 border-r border-crm-border'
           } backdrop-blur-md ${isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64'
           } lg:translate-x-0 ${isExpanded ? 'lg:w-74' : 'lg:w-20'
           } flex flex-col overflow-hidden`}
@@ -439,7 +426,7 @@ export default function Sidebar() {
         onMouseLeave={() => setIsExpanded(false)}
       >
         {/* Logo Section */}
-        <div className={`flex items-center justify-between px-4 py-6 border-b transition-all duration-200 ${theme === "dark" ? 'border-gray-700' : 'border-emerald-100'}`}>
+        <div className={`flex items-center justify-between px-4 py-6 border-b transition-all duration-200 ${theme === "dark" ? 'border-gray-700' : 'border-crm-border'}`}>
           <Link
             href="/crm/dashboard"
             className="flex items-center hover:opacity-80 transition-opacity duration-200"
@@ -448,7 +435,7 @@ export default function Sidebar() {
             <img src="/atdlogo.png" alt="Logo" className="w-10 h-10" />
             {(isExpanded || isMobileOpen) && (
               <div className="ml-3 overflow-hidden">
-                <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">
+                <span className="text-xl font-bold bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to bg-clip-text text-transparent">
                   ATD
                 </span>
               </div>
@@ -460,7 +447,7 @@ export default function Sidebar() {
               onClick={() => setIsMobileOpen(false)}
               className={`lg:hidden p-2 rounded-lg transition-colors duration-200 ${theme === "dark"
                 ? 'hover:bg-gray-700 text-gray-400 hover:text-white'
-                : 'hover:bg-emerald-50 text-gray-600 hover:text-emerald-600'
+                : 'hover:bg-crm-accent-soft text-gray-600 hover:text-crm-primary-strong'
                 }`}
             >
               <FiX size={20} />
@@ -478,11 +465,11 @@ export default function Sidebar() {
                     onClick={() => toggleDropdown(item.name)}
                     className={`group cursor-pointer flex items-center justify-between w-full gap-4 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${isParentActive(item.subItems)
                       ? theme === "dark"
-                        ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-lg'
-                        : 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg'
+                        ? 'bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to text-white shadow-lg'
+                        : 'bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to text-white shadow-lg'
                       : theme === "dark"
-                        ? 'hover:bg-gray-800 text-gray-300 hover:text-emerald-400'
-                        : 'hover:bg-emerald-50 text-gray-700 hover:text-emerald-600'
+                        ? 'hover:bg-gray-800 text-gray-300 hover:text-crm-primary-strong'
+                        : 'hover:bg-crm-accent-soft text-gray-700 hover:text-crm-primary-strong'
                       }`}
                   >
                     <div className="flex items-center gap-4">
@@ -509,11 +496,11 @@ export default function Sidebar() {
                     href={item.link}
                     className={`group flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${pathname === item.link
                       ? theme === "dark"
-                        ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-lg'
-                        : 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg'
+                        ? 'bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to text-white shadow-lg'
+                        : 'bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to text-white shadow-lg'
                       : theme === "dark"
-                        ? 'hover:bg-gray-800 text-gray-300 hover:text-emerald-400'
-                        : 'hover:bg-emerald-50 text-gray-700 hover:text-emerald-600'
+                        ? 'hover:bg-gray-800 text-gray-300 hover:text-crm-primary-strong'
+                        : 'hover:bg-crm-accent-soft text-gray-700 hover:text-crm-primary-strong'
                       }`}
                     onClick={() => setIsMobileOpen(false)}
                   >
@@ -539,11 +526,11 @@ export default function Sidebar() {
                         href={subItem.link}
                         className={`group flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${pathname === subItem.link
                           ? theme === "dark"
-                            ? 'bg-emerald-600/80 text-white shadow-md'
-                            : 'bg-emerald-500/80 text-white shadow-md'
+                            ? 'bg-crm-primary/80 text-white shadow-md'
+                            : 'bg-crm-primary/80 text-white shadow-md'
                           : theme === "dark"
-                            ? 'hover:bg-gray-800/80 text-gray-400 hover:text-emerald-300'
-                            : 'hover:bg-emerald-50/80 text-gray-600 hover:text-emerald-600'
+                            ? 'hover:bg-gray-800/80 text-gray-400 hover:text-crm-primary-strong'
+                            : 'hover:bg-crm-accent-soft/80 text-gray-600 hover:text-crm-primary-strong'
                           }`}
                         onClick={() => setIsMobileOpen(false)}
                       >
@@ -568,3 +555,4 @@ export default function Sidebar() {
     </>
   );
 }
+

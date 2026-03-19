@@ -30,7 +30,7 @@ const AdminHeader = () => {
   return (
     <header className={`fixed top-0 right-0 left-0 z-40 px-3 sm:px-4 md:px-6 py-3 sm:py-4 transition-all duration-300 ${theme === "dark"
       ? 'bg-gray-900 border-b border-gray-700 shadow-xl'
-      : 'bg-[#ECFEFF] border-b border-emerald-400 shadow-sm backdrop-blur-md'
+      : 'bg-crm-accent-soft border-b border-crm-border-strong shadow-sm backdrop-blur-md'
       }`}>
       <div className="flex items-center justify-end">
         {/* Action buttons */}
@@ -38,8 +38,8 @@ const AdminHeader = () => {
           <button
             onClick={toggleTheme}
             className={`p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-200 ${theme === "dark"
-              ? 'bg-gray-800/80 hover:bg-gray-700 text-emerald-400 border border-gray-700'
-              : 'bg-emerald-100 hover:bg-emerald-100 text-emerald-600 border border-emerald-200'
+              ? 'bg-gray-800/80 hover:bg-gray-700 text-crm-primary-strong border border-gray-700'
+              : 'bg-crm-primary-soft hover:bg-crm-primary-soft-hover text-crm-primary-strong border border-crm-border'
               }`}
             title="Toggle theme"
           >
@@ -53,7 +53,7 @@ const AdminHeader = () => {
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className={`flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-200 ${theme === "dark"
               ? 'bg-gray-800/80 hover:bg-gray-700 border border-gray-700'
-              : 'bg-gradient-to-r from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 border border-emerald-200'
+              : 'bg-gradient-to-r from-crm-accent-soft to-crm-primary-soft hover:from-crm-primary-soft hover:to-crm-primary-soft-hover border border-crm-border'
               }`}
           >
             {/* User info - Enhanced mobile responsiveness */}
@@ -70,8 +70,8 @@ const AdminHeader = () => {
 
             {/* Avatar - Smaller on mobile */}
             <div className={`w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0 ${theme === "dark"
-              ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-lg'
-              : 'bg-gradient-to-r from-emerald-600 to-emerald-700 shadow-md'
+              ? 'bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to shadow-lg'
+              : 'bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to shadow-md'
               }`}>
               {user?.selfie ? (
                 <img
@@ -92,16 +92,16 @@ const AdminHeader = () => {
           {dropdownOpen && (
             <div className={`absolute right-0 mt-2 w-48 sm:w-56 rounded-xl shadow-xl border z-50 ${theme === "dark"
               ? 'bg-gray-800/95 border-gray-700'
-              : 'bg-white/95 border-emerald-200'
+              : 'bg-white/95 border-crm-border'
               } backdrop-blur-md`}>
               <div className="py-2">
                 {/* User info section - Enhanced mobile display */}
-                <div className={`px-3 sm:px-4 py-2 sm:py-3 border-b ${theme === "dark" ? 'border-gray-700' : 'border-emerald-100'
+                <div className={`px-3 sm:px-4 py-2 sm:py-3 border-b ${theme === "dark" ? 'border-gray-700' : 'border-crm-border'
                   }`}>
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-semibold ${theme === "dark"
-                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-600'
-                      : 'bg-gradient-to-r from-emerald-600 to-emerald-700'
+                      ? 'bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to'
+                      : 'bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to'
                       }`}>
                       {user?.selfie ? (
                         <img
@@ -147,3 +147,5 @@ const AdminHeader = () => {
 };
 
 export default AdminHeader;
+
+

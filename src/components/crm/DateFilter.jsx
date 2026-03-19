@@ -1,0 +1,248 @@
+"use client"
+import { useState, useMemo } from "react";
+
+const DateFilter = ({ 
+  isDark, 
+  onFilterChange,
+  dateField = "enquiry_date",
+  showSourceFilter = true,
+  sourceOptions = [
+    { value: "all", label: "All Sources" },
+    { value: "Desktop", label: "Desktop" },
+    { value: "iOS", label: "iOS" },
+    { value: "Android", label: "Android" }
+  ],
+  buttonLabels = {
+    apply: "Apply",
+    clear: "Clear"
+  },
+  allowFutureDates = false
+}) => {
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [isApplying, setIsApplying] = useState(false);
+
+  const currentDate = useMemo(() => {
+    return new Date().toISOString().split('T')[0];
+  }, []);
+
+  const getMaxEndDate = () => {
+    if (allowFutureDates) {
+      if (!dateRange.start) return "";
+      return "";
+    }
+    
+    if (!dateRange.start) return currentDate;
+    
+    const startDate = new Date(dateRange.start);
+    const today = new Date(currentDate);
+    
+    if (startDate > today) return currentDate;
+    
+    return currentDate;
+  };
+
+  const getMaxStartDate = () => {
+    if (allowFutureDates) return "";
+    return currentDate;
+  };
+
+  const handleDateChange = (type, value) => {
+    const newDateRange = { ...dateRange };
+    
+    if (type === "start") {
+      newDateRange.start = value;
+      if (value && dateRange.end && new Date(value) > new Date(dateRange.end)) {
+        newDateRange.end = "";
+      }
+    } else {
+      if (value) {
+        const endDate = new Date(value);
+        const today = new Date(currentDate);
+        
+        if (dateRange.start && endDate < new Date(dateRange.start)) {
+          return;
+        }
+        if (!allowFutureDates && endDate > today) {
+          return;
+        }
+      }
+      newDateRange.end = value;
+    }
+    
+    setDateRange(newDateRange);
+  };
+
+  const handleSourceChange = (value) => {
+    setSourceFilter(value);
+  };
+
+  const handleApplyFilter = async () => {
+    if (!onFilterChange) return;
+
+    setIsApplying(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      const filters = { 
+        dateRange,
+        dateField
+      };
+      
+      if (showSourceFilter) {
+        filters.source = sourceFilter;
+      }
+      
+      onFilterChange(filters);
+    } catch (error) {
+      console.error('Error applying filters:', error);
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const handleClearFilter = () => {
+    const clearedDateRange = { start: "", end: "" };
+    const clearedSource = "all";
+    
+    setDateRange(clearedDateRange);
+    setSourceFilter(clearedSource);
+    
+    if (onFilterChange) {
+      const filters = { 
+        dateRange: clearedDateRange,
+        dateField
+      };
+      
+      if (showSourceFilter) {
+        filters.source = clearedSource;
+      }
+      
+      onFilterChange(filters);
+    }
+  };
+
+  const isApplyEnabled = !isApplying && (
+    dateRange.start !== "" || 
+    dateRange.end !== "" || 
+    (showSourceFilter && sourceFilter !== "all")
+  );
+
+  const gridCols = showSourceFilter ? "md:grid-cols-5" : "md:grid-cols-4";
+
+  return (
+    <div 
+      className={`border rounded-lg p-6 mb-6 transition-colors duration-300 ${
+        isDark 
+          ? "border-crm-border bg-gray-800/50" 
+          : "border-crm-border bg-crm-accent-soft/50"
+      }`}
+    >
+      <div className={`grid grid-cols-1 ${gridCols} gap-4 items-end`}>
+        <div className="md:col-span-1">
+          <label 
+            htmlFor="from-date"
+            className={`block text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}
+          >
+            From Date
+          </label>
+          <input
+            id="from-date"
+            type="date"
+            value={dateRange.start}
+            max={getMaxStartDate()}
+            onChange={(e) => handleDateChange("start", e.target.value)}
+            className={`w-full px-4 py-3 rounded-xl border-2 font-medium ${
+              isDark
+                ? "bg-gray-800 border-crm-border text-white hover:border-crm-primary focus:border-crm-primary-strong"
+                : "bg-white border-crm-border text-gray-900 hover:border-crm-primary focus:border-crm-primary"
+            } focus:ring-1 focus:ring-crm-ring focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed`}
+            disabled={isApplying}
+          />
+        </div>
+
+        <div className="md:col-span-1">
+          <label 
+            htmlFor="to-date"
+            className={`block text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}
+          >
+            To Date
+          </label>
+          <input
+            id="to-date"
+            type="date"
+            value={dateRange.end}
+            min={dateRange.start || undefined}
+            max={getMaxEndDate()}
+            onChange={(e) => handleDateChange("end", e.target.value)}
+            className={`w-full px-4 py-3 rounded-xl border-2 font-medium ${
+              isDark
+                ? "bg-gray-800 border-crm-border text-white hover:border-crm-primary focus:border-crm-primary-strong"
+                : "bg-white border-crm-border text-gray-900 hover:border-crm-primary focus:border-crm-primary"
+            } focus:ring-1 focus:ring-crm-ring focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed`}
+            disabled={isApplying}
+          />
+        </div>
+
+        {showSourceFilter && (
+          <div className="md:col-span-1">
+            <label 
+              htmlFor="source-filter"
+              className={`block text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}
+            >
+              Source Filter
+            </label>
+            <select
+              id="source-filter"
+              value={sourceFilter}
+              onChange={(e) => handleSourceChange(e.target.value)}
+              className={`w-full px-4 py-3 rounded-xl border-2 font-medium ${
+                isDark
+                  ? "bg-gray-800 border-crm-border text-white hover:border-crm-primary focus:border-crm-primary-strong"
+                  : "bg-white border-crm-border text-gray-900 hover:border-crm-primary focus:border-crm-primary"
+              } focus:ring-1 focus:ring-crm-ring focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed`}
+              disabled={isApplying}
+            >
+              {sourceOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="md:col-span-1">
+          <button
+            onClick={handleApplyFilter}
+            disabled={!isApplyEnabled}
+            className={`w-full px-6 py-3 rounded-xl font-semibold hover:scale-105 disabled:scale-100 disabled:opacity-50 disabled:cursor-not-allowed ${
+              isApplying 
+                ? "animate-pulse bg-gray-400 text-white" 
+                : "bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to hover:brightness-110 text-white"
+            } shadow-lg hover:shadow-xl disabled:shadow-none`}
+          >
+            {isApplying ? "Applying..." : buttonLabels.apply}
+          </button>
+        </div>
+
+        <div className="md:col-span-1">
+          <button
+            onClick={handleClearFilter}
+            disabled={isApplying || !isApplyEnabled}
+            className={`w-full px-6 py-3 rounded-xl font-semibold hover:scale-105 disabled:scale-100 disabled:opacity-50 disabled:cursor-not-allowed ${
+              isDark
+                ? "bg-gray-700 hover:bg-gray-600 text-white border border-gray-600"
+                : "bg-gray-200 hover:bg-gray-300 text-gray-800 border border-gray-300"
+            } shadow-lg hover:shadow-xl disabled:shadow-none`}
+          >
+            {buttonLabels.clear}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DateFilter;

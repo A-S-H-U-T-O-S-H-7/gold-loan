@@ -3,11 +3,37 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --crm-primary: #d97706;
+  --crm-primary-strong: #b45309;
+  --crm-primary-soft: #fef3c7;
+  --crm-primary-soft-hover: #fde68a;
+  --crm-accent: #f59e0b;
+  --crm-accent-soft: #fffbeb;
+  --crm-border: #f3d28a;
+  --crm-border-strong: #d6a54b;
+  --crm-gradient-from: #fbbf24;
+  --crm-gradient-to: #ea580c;
+  --crm-shadow: rgba(245, 158, 11, 0.25);
+  --crm-ring: rgba(245, 158, 11, 0.2);
+  --crm-scrollbar: #d97706;
+  --crm-scrollbar-hover: #b45309;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-crm-primary: var(--crm-primary);
+  --color-crm-primary-strong: var(--crm-primary-strong);
+  --color-crm-primary-soft: var(--crm-primary-soft);
+  --color-crm-primary-soft-hover: var(--crm-primary-soft-hover);
+  --color-crm-accent: var(--crm-accent);
+  --color-crm-accent-soft: var(--crm-accent-soft);
+  --color-crm-border: var(--crm-border);
+  --color-crm-border-strong: var(--crm-border-strong);
+  --color-crm-gradient-from: var(--crm-gradient-from);
+  --color-crm-gradient-to: var(--crm-gradient-to);
+  --color-crm-ring: var(--crm-ring);
+  --shadow-crm-soft: 0 18px 40px var(--crm-shadow);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -24,6 +50,23 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   overflow-x: hidden;
+}
+
+.dark {
+  --crm-primary: #f59e0b;
+  --crm-primary-strong: #fbbf24;
+  --crm-primary-soft: rgba(245, 158, 11, 0.18);
+  --crm-primary-soft-hover: rgba(245, 158, 11, 0.28);
+  --crm-accent: #fbbf24;
+  --crm-accent-soft: rgba(120, 53, 15, 0.35);
+  --crm-border: rgba(245, 158, 11, 0.35);
+  --crm-border-strong: rgba(251, 191, 36, 0.55);
+  --crm-gradient-from: #f59e0b;
+  --crm-gradient-to: #b45309;
+  --crm-shadow: rgba(245, 158, 11, 0.18);
+  --crm-ring: rgba(251, 191, 36, 0.24);
+  --crm-scrollbar: #f59e0b;
+  --crm-scrollbar-hover: #fbbf24;
 }
 
 /* Animation keyframes */
@@ -323,11 +366,10 @@ html {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #10b981; /* emerald-500 */
+  background-color: var(--crm-scrollbar);
   border-radius: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #059669; /* emerald-600 */
+  background-color: var(--crm-scrollbar-hover);
 }
-
