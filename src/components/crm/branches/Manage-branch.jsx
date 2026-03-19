@@ -87,7 +87,7 @@ const ManageBranchPage = () => {
     }
   }, [editId]);
 
-  // Fetch data on mount and when search changes
+  // Fetch data on mount   and when search changes
   useEffect(() => {
     fetchBranches(debouncedSearch);
   }, [debouncedSearch]);
