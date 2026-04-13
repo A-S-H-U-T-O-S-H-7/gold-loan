@@ -18,17 +18,34 @@ const BankDetails = ({ formData, handleInputChange, handleIFSCChange, ifscLoadin
         </div>
       
         <div className="space-y-4">
-          <FormField
-            name="accountNumber"
-            label="Account Number"
-            placeholder="Enter account number"
-            value={formData.accountNumber}
-            onChange={handleInputChange}
-            maxLength="18"
-            icon={CreditCard}
-            error={errors.accountNumber}
-            isDark={isDark}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              name="accountNumber"
+              label="Account Number"
+              placeholder="Enter account number"
+              value={formData.accountNumber}
+              onChange={handleInputChange}
+              maxLength="18"
+              icon={CreditCard}
+              error={errors.accountNumber}
+              isDark={isDark}
+            />
+
+            <FormField
+              name="accountType"
+              label="Account Type"
+              as="select"
+              placeholder="Select type"
+              value={formData.accountType}
+              onChange={handleInputChange}
+              options={[
+                { value: 'Saving', label: 'Saving' },
+                { value: 'Current', label: 'Current' }
+              ]}
+              error={errors.accountType}
+              isDark={isDark}
+            />
+          </div>
         
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">

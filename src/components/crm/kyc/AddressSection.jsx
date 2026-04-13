@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Home } from 'lucide-react';
 import FormField from './FormField';
+import { userKycService } from '@/lib/services/UserKYCServices';
 
 const AddressSection = ({
   title,
@@ -17,6 +18,8 @@ const AddressSection = ({
   isDark
 }) => {
   const [states, setStates] = useState([]);
+  const [loadingStates, setLoadingStates] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
 
   useEffect(() => {
     fetchStates();
@@ -33,25 +36,29 @@ const AddressSection = ({
 
   const fetchStates = async () => {
     try {
-      const response = await fetch('https://api.atdmoney.in/api/states');
-      const data = await response.json();
-      if (data.success) {
-        setStates(data.states.map(s => ({ value: s.state_name, label: s.state_name })));
+      setLoadingStates(true);
+      const response = await userKycService.getStates();
+      if (response?.success) {
+        setStates(response.states.map(s => ({ value: s.state_name, label: s.state_name })));
       }
     } catch (err) {
       console.error('State fetch failed:', err);
+    } finally {
+      setLoadingStates(false);
     }
   };
 
   const fetchCities = async (stateName) => {
     try {
-      const response = await fetch(`https://api.atdmoney.in/api/cities?state=${stateName}`);
-      const data = await response.json();
-      if (data.success) {
-        setCities(data.cities.map(c => ({ value: c.city_name, label: c.city_name })));
+      setLoadingCities(true);
+      const response = await userKycService.getCities(stateName);
+      if (response?.success) {
+        setCities(response.cities.map(c => ({ value: c.city_name, label: c.city_name })));
       }
     } catch (err) {
       console.error('City fetch failed:', err);
+    } finally {
+      setLoadingCities(false);
     }
   };
 
@@ -78,7 +85,7 @@ const AddressSection = ({
             <div className={`rounded-lg border px-4 py-3 ${
               isDark ? 'border-gray-700 bg-gray-700/40' : 'border-crm-border bg-crm-accent-soft/60'
             }`}>
-              <label className="flex items-center gap-2 cursor-pointer ">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={sameAddress}
@@ -143,25 +150,26 @@ const AddressSection = ({
             name={`${addressPrefix}.state`}
             label="State"
             as="select"
-            placeholder="Select"
+            placeholder={loadingStates ? "Loading..." : "Select"}
             required
             options={states}
             value={values?.[addressPrefix]?.state || ''}
             onChange={handleStateChange}
             error={errors?.[`${addressPrefix}.state`]}
             isDark={isDark}
+            disabled={loadingStates}
           />
 
           <FormField
             name={`${addressPrefix}.city`}
             label="City"
             as="select"
-            placeholder="Select"
+            placeholder={loadingCities ? "Loading..." : "Select"}
             required
             options={cities}
             value={values?.[addressPrefix]?.city || ''}
             onChange={(e) => setFieldValue(`${addressPrefix}.city`, e.target.value)}
-            disabled={!values?.[addressPrefix]?.state}
+            disabled={!values?.[addressPrefix]?.state || loadingCities}
             error={errors?.[`${addressPrefix}.city`]}
             isDark={isDark}
           />

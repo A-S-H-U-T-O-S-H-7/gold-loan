@@ -8,6 +8,7 @@ import { useThemeStore } from '@/lib/store/useThemeStore';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import api from '@/utils/axiosInsatnce';
+import { mapUserKycToFormValues, userKycService } from '@/lib/services/UserKYCServices';
 
 import PersonalDetails from './PersonalDetails';
 import KYCDetails from './KYCDetails';
@@ -18,6 +19,9 @@ import { validateAadhar, validatePAN } from '@/utils/kycValidation';
 import { createKYCValidationSchema } from '@/utils/kycSchema';
 
 const initialFormValues = {
+  crnNo: '',
+  applicationId: '',
+  userId: '',
   fullName: '',
   dob: '',
   gender: '',
@@ -43,8 +47,10 @@ const initialFormValues = {
   aadharNumber: '',
   panNumber: '',
   aadharDocument: null,
+  aadharBackDocument: null,
   panDocument: null,
   aadharDocumentPreview: '',
+  aadharBackDocumentPreview: '',
   panDocumentPreview: '',
   livePhoto: null,
   livePhotoPreview: '',
@@ -62,6 +68,7 @@ const initialFormValues = {
   ifsc: '',
   bankName: '',
   bankBranch: '',
+  accountType: 'Saving',
   accountHolderName: '',
   kycStatus: 'pending',
   remarks: ''
@@ -128,6 +135,7 @@ const UserKYC = ({ mode = 'edit', userId: userIdProp = null }) => {
   
   // Refs
   const aadharFileRef = useRef(null);
+  const aadharBackFileRef = useRef(null);
   const panFileRef = useRef(null);
   const livePhotoRef = useRef(null);
 
@@ -135,18 +143,31 @@ const UserKYC = ({ mode = 'edit', userId: userIdProp = null }) => {
     initialValues: initialFormValues,
     enableReinitialize: true,
     validationSchema: createKYCValidationSchema({ isNewUser, sameAsCurrent }),
-    onSubmit: async () => {
+    onSubmit: async (values) => {
       try {
         setSaving(true);
+        const id = userIdProp ?? params?.id;
+        const payload = { ...values, sameAsCurrent };
+        const response = isNewUser
+          ? await userKycService.createUserKyc(payload)
+          : await userKycService.updateUserKyc(id, payload);
+
         await Swal.fire({
           title: 'Success!',
-          text: isNewUser ? 'User created successfully' : 'KYC details updated',
+          text: response?.message || (isNewUser ? 'User created successfully' : 'KYC details updated'),
           icon: 'success',
           confirmButtonColor: '#d97706',
         });
+        const createdApplicationId = response?.data?.application_id || response?.application_id;
+
+        if (isNewUser && createdApplicationId) {
+          router.push(`/crm/user-kyc/${createdApplicationId}`);
+          return;
+        }
+
         router.push('/crm/all-enquiries');
       } catch (error) {
-        toast.error('Failed to save');
+        toast.error(error?.response?.data?.message || error?.message || 'Failed to save');
       } finally {
         setSaving(false);
       }
@@ -162,6 +183,10 @@ const UserKYC = ({ mode = 'edit', userId: userIdProp = null }) => {
 
     if (isCreateMode) {
       setIsNewUser(true);
+      formik.setValues(initialFormValues);
+      setSameAsCurrent(false);
+      setAadharVerified(false);
+      setPANVerified(false);
     } else {
       setIsNewUser(false);
       fetchUserKYCData(id);
@@ -171,11 +196,18 @@ const UserKYC = ({ mode = 'edit', userId: userIdProp = null }) => {
   const fetchUserKYCData = async (id) => {
     try {
       setLoading(true);
-      // API call here
-      formik.setValues(initialFormValues);
-      setLoading(false);
+      const response = await userKycService.getUserKyc(id);
+      const nextValues = mapUserKycToFormValues(response, initialFormValues);
+      formik.setValues(nextValues);
+      setSameAsCurrent(
+        JSON.stringify(nextValues.currentAddress) === JSON.stringify(nextValues.permanentAddress)
+      );
+      setAadharVerified(nextValues.kycStatus === 'verified');
+      setPANVerified(nextValues.kycStatus === 'verified');
     } catch (error) {
       console.error('Error:', error);
+      toast.error(error?.response?.data?.message || 'Failed to load KYC details');
+    } finally {
       setLoading(false);
     }
   };
@@ -268,6 +300,7 @@ const UserKYC = ({ mode = 'edit', userId: userIdProp = null }) => {
     reader.onloadend = () => {
       formik.setFieldValue(type, file);
       formik.setFieldValue(`${type}Preview`, reader.result);
+      formik.setFieldTouched(type, true, false);
     };
     reader.readAsDataURL(file);
   };
@@ -275,6 +308,18 @@ const UserKYC = ({ mode = 'edit', userId: userIdProp = null }) => {
   const handleClearFile = (type) => {
     formik.setFieldValue(type, null);
     formik.setFieldValue(`${type}Preview`, '');
+    formik.setFieldTouched(type, true, false);
+
+    const fileRefs = {
+      aadharDocument: aadharFileRef,
+      aadharBackDocument: aadharBackFileRef,
+      panDocument: panFileRef,
+      livePhoto: livePhotoRef
+    };
+
+    if (fileRefs[type]?.current) {
+      fileRefs[type].current.value = '';
+    }
   };
 
   const handleSameAddressChange = (e) => {
@@ -436,11 +481,17 @@ const UserKYC = ({ mode = 'edit', userId: userIdProp = null }) => {
 
     try {
       setSaving(true);
-      // API call here
-      formik.setFieldValue('kycStatus', status);
-      toast.success(`KYC ${status}ed successfully`);
+      const nextStatus = status === 'verify' ? 'verified' : 'rejected';
+      const id = userIdProp ?? params?.id;
+      await userKycService.updateUserKyc(id, {
+        ...formik.values,
+        sameAsCurrent,
+        kycStatus: nextStatus
+      });
+      formik.setFieldValue('kycStatus', nextStatus);
+      toast.success(`KYC ${nextStatus} successfully`);
     } catch (error) {
-      toast.error('Failed to update status');
+      toast.error(error?.response?.data?.message || 'Failed to update status');
     } finally {
       setSaving(false);
     }
@@ -542,6 +593,7 @@ const UserKYC = ({ mode = 'edit', userId: userIdProp = null }) => {
               isDark={isDark}
               isNewUser={isNewUser}
               aadharFileRef={aadharFileRef}
+              aadharBackFileRef={aadharBackFileRef}
               panFileRef={panFileRef}
               livePhotoRef={livePhotoRef}
               onVerifyAadhar={handleVerifyAadhar}

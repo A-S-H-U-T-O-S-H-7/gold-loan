@@ -1,0 +1,383 @@
+"use client";
+import api from "@/utils/axiosInsatnce";
+import { getStatusName, getStatusId } from "@/utils/applicationStatus";
+import fileService from "./fileService";
+
+export const sanctionApplicationAPI = {
+  getSanctionApplications: async (params = {}) => {
+    try {
+      const response = await api.get("/crm/application/sanction", { params });
+      return response;
+    } catch (error) { 
+      throw error;
+    }
+  },
+
+  sendSanctionEmail: async (applicationId) => {
+    try {
+      const response = await api.get(`/crm/application/sanction/send-email/${applicationId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+// deleteEmandate: async (applicationId) => {
+//   try {
+//     const response = await api.delete(`/crm/emandate/delete/${applicationId}`);
+    
+//     if (response && response.success === false) {
+//       throw new Error(response.message || "Failed to delete e-mandate");
+//     } 
+    
+//     return response;
+//   } catch (error) {
+//     if (error.response?.message) {
+//       throw new Error(error.response.message);
+//     }
+//     throw error;
+//   }
+// },
+
+  exportSanctionApplications: async (params = {}) => {
+    try {
+      const response = await api.get("/crm/application/export/sanction", { params });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+
+  exportSanctionApplicationsByDate: async (params = {}) => {
+    try {
+      const response = await api.get("/crm/application/export/sanction/all", { params });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
+export const formatSanctionApplicationForUI = (application) => {
+  const enquiryDate = application.created_at ? new Date(application.created_at) : new Date();
+  const approvedDate = application.approved_date ? new Date(application.approved_date) : null;
+  const enachDetails = application.enach_details || {};
+
+  const permanentAddress = application.address || 
+    `${application.house_no || ''}, ${application.city || ''}, ${application.state || ''} - ${application.pincode || ''}`.trim();
+  
+  const currentAddress = application.current_address ||  
+    `${application.current_house_no || ''}, ${application.current_city || ''}, ${application.current_state || ''} - ${application.current_pincode || ''}`.trim();
+
+  return {
+    id: application.application_id,
+    srNo: application.application_id,
+    enquirySource: application.enquiry_type || 'N/A',
+    crnNo: application.crnno,
+    accountId: application.accountId,
+    loanNo: application.loan_no || `LN${application.application_id}`,
+    userId: application.user_id,
+    user_id: application.user_id,
+
+    enquiryDate: enquiryDate.toLocaleDateString('en-GB'),
+    enquiryTime: enquiryDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+    
+    approvedDate: approvedDate ? approvedDate.toLocaleDateString('en-GB') : 'N/A',
+    approvedDateTime: application.approved_date,
+
+    name: application.name || '',
+    
+    permanentAddress: permanentAddress,
+    state: application.state,
+    city: application.city,
+    
+    currentAddress: currentAddress,
+    currentState: application.current_state,
+    currentCity: application.current_city,
+
+    phoneNo: application.phone,
+    email: application.email || 'N/A',
+
+    appliedAmount: application.applied_amount,
+    approvedAmount: application.approved_amount,
+    adminFee: parseFloat(application.process_fee || 0) ,
+    processPercent: application.process_percent,
+    roi: application.roi,
+    tenure: application.tenure,
+    loanTerm: application.loan_term === 4 ? "One Time Payment" : "Daily",
+    disbursalAccount: application.disbursal_account,
+    customerAcVerified: application.customer_ac_verify === 1 ? "Yes" : "No",
+
+    // Document flags - CORRECTED based on your API response
+    hasPhoto: !!application.selfie,
+    hasPanCard: !!application.pan_proof,
+    hasAddressProof: !!application.address_proof,
+    hasIdProof: !!application.aadhar_proof,
+    hasSalaryProof: !!application.salary_slip,
+    hasSecondSalaryProof: !!application.second_salary_slip,
+    hasThirdSalaryProof: !!application.third_salary_slip,
+    hasBankStatement: !!application.bank_statement,
+    hasBankVerificationReport: !!application.bank_verif_report,
+    hasSocialScoreReport: !!application.social_score_report,
+    hasCibilScoreReport: !!application.cibil_score_report,
+    hasVideoKyc: !!application.video,
+    hasNachForm: !!application.nach_form,
+    hasPdc: !!application.pdc,
+    hasAgreement: !!application.aggrement, 
+    sanctionLetter: !!application.sanction_letter, 
+    hasSecondBankStatement: !!application.second_bank_statement,
+    hasBankFraudReport: !!application.bank_fraud_report,
+
+    // Document file names
+    photoFileName: application.selfie,
+    panCardFileName: application.pan_proof,
+    addressProofFileName: application.address_proof,
+    idProofFileName: application.aadhar_proof,
+    salarySlip1: application.salary_slip,
+    salarySlip2: application.second_salary_slip,
+    salarySlip3: application.third_salary_slip,
+    bankStatementFileName: application.bank_statement,
+    bankVerificationFileName: application.bank_verif_report,
+    socialScoreFileName: application.social_score_report,
+    cibilScoreFileName: application.cibil_score_report,
+    videoKycFileName: application.video,
+    nachFormFileName: application.nach_form,
+    pdcFileName: application.pdc,
+    agreementFileName: application.aggrement,
+    sanctionLetterFileName: application.sanction_letter,
+    secondBankStatementFileName: application.second_bank_statement,
+    bankFraudReportFileName: application.bank_fraud_report,
+
+    // Status information 
+    approvalNote: application.approval_note,
+    loanStatus: getStatusName(application.loan_status),
+    emandateStatus: application.emandateverification || "Pending",
+    iciciEmandateStatus: enachDetails.status || "Pending",
+    enachDetails: {
+      status: enachDetails.status || "Pending",
+      enacheId: enachDetails.enache_id,
+      transactionId: enachDetails.enach_transaction_id,
+      date: enachDetails.enach_date,
+      details: enachDetails.enach_details
+    },
+    chequeNo: application.cheque_no, 
+    sendToCourier: application.send_courier === 1 ? "Yes" : "No",
+    courierPicked: application.courier_picked === 1 ? "Yes" : "No",
+    originalDocuments: application.original_documents === "Yes" ? "Yes" : "No", 
+    receivedDisburse: application.emandateverification === 1 || application.emandateverification === "1" ? "Yes" : "No",
+    emandateVerificationRaw: application.emandateverification,
+    blacklist: application.blacklist,
+     isBlacklisted: application.blacklist === 1,
+     blacklistDate: application.blacklistdate,
+
+    // Raw values for validation logic
+    sendToCourierRaw: application.send_courier,
+    courierPickedRaw: application.courier_picked,
+    originalDocumentsRaw: application.original_documents,
+    emandateVerificationRaw: application.emandateverification,
+    readyForApprove: application.ready_verification === 1 ? "ready_to_verify" : "pending",
+    verify: application.verify,
+    isVerified: application.verify === 1,
+    isReportChecked: application.report_check === 1,
+    isFinalStage: application.verify === 1 && application.report_check === 1,
+
+    hasAppraisalReport: !!application.totl_final_report,
+    finalReportStatus: application.totl_final_report,
+    finalReportFile: application.totl_final_report_file,
+    isRecommended: application.totl_final_report === "Recommended",
+
+    renewStatus: application.renewStatus ?? 0,
+
+    showActionButton: true,
+    showAppraisalButton: true,
+    showEligibilityButton: true
+  };
+};
+
+export const sanctionService = {
+  updateChequeNumber: async (applicationId, chequeNo) => {
+  try {
+    const response = await api.put(`/crm/application/sanction/update-check/${applicationId}`, { 
+      cheque_no: chequeNo 
+    });
+    
+    if (response && response.success === false) {
+      throw new Error(response.message || "Failed to update cheque number");
+    }
+    
+    return response;
+  } catch (error) {
+    if (error.response?.message) {
+      throw new Error(error.response.message);
+    }
+    throw error;
+  }
+},
+
+  updateSendToCourier: async (applicationId, courierDate) => {
+  try {
+    const response = await api.put(`/crm/application/sanction/send-courier/${applicationId}`, {
+      courier_date: courierDate
+    });
+    
+    if (response && response.success === false) {
+      throw new Error(response.message || "Failed to schedule courier");
+    }
+    
+    return response;
+  } catch (error) {
+    if (error.response?.message) {
+      throw new Error(error.response.message);
+    }
+    throw error;
+  }
+},
+
+  updateCourierPicked: async (applicationId, isPicked, pickedDate = null) => {
+  try {
+    const response = await api.put(`/crm/application/sanction/courier-picked/${applicationId}`, {
+      courier_picked: isPicked ? 1 : 0,
+      picked_date: isPicked ? pickedDate : null
+    });
+    
+    if (response && response.success === false) {
+      throw new Error(response.message || "Failed to update courier status");
+    }
+    
+    return response;
+  } catch (error) {
+    if (error.response?.message) {
+      throw new Error(error.response.message);
+    }
+    throw error;
+  }
+},
+
+
+  updateOriginalDocuments: async (applicationId, isReceived, receivedDate = null) => {
+  try {
+    const response = await api.put(`/crm/application/sanction/document-status/${applicationId}`, {
+      original_documents: isReceived ? "Yes" : "No",
+      received_date: isReceived ? receivedDate : null
+    });
+    
+    if (response && response.success === false) {
+      throw new Error(response.message || "Failed to update documents status");
+    }
+    
+    return response;
+  } catch (error) {
+    if (error.response?.message) {
+      throw new Error(error.response.message);
+    }
+    throw error;
+  }
+},
+
+ updateEmandateStatus: async (applicationId, emandateStatus) => {
+  try {
+    const response = await api.put(`/crm/application/sanction/enach-status/${applicationId}`, {
+      emandateverification: emandateStatus === "Yes" ? 1 : 0
+    });
+    
+    if (response && response.success === false) {
+      throw new Error(response.message || "Failed to update e-mandate status");
+    }
+    
+    return response;
+  } catch (error) {
+    if (error.response?.message) {
+      throw new Error(error.response.message);
+    }
+    throw error;
+  }
+},
+
+
+  updateStatusChange: async (applicationId, updateData) => {
+    try {
+      const payload = {};
+      
+      if (updateData.courierPickedDate) {
+        payload.courier_picked = 1;
+        payload.picked_date = updateData.courierPickedDate;
+      }
+      
+      if (updateData.originalDocumentsReceived) {
+        payload.original_documents = updateData.originalDocumentsReceived === "yes" ? "Yes" : "No";
+        // Send received_date if provided, regardless of yes/no selection
+        if (updateData.documentsReceivedDate) {
+          payload.received_date = updateData.documentsReceivedDate;
+        }
+      }
+      
+      const response = await api.put(`/crm/application/sanction/document-status/${applicationId}`, payload);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  blacklistApplication: async (userId) => {
+  try {
+    const response = await api.put(`/crm/application/black-list/${userId}`);
+    
+    if (response && response.success === false) {
+      throw new Error(response.message || "Failed to blacklist application");
+    }
+    
+    return response;
+  } catch (error) {
+    if (error.response?.message) {
+      throw new Error(error.response.message);
+    }
+    throw error;
+  }},
+
+  updateLoanStatus: async (applicationId, status, remark = "") => {
+  try {
+    const statusData = {
+      status: getStatusId(status),
+      remark: remark
+    };
+    
+    const response = await api.put(`/crm/application/status/${applicationId}`, statusData);
+    
+    if (response && response.success === false) {
+      throw new Error(response.message || "Status update failed");
+    }
+    
+    return response;
+  } catch (error) {
+    if (error.response?.message) {
+      throw new Error(error.response.message);
+    } else if (error.response?.error) {
+      throw new Error(error.response.error);
+    } else if (error.message) {
+      throw error; 
+    } else {
+      throw new Error("Failed to update application status");
+    }
+  }
+},
+
+deleteEmandate: async (applicationId) => {
+    try {
+      const response = await api.get(`/crm/emandate/delete/${applicationId}`);
+      
+      if (response && response.success === false) {
+        throw new Error(response.message || "Failed to delete e-mandate");
+      }
+      
+      return response;
+    } catch (error) {
+      if (error.response?.message) {
+        throw new Error(error.response.message);
+      }
+      throw error;
+    }
+  }
+};
+
+export { fileService };

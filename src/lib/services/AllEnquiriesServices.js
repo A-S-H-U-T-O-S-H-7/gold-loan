@@ -125,18 +125,18 @@ export const formatEnquiryForUI = (enquiry) => {
     enquiryTime: getTimeFromDateTime(enquiry.enquiry_date),
 
     // Personal information
-    name: enquiry.name|| '',
+    name: enquiry.fullname || enquiry.name || '',
     firstName: enquiry.fname,
     lastName: enquiry.lname,
     dob: enquiry.dob,
     gender: enquiry.gender,
 
     // Address information
-    currentAddress: enquiry.current_address,
-    currentState: enquiry.current_state,
-    currentCity: enquiry.current_city,
-    currentPincode: enquiry.current_pincode,
-    currentHouseNo: enquiry.current_house_no,
+    currentAddress: enquiry.current_address || enquiry.currentAddress,
+    currentState: enquiry.current_state || enquiry.currentState,
+    currentCity: enquiry.current_city || enquiry.currentCity,
+    currentPincode: enquiry.current_pincode || enquiry.currentPincode,
+    currentHouseNo: enquiry.current_house_no || enquiry.currentHouseNo,
     address: enquiry.address,
     state: enquiry.state,
     city: enquiry.city,
@@ -144,7 +144,7 @@ export const formatEnquiryForUI = (enquiry) => {
     houseNo: enquiry.house_no,
 
     // Contact information
-    phoneNo: enquiry.phone,
+    phoneNo: enquiry.phone || enquiry.mobile,
     email: enquiry.email,
 
     // Loan information
@@ -186,6 +186,12 @@ export const formatEnquiryForUI = (enquiry) => {
     approvalNote: enquiry.approval_note,
     status: getStatusName(enquiry.loan_status),
     loanStatus: getStatusName(enquiry.loan_status),
+    kycStatus:
+      enquiry.verify === 1
+        ? "verified"
+        : enquiry.verify === 2
+          ? "rejected"
+          : "pending",
 
     // Application stage information
     isVerified: enquiry.verify === 1,

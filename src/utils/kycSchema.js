@@ -54,6 +54,9 @@ export const createKYCValidationSchema = ({ isNewUser, sameAsCurrent }) =>
     aadharDocument: isNewUser
       ? Yup.mixed().required('Aadhaar document is required')
       : Yup.mixed().nullable(),
+    aadharBackDocument: isNewUser
+      ? Yup.mixed().required('Aadhaar back document is required')
+      : Yup.mixed().nullable(),
     panDocument: isNewUser
       ? Yup.mixed().required('PAN document is required')
       : Yup.mixed().nullable(),
@@ -88,6 +91,7 @@ export const createKYCValidationSchema = ({ isNewUser, sameAsCurrent }) =>
       panNumber: Yup.string().nullable(),
     }),
     accountNumber: Yup.string().nullable(),
+    accountType: Yup.string().nullable(),
     ifsc: Yup.string().nullable(),
     bankName: Yup.string().nullable(),
     bankBranch: Yup.string().nullable(),

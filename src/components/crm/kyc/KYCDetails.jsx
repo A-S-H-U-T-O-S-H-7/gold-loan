@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CreditCard, FileText, Check, Camera } from 'lucide-react';
+import { CreditCard, FileText, Check, Camera, IdCard } from 'lucide-react';
 import FormField from './FormField';
 import FileUploadField from './FileUploadField';
 
@@ -12,6 +12,7 @@ const KYCDetails = ({
   isDark,
   isNewUser,
   aadharFileRef,
+  aadharBackFileRef,
   panFileRef,
   livePhotoRef,
   onVerifyAadhar,
@@ -139,9 +140,9 @@ const KYCDetails = ({
           </div>
 
         {/* Documents */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           <FileUploadField
-            label="Aadhaar"
+            label="Aadhaar Front"
             name="aadharDocument"
             required={isNewUser}
             preview={formData.aadharDocumentPreview}
@@ -150,6 +151,19 @@ const KYCDetails = ({
             error={errors.aadharDocument}
             isDark={isDark}
             fileRef={aadharFileRef}
+          />
+
+          <FileUploadField
+            label="Aadhaar Back"
+            name="aadharBackDocument"
+            required={isNewUser}
+            preview={formData.aadharBackDocumentPreview}
+            onUpload={(e) => handleFileUpload(e, 'aadharBackDocument')}
+            onClear={() => handleClearFile('aadharBackDocument')}
+            error={errors.aadharBackDocument}
+            isDark={isDark}
+            fileRef={aadharBackFileRef}
+            icon={IdCard}
           />
           
           <FileUploadField

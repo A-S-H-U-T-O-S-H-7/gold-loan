@@ -88,6 +88,9 @@ export const validateKYCForm = (formData, isNewUser, sameAsCurrent) => {
     if (!formData.aadharDocument) {
       errors.aadharDocument = 'Aadhaar document is required';
     }
+    if (!formData.aadharBackDocument) {
+      errors.aadharBackDocument = 'Aadhaar back document is required';
+    }
     if (!formData.panDocument) {
       errors.panDocument = 'PAN document is required';
     }

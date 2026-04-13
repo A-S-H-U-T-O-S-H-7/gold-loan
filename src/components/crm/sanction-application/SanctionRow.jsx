@@ -1,0 +1,1169 @@
+import React from "react";
+import { useState } from "react";
+import { Calendar, Mail, Edit, CheckCircle, X, Edit2, Loader2, Ban, Trash2 } from "lucide-react";
+import Swal from 'sweetalert2';
+import { sanctionApplicationAPI } from "@/lib/services/SanctionApplicationServices";
+import { useAdminAuthStore } from '@/lib/store/authAdminStore';
+
+// Import reusable document components 
+import PhotoDocument from "../documents/PhotoDocument";
+import PanCardDocument from "../documents/PanCardDocument";
+import AddressProofDocument from "../documents/AddressProofDocument";
+import IdProofDocument from "../documents/IdProofDocument";
+import SalaryProofDocument from "../documents/SalaryProofDocument";
+import BankStatementDocument from "../documents/BankStatementDocument";
+import BankVerificationDocument from "../documents/BankVerificationDocument";
+import SocialScoreDocument from "../documents/SocialScoreDocument";
+import CibilScoreDocument from "../documents/CibilScoreDocument";
+import VideoKYCDocument from "../documents/VideoKYCDocument";
+import NachFormDocument from "../documents/NachFormDocument";
+import PDCDocument from "../documents/PDCDocument";
+import AgreementDocument from "../documents/AgreementDocument";
+import SanctionLetterDocument from "../documents/SanctionLetterDocument";
+import AppraisalReportButton from "../action-buttons/AppraisalReportButton";
+import EligibilityButton from "../action-buttons/EligibilityButton";
+import ActionButton from "../action-buttons/ActionButton";
+import CallButton from "../call/CallButton";
+import CRNLink from "../CRNLink";
+import toast from "react-hot-toast";
+import ReplaceKYCButton from "../action-buttons/ReplaceKYCButton";
+import BankFraudReportDocument from "../documents/BankFraudReportDocument";
+import SecondBankStatementDocument from "../documents/SecondBankStatementDocument";
+import BlacklistButton from "../action-buttons/BlacklistButton";
+
+const SanctionRow = ({
+  application,
+  index,
+  isDark,
+  onChequeModalOpen,
+  onCourierModalOpen,
+  onCourierPickedModalOpen,
+  onOriginalDocumentsModalOpen,
+  onDisburseEmandateModalOpen,
+  onChangeStatusClick,
+  onStatusClick,
+  onFileView,
+  fileLoading,
+  loadingFileName,
+  onBlacklist,
+  onDeleteEmandate,
+  sourcePage = "sanction"
+}) => {
+    const { hasPermission } = useAdminAuthStore();
+    const [isSendingMail, setIsSendingMail] = useState(false);
+
+  const isBlacklisted = application.blacklist === 1 || application.isBlacklisted === true;
+
+  const handleChequeClick = () => {
+    onChequeModalOpen(application, application.chequeNo || "");
+  };
+
+  const formatCurrency = amount => {
+  if (!amount && amount !== 0) return "0";
+  const numAmount = parseFloat(amount);
+  if (isNaN(numAmount)) return "0";
+  return `${numAmount.toLocaleString("en-IN", {
+  })}`;
+};
+
+  
+
+  // Validation logic for loan status modal
+  const canOpenLoanStatusModal = () => {
+    const sendCourierValue = application.sendToCourierRaw !== undefined 
+      ? application.sendToCourierRaw === 1 
+      : application.sendToCourier === "Yes";
+    
+    const courierPickedValue = application.courierPickedRaw !== undefined
+      ? application.courierPickedRaw === 1
+      : application.courierPicked === "Yes";
+    
+    const originalDocsValue = application.originalDocumentsRaw !== undefined
+      ? application.originalDocumentsRaw === "Yes"
+      : application.originalDocuments === "Yes";
+    
+    const emandateValue = application.emandateVerificationRaw !== undefined
+      ? (application.emandateVerificationRaw === 1 || application.emandateVerificationRaw === "1")
+      : (application.emandateStatus === "1" || application.emandateStatus === 1 || application.receivedDisburse === "Yes");
+
+    // Condition 1: All courier and document fields are complete
+    const allCourierFieldsComplete = sendCourierValue && courierPickedValue && originalDocsValue;
+
+    // Condition 2: E-mandate is verified
+    const emandateVerified = emandateValue;
+
+    // Block condition: All fields are incomplete (inverse check)
+    const allFieldsIncomplete = !sendCourierValue && !courierPickedValue && !originalDocsValue && !emandateValue;
+
+    // Allow if condition 1 OR condition 2 is true, AND not all fields are incomplete
+    return (allCourierFieldsComplete || emandateVerified) && !allFieldsIncomplete;
+  };
+
+  const handleLoanStatusClick = () => {
+    if (canOpenLoanStatusModal()) {
+      onStatusClick(application);
+    }
+  };
+
+  // Sanction Mail 
+  const handleSendSanctionMail = async () => {
+  const result = await Swal.fire({
+    title: 'Send Sanction Email?',
+    text: `Are you sure you want to send sanction email to ${application.name}?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#10b981',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Yes, Send Email',
+    cancelButtonText: 'Cancel',
+    background: isDark ? "#1f2937" : "#ffffff",
+    color: isDark ? "#f9fafb" : "#111827",
+  });
+
+  if (!result.isConfirmed) return;
+
+  setIsSendingMail(true);
+  
+  try {
+    const response = await sanctionApplicationAPI.sendSanctionEmail(application.id);
+    
+    if (response.success) {
+      toast.success('Sanction email sent successfully!', {
+        duration: 4000,
+        position: 'top-right',
+        style: {
+          background: isDark ? '#374151' : '#98f268',
+          color: isDark ? '#f3f4f6' : '#1f2937',
+          border: `1px solid ${isDark ? '#4b5563' : '#e5e7eb'}`,
+        },
+        icon: '📧',
+      });
+      
+    }
+  } catch (error) {
+    console.error('Error sending sanction email:', error);
+    toast.error('Failed to send sanction email. Please try again.', {
+      duration: 4000,
+      position: 'top-right',
+      style: {
+        background: isDark ? '#7f1d1d' : '#fef2f2',
+        color: isDark ? '#fca5a5' : '#991b1b',
+        border: `1px solid ${isDark ? '#ef4444' : '#f87171'}`,
+      },
+      icon: '❌',
+    });
+  } finally {
+    setIsSendingMail(false);
+  }
+};
+
+  // Common cell styles
+  const cellBase = "px-2 py-4 border-r";
+  const cellBorder = isDark ? "border-gray-600/80" : "border-gray-300/90";
+  const cellStyle = `${cellBase} ${cellBorder}`;
+  
+  // Text styles
+  const textPrimary = isDark ? "text-gray-100" : "text-gray-900";
+  const textSecondary = isDark ? "text-gray-200" : "text-gray-700";
+  const textAccent = isDark ? "text-emerald-400" : "text-emerald-600";
+  
+  // Icon styles
+  const iconAccent = `w-4 h-4 ${textAccent}`;
+  const isRenewalLoan = application.renewStatus === 18;
+
+  const getRowClasses = () => {
+    const baseClasses = "border-b transition-all duration-200 hover:shadow-lg";
+
+    if (isBlacklisted) {
+      return `${baseClasses} ${
+        isDark
+          ? "bg-red-950/20 border-l-4 border-l-red-500"
+          : "bg-red-100 border-l-4 border-l-red-500"
+      }`;
+    }
+
+    if (isRenewalLoan) {
+      if (isDark) {
+        return `${baseClasses} bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 border-blue-700 hover:bg-gradient-to-r hover:from-blue-700 hover:via-blue-600 hover:to-blue-700 shadow-blue-600`;
+      }
+      return `${baseClasses} bg-gradient-to-r from-blue-400 via-blue-300 to-blue-400 border-blue-500 hover:bg-gradient-to-r hover:from-blue-500 hover:via-blue-300 hover:to-blue-500 shadow-blue-500`;
+    }
+
+    return `${baseClasses} ${
+      isDark
+        ? "border-emerald-700 hover:bg-gray-700/50"
+        : "border-emerald-300 hover:bg-emerald-50/50"
+    } ${
+      index % 2 === 0
+        ? isDark ? "bg-gray-700/30" : "bg-gray-50"
+        : ""
+    }`;
+  };
+
+
+  return (
+    <tr className={getRowClasses()}>
+      {/* SR No */}
+<td className={cellStyle}>
+  <div className="flex items-center justify-center space-x-1">
+    {isBlacklisted && (
+      <Ban className={`w-5 h-5 ${isDark ? "text-red-500" : "text-red-600"}`} />
+    )}
+    <span className={`font-medium ${textPrimary}`}>
+      {application.srNo}
+    </span>
+  </div>
+</td>
+
+      {/* Call */}
+       <td className={cellStyle}>
+  <CallButton
+    applicant={application}
+    isDark={isDark}
+    size="small"
+    variant="default" 
+    className="px-6 py-2 rounded-md text-sm font-semibold border transition-all duration-200 hover:scale-105"
+  />
+</td>
+
+      {/* Loan No. */}
+      <td className={cellStyle}>
+        <span className={`text-sm ${textSecondary}`}>
+          {application.loanNo}
+        </span>
+      </td>
+
+      {/* CRN No */}
+      <td className={cellStyle}>
+      <CRNLink 
+        crnNo={application.crnNo} 
+        userId={application.user_id || application.user_Id}
+        onSuccess={(data) => {
+          toast.success('Profile loaded');
+        }}
+        onError={(error) => {
+          toast.error(error);
+        }}
+      />
+      </td>
+
+      {/* Account ID */}
+      {/* <td className={cellStyle}>
+        <span className={`text-sm ${textSecondary}`}>
+          {application.accountId}
+        </span>
+      </td> */}
+
+      {/* Approved Date */}
+      <td className={cellStyle}>
+        <div className="flex items-center space-x-2">
+          <Calendar className={iconAccent} />
+          <span className={`text-sm font-medium ${textSecondary}`}>
+            {application.approvedDate}
+          </span>
+        </div>
+      </td>
+
+      {/* Name */}
+      <td className={cellStyle}>
+        <span className={`font-medium text-sm ${textPrimary}`}>
+          {application.name}
+        </span>
+      </td>
+
+      {/* Current Address */}
+      <td className={cellStyle}>
+        <span className={`text-sm ${textSecondary}`}>
+          {application.currentAddress}
+        </span>
+      </td>
+
+      {/* Current State */}
+      <td className={cellStyle}>
+        <span className={`text-sm ${textSecondary}`}>
+          {application.currentState}
+        </span>
+      </td>
+
+      {/* Current City */}
+      <td className={cellStyle}>
+        <span className={`text-sm ${textSecondary}`}>
+          {application.currentCity}
+        </span>
+      </td>
+
+      {/* Permanent Address */}
+      <td className={cellStyle}>
+        <span className={`text-sm ${textSecondary}`}>
+          {application.permanentAddress}
+        </span>
+      </td>
+
+      {/* State */}
+      <td className={cellStyle}>
+        <span className={`text-sm ${textSecondary}`}>
+          {application.state}
+        </span>
+      </td>
+
+      {/* City */}
+      <td className={cellStyle}>
+        <span className={`text-sm ${textSecondary}`}>
+          {application.city}
+        </span>
+      </td>
+
+      {/* Phone No */}
+      <td className={cellStyle}>
+        <div className="flex items-center space-x-2">
+          <span className={`text-sm ${textSecondary}`}>
+            {application.phoneNo}
+          </span>
+        </div>
+      </td>
+
+      {/* E-mail */}
+      <td className={cellStyle}>
+        <div className="flex items-center space-x-2">
+          <Mail className={iconAccent} />
+          <span className={`text-sm ${textSecondary}`}>
+            {application.email}
+          </span>
+        </div>
+      </td>
+
+      {/* Approved Amount */}
+      <td className={cellStyle}>
+        <div className="bg-gradient-to-r px-2 rounded-md from-orange-100 to-orange-200 text-orange-800 border border-orange-300">
+          <span className={`text-sm font-semibold`}>
+            {formatCurrency(application.approvedAmount)}
+          </span>
+        </div>
+      </td>
+
+      {/* Admin Fee */}
+      <td className={cellStyle}>
+  <div className="flex flex-col">
+    <span className={`text-sm font-semibold ${textSecondary}`}>
+      {formatCurrency(application.adminFee)}
+    </span>
+    <span className={`text-xs ${isDark ? "text-emerald-300" : "text-emerald-600 font-semibold "}`}>
+      ({application.processPercent || 0}%)
+    </span>
+  </div>
+</td>
+
+      {/* ROI */}
+      <td className={cellStyle}>
+        <span className={`text-sm ${textSecondary}`}>
+          {application.roi}%
+        </span>
+      </td>
+
+      {/* Tenure */}
+      <td className={cellStyle}>
+        <span className={`text-sm ${textSecondary}`}>
+          {application.tenure} days
+        </span>
+      </td>
+
+      {/* Photo */}
+      <td className={cellStyle}>
+        <PhotoDocument
+          fileName={application.photoFileName}
+          hasDoc={application.hasPhoto}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+      {/* Pan Card */}
+      <td className={cellStyle}>
+        <PanCardDocument
+          fileName={application.panCardFileName}
+          hasDoc={application.hasPanCard}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+      {/* Address Proof */}
+      <td className={cellStyle}>
+        <AddressProofDocument
+          fileName={application.addressProofFileName}
+          hasDoc={application.hasAddressProof}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+      {/* ID Proof */}
+      <td className={cellStyle}>
+        <IdProofDocument
+          fileName={application.idProofFileName}
+          hasDoc={application.hasIdProof}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+      {/* Salary Proof */}
+      <td className={cellStyle}>
+        <SalaryProofDocument
+          fileName={application.salarySlip1}
+          hasDoc={application.hasSalaryProof}
+          secondFileName={application.salarySlip2}
+          hasSecondDoc={application.hasSecondSalaryProof}
+          thirdFileName={application.salarySlip3}
+          hasThirdDoc={application.hasThirdSalaryProof}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+      {/* Bank Statement */}
+      <td className={cellStyle}>
+        <BankStatementDocument
+          fileName={application.bankStatementFileName}
+          hasDoc={application.hasBankStatement}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+      {/*second Bank Statement */}
+      <td className={cellStyle}>
+      <SecondBankStatementDocument
+      fileName={application.secondBankStatementFileName}
+      hasDoc={application.hasSecondBankStatement}
+      onFileView={onFileView}
+      fileLoading={fileLoading}
+      loadingFileName={loadingFileName}
+      isDark={isDark}
+    />
+    </td>
+
+      {/* Video KYC */}
+      <td className={cellStyle}>
+        <VideoKYCDocument
+          fileName={application.videoKycFileName}
+          hasDoc={application.hasVideoKyc}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+      {/* Approval Note */}
+      <td className={cellStyle}>
+        <span className={`text-sm ${textSecondary}`}>
+          {application.approvalNote || "N/A"}
+        </span>
+      </td>
+
+      {/* Application Source */}
+      <td className={cellStyle}>
+        <span className={`text-sm ${textSecondary}`}>
+          {application.enquirySource || "N/A"}
+        </span>
+      </td>
+
+      {/* Bank Verification Report */}
+      <td className={cellStyle}>
+        <BankVerificationDocument
+          fileName={application.bankVerificationFileName}
+          hasDoc={application.hasBankVerificationReport}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+      {/* Bank Fraud Report */}
+      <td className={cellStyle}>
+      <BankFraudReportDocument
+            fileName={application.bankFraudReportFileName}
+            hasDoc={application.hasBankFraudReport}
+            onFileView={onFileView}
+            fileLoading={fileLoading}
+            loadingFileName={loadingFileName}
+            isDark={isDark}
+          />
+        </td>
+
+      {/* Social Score Report */}
+      <td className={cellStyle}>
+        <SocialScoreDocument
+          fileName={application.socialScoreFileName}
+          hasDoc={application.hasSocialScoreReport}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+      {/* CIBIL Score Report */}
+      <td className={cellStyle}>
+        <CibilScoreDocument
+          fileName={application.cibilScoreFileName}
+          hasDoc={application.hasCibilScoreReport}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+      {/* NACH Form */}
+      <td className={cellStyle}>
+        <NachFormDocument
+          fileName={application.nachFormFileName}
+          hasDoc={application.hasNachForm}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+      {/* PDC */}
+      <td className={cellStyle}>
+        <PDCDocument
+          fileName={application.pdcFileName}
+          hasDoc={application.hasPdc}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+      {/* Agreement */}
+      <td className={cellStyle}>
+        <AgreementDocument
+          fileName={application.agreementFileName}
+          hasDoc={application.hasAgreement}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+      {/* Cheque */}
+<td className={cellStyle}>
+  <div className="relative group">
+    {!hasPermission('check_no') ? (
+      <div className="opacity-50 cursor-not-allowed pointer-events-none">
+        <div className="flex items-center space-x-2">
+          {application.chequeNo ? (
+            <div className="flex items-center space-x-2">
+              <span className={`px-3 py-1 rounded-md text-xs font-medium ${
+                isDark ? "bg-gray-900/50 text-gray-300 border border-gray-700" : "bg-gray-100 text-gray-600 border border-gray-200"
+              }`}>
+                {application.chequeNo}
+              </span>
+              <div className="p-1 rounded-md">
+                <Edit className={`w-4 h-4 ${isDark ? "text-gray-600" : "text-gray-400"}`} />
+              </div>
+            </div>
+          ) : (
+            <div className={`px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r ${
+              isDark ? "from-gray-700 to-gray-800 text-gray-400" : "from-gray-300 to-gray-400 text-gray-500"
+            }`}>
+              Cheque
+            </div>
+          )}
+        </div>
+      </div>
+    ) : (
+      <div className="flex items-center space-x-2">
+        {application.chequeNo ? (
+          <div className="flex items-center space-x-2">
+            <span className={`px-3 py-1 rounded-md text-xs font-medium ${
+              isDark
+                ? "bg-green-900/50 text-green-300 border border-green-700"
+                : "bg-green-100 text-green-800 border border-green-200"
+            }`}>
+              {application.chequeNo}
+            </span>
+            <button
+              onClick={handleChequeClick}
+              className={`p-1 cursor-pointer rounded-md transition-colors duration-200 ${
+                isDark
+                  ? "hover:bg-gray-700 text-gray-400 hover:text-emerald-400"
+                  : "hover:bg-gray-100 text-gray-500 hover:text-emerald-600"
+              }`}
+              title="Edit cheque number"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleChequeClick}
+            className={`px-4 py-2 cursor-pointer rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r ${
+              isDark
+                ? "from-red-500 to-red-700 hover:from-red-500 hover:to-red-600 text-white shadow-lg hover:shadow-xl"
+                : "from-red-400 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl"
+            } transform hover:scale-105`}
+          >
+            Cheque
+          </button>
+        )}
+      </div>
+    )}
+    
+    {!hasPermission('check_no') && (
+      <div className="absolute z-50 hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2">
+        <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+          No permission to manage cheque
+        </div>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+      </div>
+    )}
+  </div>
+</td>
+
+      {/* Send To Courier */}
+      <td className={cellStyle}>
+  <div className="relative group">
+    <div className="flex items-center justify-center">
+      {application.sendToCourier === "Yes" ? (
+        <span className="px-3 py-1 rounded-2xl text-xs font-semibold bg-gradient-to-r from-green-500 to-emerald-600 text-white flex items-center space-x-1">
+          <CheckCircle className="w-3 h-3" />
+          <span>Yes</span>
+        </span>
+      ) : !hasPermission('send_to_courier') ? (
+        <div className="opacity-50 cursor-not-allowed">
+          <div className="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-gray-500 to-gray-600 text-gray-300 flex items-center space-x-1">
+            <span>No</span>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => onCourierModalOpen(application)}
+          className="px-4 py-2 cursor-pointer rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-1"
+        >
+          <span>No</span>
+        </button>
+      )}
+    </div>
+    
+    {!hasPermission('send_to_courier') && application.sendToCourier !== "Yes" && (
+      <div className="absolute z-50 hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2">
+        <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+          No permission to send to courier
+        </div>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+      </div>
+    )}
+  </div>
+</td>
+
+      {/* Courier Picked */}
+      <td className={cellStyle}>
+  <div className="relative group">
+    <div className="flex items-center justify-center">
+      {application.courierPicked === "Yes" ? (
+        <span className="px-3 py-1 rounded-2xl text-xs font-semibold bg-gradient-to-r from-green-500 to-emerald-600 text-white flex items-center space-x-1">
+          <CheckCircle className="w-3 h-3" />
+          <span>Yes</span>
+        </span>
+      ) : !hasPermission('courier_picked') ? (
+        <div className="opacity-50 cursor-not-allowed">
+          <div className="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-gray-500 to-gray-600 text-gray-300 flex items-center space-x-1">
+            <span>No</span>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => onCourierPickedModalOpen(application)}
+          className="px-4 py-2 cursor-pointer rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-1"
+        >
+          <span>No</span>
+        </button>
+      )}
+    </div>
+    
+    {!hasPermission('courier_picked') && application.courierPicked !== "Yes" && (
+      <div className="absolute z-50 hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2">
+        <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+          No permission to update courier pickup
+        </div>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+      </div>
+    )}
+  </div>
+</td>
+
+      {/* Original Documents */}
+      <td className={cellStyle}>
+  <div className="relative group">
+    <div className="flex items-center justify-center">
+      {application.originalDocuments === "Yes" ? (
+        <span className="px-3 py-1 rounded-2xl text-xs font-semibold bg-gradient-to-r from-green-500 to-emerald-600 text-white flex items-center space-x-1">
+          <CheckCircle className="w-3 h-3" />
+          <span>Yes</span>
+        </span>
+      ) : !hasPermission('original_document_received') ? (
+        <div className="opacity-50 cursor-not-allowed">
+          <div className="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-gray-500 to-gray-600 text-gray-300 flex items-center space-x-1">
+            <span>No</span>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => onOriginalDocumentsModalOpen(application)}
+          className="px-4 py-2 cursor-pointer rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-1"
+        >
+          <span>No</span>
+        </button>
+      )}
+    </div>
+    
+    {!hasPermission('original_document_received') && application.originalDocuments !== "Yes" && (
+      <div className="absolute z-50 hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2">
+        <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+          No permission to update document status
+        </div>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+      </div>
+    )}
+  </div>
+</td>
+
+     {/* Disburse Behalf of E-mandate */}
+<td className={cellStyle}>
+  <div className="relative group">
+    <div className="flex items-center justify-center">
+      {application.receivedDisburse === "Yes" ? (
+        <span className="px-3 py-1 rounded-2xl text-xs font-semibold bg-gradient-to-r from-green-500 to-emerald-600 text-white flex items-center space-x-1">
+          <CheckCircle className="w-3 h-3" />
+          <span>Yes</span>
+        </span>
+      ) : application.enachDetails?.status === "Success" ? (
+        !hasPermission('disburse_behalf_of_emandate') ? (
+          <div className="opacity-50 cursor-not-allowed">
+            <div className="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-gray-500 to-gray-600 text-gray-300 flex items-center space-x-1">
+              <span>Verify</span>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => onDisburseEmandateModalOpen(application)}
+            className="px-4 py-2 cursor-pointer rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-1"
+            title="Click to verify disbursement"
+          >
+            <span>Verify</span>
+          </button>
+        )
+      ) : (
+        <div className="relative group">
+          <button
+            disabled
+            className="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-gray-400 to-gray-600 text-gray-300 cursor-not-allowed flex items-center space-x-1 opacity-60"
+          >
+            <span>Pending</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block">
+            <div className={`px-2 py-1 text-xs rounded ${
+              isDark ? "bg-gray-800 text-gray-300" : "bg-gray-900 text-white"
+            } whitespace-nowrap`}>
+              Waiting for ICICI Emandate Success
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+    
+    {!hasPermission('disburse_behalf_of_emandate') && 
+     application.receivedDisburse !== "Yes" && 
+     application.enachDetails?.status === "Success" && (
+      <div className="absolute z-50 hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2">
+        <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+          No permission to verify disbursement
+        </div>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+      </div>
+    )}
+  </div>
+</td>
+
+      {/* Loan Term */}
+      <td className={cellStyle}>
+        <span className={`text-sm ${textSecondary}`}>
+          {application.loanTerm}
+        </span>
+      </td>
+
+      {/* Customer A/c Verified */}
+      <td className={cellStyle}>
+        <div className="flex items-center justify-center">
+          {application.customerAcVerified === "Yes" ? (
+            <span className="px-3 py-1 rounded-2xl text-xs font-semibold bg-gradient-to-r from-green-500 to-emerald-600 text-white flex items-center space-x-1">
+              <CheckCircle className="w-3 h-3" />
+              <span>Yes</span>
+            </span>
+          ) : (
+            <button className="px-3 py-1 rounded-2xl text-xs font-medium transition-all duration-200 bg-gradient-to-r from-red-400 to-red-600 text-white shadow-lg transform flex items-center space-x-1">
+              <X className="w-3 h-3" />
+              <span>No</span>
+            </button>
+          )}
+        </div>
+      </td>
+
+      {/* Sanction Letter */}
+      <td className={cellStyle}>
+        <SanctionLetterDocument
+          fileName={application.sanctionLetterFileName}
+          hasDoc={application.sanctionLetter}
+          onFileView={onFileView}
+          fileLoading={fileLoading}
+          loadingFileName={loadingFileName}
+          isDark={isDark}
+        />
+      </td>
+
+{/* Sanction Mail */}
+<td className={cellStyle}>
+  <div className="flex items-center justify-center">
+    {application.sanctionMail === "Sent" ? (
+      <span className="px-3 py-1 rounded-2xl text-xs font-semibold bg-gradient-to-r from-green-500 to-emerald-600 text-white flex items-center space-x-1">
+        <CheckCircle className="w-3 h-3" />
+        <span>Sent</span>
+      </span>
+    ) : (
+      <div className="relative group">
+        <button
+          onClick={handleSendSanctionMail}
+          disabled={isSendingMail || !hasPermission('sanction_mail')}
+          className={`px-4 py-1 rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-cyan-500 to-teal-600 flex items-center space-x-1 ${
+            isSendingMail || !hasPermission('sanction_mail')
+              ? 'opacity-50 cursor-not-allowed'
+              : 'cursor-pointer hover:from-cyan-600 hover:to-teal-700 hover:shadow-xl transform hover:scale-105'
+          } text-white shadow-lg`}
+          title={
+            !hasPermission('sanction_mail') 
+              ? "You don't have permission to send sanction mail" 
+              : "Send sanction letter via email"
+          }
+        >
+          {isSendingMail ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Mail className="w-4 h-4" />
+          )}
+          <span>{isSendingMail ? 'Sending...' : 'Send Mail'}</span>
+        </button>
+        
+        {/* Tooltip for no permission */}
+        {!hasPermission('sanction_mail') && (
+          <div className="absolute z-50 hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2">
+            <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+              <div className="flex items-center gap-1">
+                <span>No permission to send sanction mail</span>
+              </div>
+            </div>
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+</td>
+
+
+      {/* ICICI Emandate Status */}
+<td className={cellStyle}>
+  {(() => {
+    let enachAccount = null;
+    let customerAccount = null;
+    
+    if (application.enachDetails?.details) {
+      const enachMatch = application.enachDetails.details.match(/enach_ac_no:\s*(\d+)/);
+      if (enachMatch) {
+        enachAccount = enachMatch[1];
+      }
+      
+      const customerMatch = application.enachDetails.details.match(/customer_ac_no:\s*(\d+)/);
+      if (customerMatch) {
+        customerAccount = customerMatch[1];
+      }
+    }
+    
+    const accountsMatch = enachAccount && customerAccount && enachAccount === customerAccount;
+    
+    const isPending = !application.enachDetails?.status || application.enachDetails?.status === "Pending";
+    const isSuccess = application.enachDetails?.status === "Success";
+    const isFailed = application.enachDetails?.status === "Failed";
+    const canDelete = (isSuccess || isFailed) && hasPermission('del_emandate');
+    
+    return (
+      <div className={`flex flex-col p-2.5 rounded-lg min-w-[200px] space-y-1.5 ${
+        isDark 
+          ? "bg-gray-800/50 border border-gray-700/50" 
+          : "bg-gray-50 border border-gray-200"
+      }`}>
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-1.5">
+            <div className={`flex items-center justify-center w-4 h-4 rounded-full ${
+              application.enachDetails?.status === "Success" 
+                ? "bg-green-500 text-white" 
+                : application.enachDetails?.status === "Failed"
+                ? "bg-red-500 text-white"
+                : "bg-yellow-500 text-white"
+            }`}>
+              {application.enachDetails?.status === "Success" 
+                ? "✓"
+                : application.enachDetails?.status === "Failed"
+                ? "✕"
+                : "⋯"
+              }
+            </div>
+            <span className={`text-sm font-semibold ${
+              application.enachDetails?.status === "Success" 
+                ? isDark ? "text-green-400" : "text-green-700"
+                : application.enachDetails?.status === "Failed"
+                ? isDark ? "text-red-400" : "text-red-700"
+                : isDark ? "text-yellow-400" : "text-yellow-700"
+            }`}>
+              {application.enachDetails?.status || "Pending"}
+            </span>
+          </div>
+          
+          {/* Delete Button - Enabled for both Success and Failed statuses */}
+          <button
+            onClick={() => canDelete && onDeleteEmandate(application.id)}
+            disabled={!canDelete}
+            className={`p-1 rounded-md transition-all duration-200 ${
+              canDelete
+                ? isDark
+                  ? "bg-red-900/30 text-red-400 hover:bg-red-900/50 hover:text-red-300 hover:scale-105 cursor-pointer"
+                  : "bg-red-100 text-red-600 hover:bg-red-200 hover:scale-105 cursor-pointer"
+                : isDark
+                  ? "bg-gray-800/30 text-gray-600 cursor-not-allowed opacity-50"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+            }`}
+            title={
+              !hasPermission('del_emandate') 
+                ? "You don't have permission to delete e-mandate"
+                : isPending
+                ? "E-mandate can only be deleted when status is Success or Failed"
+                : "Delete e-mandate"
+            }
+          >
+              <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+        
+        {application.enachDetails?.date && (
+          <div className={`text-xs ${isDark ? "text-gray-300" : "text-gray-600"}`}>
+            <div className="font-medium">{application.enachDetails.date}</div>
+            {application.enachDetails?.time && (
+              <div className={isDark ? "text-gray-400" : "text-gray-500"}>
+                {application.enachDetails.time}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {!isPending && (isSuccess || isFailed) && (
+          <div className="space-y-1.5 pt-1">
+            <div className="flex items-center justify-between">
+              <span className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"}`}>E-Nach Ac.:</span>
+              <span className={`text-xs font-mono font-semibold ${
+                isDark ? "text-blue-300" : "text-blue-600"
+              }`}>
+                {enachAccount || "N/A"}
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className={`text-xs ${isDark ? "text-gray-400 " : "text-gray-600"}`}>Cust. Ac.:</span>
+              <div className="flex items-center space-x-1.5">
+                <span className={`text-xs font-mono font-semibold px-0.5 py-0.5 rounded ${
+  enachAccount && customerAccount && !accountsMatch
+    ? "bg-red-500 text-white"
+    : isDark ? "text-amber-300" : "text-amber-600"
+}`}>
+  {customerAccount || "N/A"}
+</span>
+                {enachAccount && customerAccount && (
+                  <div className={`flex items-center justify-center w-4 h-4 rounded-full flex-shrink-0 ${
+                    accountsMatch ? "bg-green-500" : "bg-red-500"
+                  }`}>
+                    <span className="text-white text-[10px] font-bold">
+                      {accountsMatch ? "✓" : "✕"}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {!isPending && (
+          <div className={`text-sm ${isDark ? "text-gray-200" : "text-gray-800"}`}>
+            <span className="font-medium">{application.name || "N/A"}</span>
+          </div>
+        )}
+        
+      </div>
+    );
+  })()}
+</td>
+   
+      {/* Loan Status */}
+      <td className={cellStyle}>
+  <div className="relative group">
+    {!hasPermission('ready_to_verify') ? (
+      <div className="opacity-50 cursor-not-allowed pointer-events-none">
+        <button
+          className={`px-3 py-1 rounded-md text-sm font-semibold transition-all duration-200 ${
+            isDark 
+              ? "bg-gray-900/50 text-gray-300 border border-gray-700" 
+              : "bg-gray-100 text-gray-600 border border-gray-200"
+          }`}
+        >
+          {application.loanStatus}
+        </button>
+      </div>
+    ) : (
+      <button
+        onClick={handleLoanStatusClick}
+        disabled={!canOpenLoanStatusModal()}
+        className={`px-3 py-1 rounded-md text-sm font-semibold transition-all duration-200 ${
+          canOpenLoanStatusModal()
+            ? "hover:scale-105 cursor-pointer"
+            : "opacity-60 cursor-not-allowed"
+        } ${
+          isDark 
+            ? "bg-orange-900/50 text-orange-300 border border-orange-700 hover:bg-orange-800" 
+            : "bg-orange-100 text-orange-800 border border-orange-200 hover:bg-orange-200"
+        }`}
+        title={
+          !canOpenLoanStatusModal() 
+            ? "Complete required fields to update status"
+            : "Click to update loan status"
+        }
+      >
+        {application.loanStatus}
+      </button>
+    )}
+    
+    {!hasPermission('ready_to_verify') && (
+      <div className="absolute z-50 hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2">
+        <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+          No permission to update loan status
+        </div>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+      </div>
+    )}
+  </div>
+</td>
+
+      {/* Change Status */}
+<td className={cellStyle}>
+  <div className="relative group">
+    <div className="flex items-center justify-center">
+      {!hasPermission('original_document_status_change') ? (
+        <div className="opacity-50 cursor-not-allowed">
+          <div className="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-gray-500 to-gray-600 text-gray-300 flex items-center space-x-1">
+            <Edit2 className="w-4 h-4" />
+            <span>Change Status</span>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => onChangeStatusClick(application)}
+          className="px-4 py-2 cursor-pointer rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-1"
+          title="Change Status"
+        >
+          <Edit2 className="w-4 h-4" />
+          <span>Change Status</span>
+        </button>
+      )}
+    </div>
+    
+    {!hasPermission('original_document_status_change') && (
+      <div className="absolute z-50 hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2">
+        <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+          No permission to change document status
+        </div>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+      </div>
+    )}
+  </div>
+</td>
+
+      {/* Action */} 
+      <td className={cellStyle}>
+        <ActionButton
+          enquiry={application}
+          isDark={isDark}
+          sourcePage={sourcePage}
+          className="w-full flex justify-center"
+        />
+      </td>
+
+      {/* Appraisal Report */}
+      <td className={cellStyle}>
+        <AppraisalReportButton
+          enquiry={application}
+          isDark={isDark}
+          onFileView={onFileView}
+          sourcePage={sourcePage}
+          className="w-full flex justify-center"
+        />
+      </td>
+
+      {/* Eligibility */}
+      <td className={cellStyle}>
+        <EligibilityButton
+          enquiry={application}
+          isDark={isDark}
+          sourcePage={sourcePage}
+          className="w-full flex justify-center"
+        />
+      </td>
+
+      {/* Replace KYC */}
+      <td className={cellStyle}>
+      <ReplaceKYCButton
+       application={application}
+      isDark={isDark}
+      sourcePage={sourcePage}
+      />
+     </td>
+
+     {/* BlackList */}
+      <td className={cellStyle}>
+        <BlacklistButton
+          userId={application.userId}
+          application={application}
+          isDark={isDark} 
+        />
+      </td>
+    </tr>
+  );
+};
+
+export default SanctionRow;

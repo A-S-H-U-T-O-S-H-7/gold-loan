@@ -13,22 +13,17 @@ const EnquiriesTable = ({
   onPageChange,
   onPageSizeChange, 
   pageSizeOptions,
-  onUploadClick,
-  onDetailClick,
-  onFileView,
-  onLoanEligibilityClick,
-  onVerifyClick,
-  onCheckClick,
-  onBlacklist,
-  
+  loading,
+  fileLoading,
+  loadingFileName
 }) => {
 
   const sourcePage = 'all';
 
   // Common header style
   const headerStyle = `px-2 py-3 text-center text-sm font-bold border-r ${
-isDark ? "text-gray-100 border-gray-600/40" : "text-gray-700 border-gray-300/40"
-}`;
+    isDark ? "text-gray-100 border-gray-600/40" : "text-gray-700 border-gray-300/40"
+  }`;
 
   const tableHeaders = [
     { label: "SR. No.", width: "80px" },
@@ -39,14 +34,37 @@ isDark ? "text-gray-100 border-gray-600/40" : "text-gray-700 border-gray-300/40"
     { label: "Enquiry Date", width: "100px" },
     { label: "Enquiry Time", width: "110px" },
     { label: "Name", width: "150px" },
+    { label: "Current Address", width: "180px" },
+    { label: "Current State", width: "110px" },
+    { label: "Current City", width: "110px" },
     { label: "Address", width: "180px" },
     { label: "State", width: "80px" },
     { label: "City", width: "80px" },
     { label: "Phone No.", width: "90px" },
     { label: "E-mail", width: "200px" },
+    { label: "Photo", width: "80px" },
+    { label: "Pan Card", width: "100px" },
+    { label: "Address Proof", width: "120px" },
+    { label: "ID Proof", width: "100px" },
     { label: "KYC Status", width: "120px" },
-
   ];
+
+  if (loading && paginatedEnquiries.length === 0) {
+    return (
+      <div className={`rounded-2xl shadow-2xl border-2 overflow-hidden ${
+        isDark
+          ? "bg-gray-800 border-crm-border shadow-crm-soft"
+          : "bg-white border-crm-border shadow-crm-soft"
+      }`}>
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-crm-primary mx-auto mb-4"></div>
+            <p className={`${isDark ? "text-gray-400" : "text-gray-500"}`}>Loading enquiries...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -82,7 +100,6 @@ isDark ? "text-gray-100 border-gray-600/40" : "text-gray-700 border-gray-300/40"
                   index={index}
                   isDark={isDark}
                   sourcePage={sourcePage}
-                 
                 />
               ))}
             </tbody>
@@ -90,7 +107,7 @@ isDark ? "text-gray-100 border-gray-600/40" : "text-gray-700 border-gray-300/40"
         </div>
         
         {/* Empty State */}
-        {paginatedEnquiries.length === 0 && (
+        {paginatedEnquiries.length === 0 && !loading && (
           <div className={`text-center py-12 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
             <div className="flex flex-col items-center space-y-4">
               <FileText className="w-16 h-16 opacity-50" />
@@ -100,7 +117,7 @@ isDark ? "text-gray-100 border-gray-600/40" : "text-gray-700 border-gray-300/40"
           </div>
         )}
         
-        {totalPages > 0 && (
+        {totalPages > 0 && paginatedEnquiries.length > 0 && (
           <div>
             <Pagination
               currentPage={currentPage}
