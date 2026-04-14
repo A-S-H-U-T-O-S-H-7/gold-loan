@@ -23,6 +23,7 @@ const BankDetails = ({ formData, handleInputChange, handleIFSCChange, ifscLoadin
               name="accountNumber"
               label="Account Number"
               placeholder="Enter account number"
+              required
               value={formData.accountNumber}
               onChange={handleInputChange}
               maxLength="18"
@@ -36,6 +37,7 @@ const BankDetails = ({ formData, handleInputChange, handleIFSCChange, ifscLoadin
               label="Account Type"
               as="select"
               placeholder="Select type"
+              required
               value={formData.accountType}
               onChange={handleInputChange}
               options={[
@@ -54,6 +56,7 @@ const BankDetails = ({ formData, handleInputChange, handleIFSCChange, ifscLoadin
                   name="ifsc"
                   label="IFSC Code"
                   placeholder="e.g., SBIN0123456"
+                  required
                   value={formData.ifsc}
                   onChange={handleIFSCChange}
                   maxLength="11"
@@ -78,6 +81,7 @@ const BankDetails = ({ formData, handleInputChange, handleIFSCChange, ifscLoadin
               name="bankName"
               label="Bank Name"
               placeholder="Bank name will auto-populate"
+              required
               value={formData.bankName}
               onChange={handleInputChange}
               disabled={Boolean(formData.ifsc && formData.bankName && !ifscError)}
@@ -90,6 +94,7 @@ const BankDetails = ({ formData, handleInputChange, handleIFSCChange, ifscLoadin
             name="bankBranch"
             label="Bank Branch"
             placeholder="Branch will auto-populate"
+            required
             value={formData.bankBranch}
             onChange={handleInputChange}
             disabled={Boolean(formData.ifsc && formData.bankBranch && !ifscError)}
@@ -101,6 +106,7 @@ const BankDetails = ({ formData, handleInputChange, handleIFSCChange, ifscLoadin
             name="accountHolderName"
             label="Account Holder Name"
             placeholder="As per bank records"
+            required
             value={formData.accountHolderName}
             onChange={handleInputChange}
             icon={User}

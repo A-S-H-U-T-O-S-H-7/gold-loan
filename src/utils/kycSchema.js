@@ -4,6 +4,7 @@ const mobileRegex = /^[6-9]\d{9}$/;
 const aadhaarRegex = /^[2-9]\d{11}$/;
 const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
 const pincodeRegex = /^\d{6}$/;
+const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 
 export const createKYCValidationSchema = ({ isNewUser, sameAsCurrent }) =>
   Yup.object({
@@ -90,12 +91,16 @@ export const createKYCValidationSchema = ({ isNewUser, sameAsCurrent }) =>
       }),
       panNumber: Yup.string().nullable(),
     }),
-    accountNumber: Yup.string().nullable(),
-    accountType: Yup.string().nullable(),
-    ifsc: Yup.string().nullable(),
-    bankName: Yup.string().nullable(),
-    bankBranch: Yup.string().nullable(),
-    accountHolderName: Yup.string().nullable(),
+    accountNumber: Yup.string()
+      .required('Account number is required')
+      .matches(/^\d{6,18}$/, 'Enter valid account number'),
+    accountType: Yup.string().required('Account type is required'),
+    ifsc: Yup.string()
+      .required('IFSC code is required')
+      .matches(ifscRegex, 'Enter valid IFSC code'),
+    bankName: Yup.string().trim().required('Bank name is required'),
+    bankBranch: Yup.string().trim().required('Bank branch is required'),
+    accountHolderName: Yup.string().trim().required('Account holder name is required'),
     kycStatus: Yup.string().nullable(),
     remarks: Yup.string().nullable(),
   });

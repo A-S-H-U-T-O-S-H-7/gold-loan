@@ -1,6 +1,7 @@
 const MOBILE_REGEX = /^[6-9]\d{9}$/;
 const AADHAAR_REGEX = /^[2-9]\d{11}$/;
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+const IFSC_REGEX = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 
 export const validateKYCForm = (formData, isNewUser, sameAsCurrent) => {
   const errors = {};
@@ -115,6 +116,35 @@ export const validateKYCForm = (formData, isNewUser, sameAsCurrent) => {
     if (formData.nominee.mobile && !MOBILE_REGEX.test(formData.nominee.mobile)) {
       errors['nominee.mobile'] = 'Enter valid 10-digit mobile starting with 6-9';
     }
+  }
+
+  // Bank Validation
+  if (!formData.accountNumber?.trim()) {
+    errors.accountNumber = 'Account number is required';
+  } else if (!/^\d{6,18}$/.test(formData.accountNumber)) {
+    errors.accountNumber = 'Enter valid account number';
+  }
+
+  if (!formData.accountType) {
+    errors.accountType = 'Account type is required';
+  }
+
+  if (!formData.ifsc?.trim()) {
+    errors.ifsc = 'IFSC code is required';
+  } else if (!IFSC_REGEX.test(formData.ifsc.toUpperCase())) {
+    errors.ifsc = 'Enter valid IFSC code';
+  }
+
+  if (!formData.bankName?.trim()) {
+    errors.bankName = 'Bank name is required';
+  }
+
+  if (!formData.bankBranch?.trim()) {
+    errors.bankBranch = 'Bank branch is required';
+  }
+
+  if (!formData.accountHolderName?.trim()) {
+    errors.accountHolderName = 'Account holder name is required';
   }
 
   return errors;
