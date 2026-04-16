@@ -26,11 +26,11 @@ const InProgressRow = ({ application, index, isDark, onOpenStatusModal }) => {
       className={`border-b transition-all duration-200 hover:shadow-lg ${
         index % 2 === 0
           ? isDark
-            ? "border-emerald-700 bg-gray-700/30 hover:bg-gray-700/50"
-            : "border-emerald-300 bg-gray-50 hover:bg-emerald-50/50"
+            ? "border-crm-border bg-gray-700/30 hover:bg-gray-700/50"
+            : "border-crm-border bg-gray-50 hover:bg-crm-accent-soft/50"
           : isDark
-            ? "border-emerald-700 hover:bg-gray-700/50"
-            : "border-emerald-300 hover:bg-emerald-50/50"
+            ? "border-crm-border hover:bg-gray-700/50"
+            : "border-crm-border hover:bg-crm-accent-soft/50"
       }`}
     >
       <td className={cellStyle}><span className={`font-medium ${textPrimary}`}>{application.srNo}</span></td>

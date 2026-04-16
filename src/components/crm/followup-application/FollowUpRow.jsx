@@ -31,17 +31,17 @@ const FollowUpRow = ({
   return (
     <tr
       className={`border-b transition-all duration-200 hover:shadow-lg ${
-        isBlacklisted
+        isBlacklisted 
           ? isDark
             ? "border-emerald-700 bg-red-950/20 hover:bg-red-900/30"
             : "border-emerald-300 bg-red-100 hover:bg-red-50"
           : index % 2 === 0
-            ? isDark
-              ? "border-emerald-700 bg-gray-700/30 hover:bg-gray-700/50"
-              : "border-emerald-300 bg-gray-50 hover:bg-emerald-50/50"
-            : isDark
-              ? "border-emerald-700 hover:bg-gray-700/50"
-              : "border-emerald-300 hover:bg-emerald-50/50"
+          ? isDark
+            ? "border-crm-border bg-gray-700/30 hover:bg-gray-700/50"
+            : "border-crm-border bg-gray-50 hover:bg-crm-accent-soft/50"
+          : isDark
+            ? "border-crm-border hover:bg-gray-700/50"
+            : "border-crm-border hover:bg-crm-accent-soft/50"
       }`}
     >
       <td className={cellStyle}>

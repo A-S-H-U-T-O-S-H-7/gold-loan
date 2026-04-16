@@ -295,21 +295,21 @@ const handlePageSizeChange = (newSize) => {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
   <div className="flex items-center gap-3 sm:gap-4">
-    <button 
-      onClick={() => router.back()}
-      className={`p-2.5 sm:p-3 rounded-lg sm:rounded-xl transition-all duration-200 hover:scale-105 flex-shrink-0 ${
-        isDark
-          ? "hover:bg-gray-800 bg-gray-800/50 border border-emerald-600/30"
-          : "hover:bg-emerald-50 bg-emerald-50/50 border border-emerald-200"
-      }`}
-    >
+    <button
+                onClick={() => router.back()}
+                className={`p-2.5 sm:p-3 cursor-pointer rounded-lg sm:rounded-xl transition-all duration-200 hover:scale-105 flex-shrink-0 ${
+                  isDark
+                    ? "hover:bg-gray-800 bg-gray-800/50 border border-crm-border"
+                    : "hover:bg-crm-accent-soft bg-crm-accent-soft border border-crm-border"
+                }`}
+              >
       <ArrowLeft className={`w-4 h-4 sm:w-5 sm:h-5 ${
-        isDark ? "text-emerald-400" : "text-emerald-600"
+       isDark ? "text-crm-primary-strong" : "text-crm-primary-strong"
       }`} />
     </button>
     <h1 className={`text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r truncate ${
-      isDark ? "from-emerald-400 to-teal-400" : "from-emerald-600 to-teal-600"
-    } bg-clip-text text-transparent`}>
+                isDark ? "from-crm-gradient-from to-crm-gradient-to" : "from-crm-gradient-from to-crm-gradient-to"
+              } bg-clip-text text-transparent`}>
       InProgress Applications ({totalCount})
     </h1>
   </div>
@@ -333,8 +333,8 @@ const handlePageSizeChange = (newSize) => {
       disabled={exporting || applications.length === 0}
       className={`px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 flex-1 sm:flex-initial ${
         isDark
-          ? "bg-green-600 hover:bg-green-700 text-white"
-          : "bg-green-500 hover:bg-green-600 text-white"
+          ? "bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to hover:brightness-110 text-white"
+                  : "bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to hover:brightness-110 text-white"
       } ${exporting || applications.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       <Download className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${exporting ? 'animate-spin' : ''}`} />

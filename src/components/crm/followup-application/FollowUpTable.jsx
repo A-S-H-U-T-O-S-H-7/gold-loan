@@ -56,15 +56,15 @@ const FollowUpTable = ({
     <>
       <div className={`rounded-2xl shadow-2xl border-2 overflow-hidden ${
         isDark
-          ? "bg-gray-800 border-emerald-600/50 shadow-emerald-900/20"
-          : "bg-white border-emerald-300 shadow-emerald-500/10"
+          ? "bg-gray-800 border-crm-border "
+          : "bg-white border-crm-border "
       }`}>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto"> 
           <table className="w-full min-w-max" style={{ minWidth: "1500px" }}>
             <thead className={`border-b-2 ${
               isDark
-                ? "bg-gradient-to-r from-gray-900 to-gray-800 border-emerald-600/50"
-                : "bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-300"
+                ? "bg-gradient-to-r from-gray-900 to-gray-800 border-crm-border"
+                : "bg-gradient-to-r from-crm-accent-soft to-white border-crm-border"
             }`}>
               <tr>
                 {tableHeaders.map((header, index) => (
