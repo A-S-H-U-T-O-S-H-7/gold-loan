@@ -21,11 +21,9 @@ export const createKYCValidationSchema = ({ isNewUser, sameAsCurrent }) =>
         return mobileRegex.test(value);
       }),
     email: Yup.string()
-      .nullable()
-      .test('email', 'Enter valid email address', (value) => {
-        if (!value) return true;
-        return Yup.string().email().isValidSync(value);
-      }),
+      .required('Email address is required')
+      .email('Enter valid email address'),
+    
     currentAddress: Yup.object({
       houseNo: Yup.string().required('House/Flat no. is required'),
       addressLine1: Yup.string().required('Address line 1 is required'),
@@ -36,24 +34,36 @@ export const createKYCValidationSchema = ({ isNewUser, sameAsCurrent }) =>
         .required('Pincode is required')
         .matches(pincodeRegex, 'Enter valid 6-digit pincode'),
     }),
+    
     permanentAddress: Yup.object({
-      houseNo: sameAsCurrent ? Yup.string().nullable() : Yup.string().required('House/Flat no. is required'),
-      addressLine1: sameAsCurrent ? Yup.string().nullable() : Yup.string().required('Address line 1 is required'),
+      houseNo: sameAsCurrent 
+        ? Yup.string().nullable() 
+        : Yup.string().required('House/Flat no. is required'),
+      addressLine1: sameAsCurrent 
+        ? Yup.string().nullable() 
+        : Yup.string().required('Address line 1 is required'),
       addressLine2: Yup.string().nullable(),
-      state: sameAsCurrent ? Yup.string().nullable() : Yup.string().required('State is required'),
-      city: sameAsCurrent ? Yup.string().nullable() : Yup.string().required('City is required'),
+      state: sameAsCurrent 
+        ? Yup.string().nullable() 
+        : Yup.string().required('State is required'),
+      city: sameAsCurrent 
+        ? Yup.string().nullable() 
+        : Yup.string().required('City is required'),
       pincode: sameAsCurrent
         ? Yup.string().nullable()
         : Yup.string().required('Pincode is required').matches(pincodeRegex, 'Enter valid 6-digit pincode'),
     }),
+    
     aadharNumber: Yup.string()
       .required('Aadhaar number is required')
       .matches(aadhaarRegex, 'Enter valid 12-digit Aadhaar number starting with 2-9'),
     panNumber: Yup.string()
       .required('PAN number is required')
       .matches(panRegex, 'Enter valid PAN number (e.g., ABCDE1234F)'),
+    
+    // File validations
     aadharDocument: isNewUser
-      ? Yup.mixed().required('Aadhaar document is required')
+      ? Yup.mixed().required('Aadhaar front document is required')
       : Yup.mixed().nullable(),
     aadharBackDocument: isNewUser
       ? Yup.mixed().required('Aadhaar back document is required')
@@ -64,36 +74,33 @@ export const createKYCValidationSchema = ({ isNewUser, sameAsCurrent }) =>
     livePhoto: isNewUser
       ? Yup.mixed().required('Live photo is required')
       : Yup.mixed().nullable(),
+    
+    // Nominee - NOW REQUIRED (not optional)
     nominee: Yup.object({
-      name: Yup.string().nullable(),
-      relation: Yup.string().test('nominee-relation', 'Relation is required', function (value) {
-        if (!this.parent?.name?.trim()) return true;
-        return Boolean(value);
-      }),
-      dob: Yup.string().test('nominee-dob', 'Nominee date of birth is required', function (value) {
-        if (!this.parent?.name?.trim()) return true;
-        return Boolean(value);
-      }),
-      gender: Yup.string().nullable(),
-      mobile: Yup.string().test('nominee-mobile', 'Enter valid 10-digit mobile starting with 6-9', (value) => {
-        if (!value) return true;
-        return mobileRegex.test(value);
-      }),
+      name: Yup.string().required('Nominee name is required'),
+      relation: Yup.string().required('Relation is required'),
+      dob: Yup.string().required('Nominee date of birth is required'),
+      gender: Yup.string().required('Nominee gender is required'),
+      mobile: Yup.string()
+        .required('Nominee mobile number is required')
+        .matches(mobileRegex, 'Enter valid 10-digit mobile number starting with 6-9'),
       email: Yup.string()
         .nullable()
-        .test('nominee-email', 'Enter valid email address', (value) => {
+        .email('Enter valid email address'),
+      aadharNumber: Yup.string()
+        .required('Nominee Aadhaar number is required')
+        .matches(aadhaarRegex, 'Enter valid 12-digit Aadhaar starting with 2-9'),
+      panNumber: Yup.string()
+        .nullable()
+        .test('nominee-pan', 'Enter valid PAN number', (value) => {
           if (!value) return true;
-          return Yup.string().email().isValidSync(value);
+          return panRegex.test(value);
         }),
-      aadharNumber: Yup.string().test('nominee-aadhaar', 'Enter valid 12-digit Aadhaar starting with 2-9', function (value) {
-        if (!this.parent?.name?.trim()) return true;
-        return aadhaarRegex.test(value || '');
-      }),
-      panNumber: Yup.string().nullable(),
     }),
+    
     accountNumber: Yup.string()
       .required('Account number is required')
-      .matches(/^\d{6,18}$/, 'Enter valid account number'),
+      .matches(/^\d{6,18}$/, 'Enter valid account number (6-18 digits)'),
     accountType: Yup.string().required('Account type is required'),
     ifsc: Yup.string()
       .required('IFSC code is required')
@@ -104,4 +111,3 @@ export const createKYCValidationSchema = ({ isNewUser, sameAsCurrent }) =>
     kycStatus: Yup.string().nullable(),
     remarks: Yup.string().nullable(),
   });
-

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Home } from 'lucide-react';
-import FormField from './FormField';
+import { MapPin, Home, AlertTriangle } from 'lucide-react';
 import { userKycService } from '@/lib/services/UserKYCServices';
 
 const AddressSection = ({
@@ -10,39 +9,38 @@ const AddressSection = ({
   sameAddress = false,
   onSameAddressChange,
   isCurrentAddressComplete,
-  values,
-  setFieldValue,
-  cities,
-  setCities,
-  errors,
+  formik,
   isDark
 }) => {
   const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
 
+  // Fetch states on mount
   useEffect(() => {
     fetchStates();
   }, []);
 
+  // Fetch cities when state changes
   useEffect(() => {
-    const selectedState = values?.[addressPrefix]?.state;
-    if (selectedState) {
-      fetchCities(selectedState);
+    const stateValue = formik.values[`${addressPrefix}Address`]?.state;
+    if (stateValue) {
+      fetchCities(stateValue);
     } else {
       setCities([]);
     }
-  }, [values?.[addressPrefix]?.state]);
+  }, [formik.values[`${addressPrefix}Address`]?.state]);
 
   const fetchStates = async () => {
     try {
       setLoadingStates(true);
       const response = await userKycService.getStates();
       if (response?.success) {
-        setStates(response.states.map(s => ({ value: s.state_name, label: s.state_name })));
+        setStates(response.states);
       }
-    } catch (err) {
-      console.error('State fetch failed:', err);
+    } catch (error) {
+      console.error('Error fetching states:', error);
     } finally {
       setLoadingStates(false);
     }
@@ -53,138 +51,287 @@ const AddressSection = ({
       setLoadingCities(true);
       const response = await userKycService.getCities(stateName);
       if (response?.success) {
-        setCities(response.cities.map(c => ({ value: c.city_name, label: c.city_name })));
+        setCities(response.cities);
       }
-    } catch (err) {
-      console.error('City fetch failed:', err);
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+      setCities([]);
     } finally {
       setLoadingCities(false);
     }
   };
 
-  const handleStateChange = (e) => {
-    setFieldValue(`${addressPrefix}.state`, e.target.value);
-    setFieldValue(`${addressPrefix}.city`, '');
+  const handleStateChange = (e, prefix) => {
+    const stateName = e.target.value;
+    formik.setFieldValue(`${prefix}Address.state`, stateName);
+    formik.setFieldValue(`${prefix}Address.city`, '');
+    formik.setFieldTouched(`${prefix}Address.state`, true);
+  };
+
+  // Helper to check field error - shows error if touched OR form is submitting
+  const hasError = (fieldPath) => {
+    const isTouched = formik.touched[fieldPath];
+    const isSubmitting = formik.isSubmitting;
+    const hasErrorValue = formik.errors[fieldPath];
+    // Show error if field is touched OR form is being submitted
+    return hasErrorValue && (isTouched || isSubmitting);
+  };
+
+  const getFieldError = (fieldPath) => {
+    return formik.errors[fieldPath];
+  };
+
+  // CSS Classes
+  const inputClassName = `w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm outline-none ${
+    isDark
+      ? "bg-gray-700 border-gray-600 text-white hover:border-crm-primary focus:border-crm-primary-strong focus:ring-2 focus:ring-crm-ring"
+      : "bg-gray-50 border-gray-300 text-gray-900 hover:border-crm-primary focus:border-crm-primary focus:ring-2 focus:ring-crm-ring"
+  }`;
+
+  const errorInputClassName = `w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm outline-none ${
+    isDark
+      ? "bg-gray-700 border-red-500 text-white hover:border-red-400 focus:border-red-400"
+      : "bg-red-50 border-red-400 text-gray-900 hover:border-red-400 focus:border-red-500"
+  } focus:ring-2 focus:ring-red-500/20`;
+
+  const selectClassName = `w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm outline-none ${
+    isDark
+      ? "bg-gray-700 border-gray-600 text-white hover:border-crm-primary focus:border-crm-primary-strong focus:ring-2 focus:ring-crm-ring"
+      : "bg-gray-50 border-gray-300 text-gray-900 hover:border-crm-primary focus:border-crm-primary focus:ring-2 focus:ring-crm-ring"
+  }`;
+
+  const errorSelectClassName = `w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm outline-none ${
+    isDark
+      ? "bg-gray-700 border-red-500 text-white hover:border-red-400 focus:border-red-400"
+      : "bg-red-50 border-red-400 text-gray-900 hover:border-red-400 focus:border-red-500"
+  } focus:ring-2 focus:ring-red-500/20`;
+
+  const labelClassName = `block text-xs font-medium mb-1 ${
+    isDark ? "text-gray-200" : "text-gray-700"
+  }`;
+
+  const errorLabelClassName = `block text-xs font-medium mb-1 ${
+    isDark ? "text-red-400" : "text-red-600"
+  }`;
+
+  const errorTextClassName = `text-xs mt-1 flex items-center gap-1 ${
+    isDark ? "text-red-400" : "text-red-600"
+  }`;
+
+  const isRequired = !showSameAddressOption || !sameAddress;
+
+  // Helper to handle blur and set touched
+  const handleBlur = (fieldPath, e) => {
+    formik.handleBlur(e);
+    formik.setFieldTouched(fieldPath, true);
   };
 
   return (
     <div className={`rounded-xl shadow-lg border-2 overflow-hidden ${
       isDark
-        ? 'bg-gray-800 border-crm-border shadow-crm-soft'
-        : 'bg-white border-crm-border shadow-crm-soft'
+        ? "bg-gray-800 border-crm-border shadow-crm-soft"
+        : "bg-white border-crm-border shadow-crm-soft"
     }`}>
       <div className="p-5">
         <div className="flex items-center space-x-2 mb-4">
-          <MapPin className={`w-5 h-5 ${isDark ? 'text-crm-primary-strong' : 'text-crm-primary'}`} />
-          <h3 className={`text-lg font-semibold ${isDark ? 'text-crm-primary-strong' : 'text-crm-primary'}`}>{title}</h3>
+          <MapPin className={`w-5 h-5 ${isDark ? "text-crm-primary-strong" : "text-crm-primary"}`} />
+          <h3 className={`text-lg font-semibold ${isDark ? "text-crm-primary-strong" : "text-crm-primary"}`}>
+            {title}
+          </h3>
         </div>
 
         <div className="space-y-4">
-        {showSameAddressOption ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-            <div className={`rounded-lg border px-4 py-3 ${
-              isDark ? 'border-gray-700 bg-gray-700/40' : 'border-crm-border bg-crm-accent-soft/60'
-            }`}>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={sameAddress}
-                  disabled={!isCurrentAddressComplete}
-                  onChange={onSameAddressChange}
-                  className="rounded border-gray-300 text-crm-primary focus:ring-crm-primary"
-                />
-                <span className={`text-sm ${isDark ? "text-gray-300" : "text-gray-600"}`}>
-                  Same as current address
-                </span>
-              </label>
-            </div>
+          {showSameAddressOption ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              <div className={`rounded-lg border px-4 py-3 ${
+                isDark ? 'border-gray-700 bg-gray-700/40' : 'border-crm-border bg-crm-accent-soft/60'
+              }`}>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={sameAddress}
+                    disabled={!isCurrentAddressComplete}
+                    onChange={onSameAddressChange}
+                    className="rounded border-gray-300 text-crm-primary focus:ring-crm-primary"
+                  />
+                  <span className={`text-sm ${isDark ? "text-gray-300" : "text-gray-600"}`}>
+                    Same as current address
+                  </span>
+                </label>
+                
+              </div>
 
-            <FormField
-              name={`${addressPrefix}.houseNo`}
-              label="House/Flat No."
-              placeholder="Enter house/flat"
-              required
-              value={values?.[addressPrefix]?.houseNo || ''}
-              onChange={(e) => setFieldValue(`${addressPrefix}.houseNo`, e.target.value)}
-              icon={Home}
-              error={errors?.[`${addressPrefix}.houseNo`]}
-              isDark={isDark}
+              <div>
+                <label className={hasError(`${addressPrefix}Address.houseNo`) ? errorLabelClassName : labelClassName}>
+                  House/Flat No. {isRequired && <span className="text-red-500">*</span>}
+                </label>
+                <input
+                  type="text"
+                  name={`${addressPrefix}Address.houseNo`}
+                  value={formik.values[`${addressPrefix}Address`]?.houseNo || ''}
+                  onChange={formik.handleChange}
+                  onBlur={(e) => handleBlur(`${addressPrefix}Address.houseNo`, e)}
+                  disabled={sameAddress}
+                  className={hasError(`${addressPrefix}Address.houseNo`) ? errorInputClassName : inputClassName}
+                  placeholder="Enter house/flat number"
+                />
+                {hasError(`${addressPrefix}Address.houseNo`) && (
+                  <div className={errorTextClassName}>
+                    <AlertTriangle className="w-3 h-3" />
+                    <span>{getFieldError(`${addressPrefix}Address.houseNo`)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label className={hasError(`${addressPrefix}Address.houseNo`) ? errorLabelClassName : labelClassName}>
+                House/Flat No. <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name={`${addressPrefix}Address.houseNo`}
+                value={formik.values[`${addressPrefix}Address`]?.houseNo || ''}
+                onChange={formik.handleChange}
+                onBlur={(e) => handleBlur(`${addressPrefix}Address.houseNo`, e)}
+                className={hasError(`${addressPrefix}Address.houseNo`) ? errorInputClassName : inputClassName}
+                placeholder="Enter house/flat number"
+              />
+              {hasError(`${addressPrefix}Address.houseNo`) && (
+                <div className={errorTextClassName}>
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>{getFieldError(`${addressPrefix}Address.houseNo`)}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Address Line 1 */}
+          <div>
+            <label className={hasError(`${addressPrefix}Address.addressLine1`) ? errorLabelClassName : labelClassName}>
+              Address Line 1 {isRequired && <span className="text-red-500">*</span>}
+            </label>
+            <input
+              type="text"
+              name={`${addressPrefix}Address.addressLine1`}
+              value={formik.values[`${addressPrefix}Address`]?.addressLine1 || ''}
+              onChange={formik.handleChange}
+              onBlur={(e) => handleBlur(`${addressPrefix}Address.addressLine1`, e)}
+              disabled={sameAddress}
+              className={hasError(`${addressPrefix}Address.addressLine1`) ? errorInputClassName : inputClassName}
+              placeholder="Street, building, area"
+            />
+            {hasError(`${addressPrefix}Address.addressLine1`) && (
+              <div className={errorTextClassName}>
+                <AlertTriangle className="w-3 h-3" />
+                <span>{getFieldError(`${addressPrefix}Address.addressLine1`)}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Address Line 2 */}
+          <div>
+            <label className={labelClassName}>
+              Address Line 2 <span className="text-gray-400 text-xs">(Optional)</span>
+            </label>
+            <input
+              type="text"
+              name={`${addressPrefix}Address.addressLine2`}
+              value={formik.values[`${addressPrefix}Address`]?.addressLine2 || ''}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              disabled={sameAddress}
+              className={inputClassName}
+              placeholder="Landmark (optional)"
             />
           </div>
-        ) : (
-          <FormField
-            name={`${addressPrefix}.houseNo`}
-            label="House/Flat No."
-            placeholder="Enter house/flat"
-            required
-            value={values?.[addressPrefix]?.houseNo || ''}
-            onChange={(e) => setFieldValue(`${addressPrefix}.houseNo`, e.target.value)}
-            icon={Home}
-            error={errors?.[`${addressPrefix}.houseNo`]}
-            isDark={isDark}
-          />
-        )}
 
-        <FormField
-          name={`${addressPrefix}.addressLine1`}
-          label="Address Line 1"
-          placeholder="Street, building"
-          required
-          value={values?.[addressPrefix]?.addressLine1 || ''}
-          onChange={(e) => setFieldValue(`${addressPrefix}.addressLine1`, e.target.value)}
-          error={errors?.[`${addressPrefix}.addressLine1`]}
-          isDark={isDark}
-        />
-
-        <FormField
-          name={`${addressPrefix}.addressLine2`}
-          label="Address Line 2"
-          placeholder="Area, landmark (optional)"
-          value={values?.[addressPrefix]?.addressLine2 || ''}
-          onChange={(e) => setFieldValue(`${addressPrefix}.addressLine2`, e.target.value)}
-          isDark={isDark}
-        />
-
+          {/* State, City, Pincode Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FormField
-            name={`${addressPrefix}.state`}
-            label="State"
-            as="select"
-            placeholder={loadingStates ? "Loading..." : "Select"}
-            required
-            options={states}
-            value={values?.[addressPrefix]?.state || ''}
-            onChange={handleStateChange}
-            error={errors?.[`${addressPrefix}.state`]}
-            isDark={isDark}
-            disabled={loadingStates}
-          />
+            {/* State */}
+            <div>
+              <label className={hasError(`${addressPrefix}Address.state`) ? errorLabelClassName : labelClassName}>
+                State {isRequired && <span className="text-red-500">*</span>}
+              </label>
+              <select
+                name={`${addressPrefix}Address.state`}
+                value={formik.values[`${addressPrefix}Address`]?.state || ''}
+                onChange={(e) => handleStateChange(e, addressPrefix)}
+                onBlur={(e) => handleBlur(`${addressPrefix}Address.state`, e)}
+                disabled={loadingStates || sameAddress}
+                className={hasError(`${addressPrefix}Address.state`) ? errorSelectClassName : selectClassName}
+              >
+                <option value="">{loadingStates ? "Loading states..." : "Select State"}</option>
+                {states.map(state => (
+                  <option key={state.id} value={state.state_name}>
+                    {state.state_name}
+                  </option>
+                ))}
+              </select>
+              {hasError(`${addressPrefix}Address.state`) && (
+                <div className={errorTextClassName}>
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>{getFieldError(`${addressPrefix}Address.state`)}</span>
+                </div>
+              )}
+            </div>
 
-          <FormField
-            name={`${addressPrefix}.city`}
-            label="City"
-            as="select"
-            placeholder={loadingCities ? "Loading..." : "Select"}
-            required
-            options={cities}
-            value={values?.[addressPrefix]?.city || ''}
-            onChange={(e) => setFieldValue(`${addressPrefix}.city`, e.target.value)}
-            disabled={!values?.[addressPrefix]?.state || loadingCities}
-            error={errors?.[`${addressPrefix}.city`]}
-            isDark={isDark}
-          />
+            {/* City */}
+            <div>
+              <label className={hasError(`${addressPrefix}Address.city`) ? errorLabelClassName : labelClassName}>
+                City {isRequired && <span className="text-red-500">*</span>}
+              </label>
+              <select
+                name={`${addressPrefix}Address.city`}
+                value={formik.values[`${addressPrefix}Address`]?.city || ''}
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  formik.setFieldTouched(`${addressPrefix}Address.city`, true);
+                }}
+                onBlur={(e) => handleBlur(`${addressPrefix}Address.city`, e)}
+                disabled={!formik.values[`${addressPrefix}Address`]?.state || loadingCities || sameAddress}
+                className={hasError(`${addressPrefix}Address.city`) ? errorSelectClassName : selectClassName}
+              >
+                <option value="">
+                  {loadingCities ? "Loading cities..." : "Select City"}
+                </option>
+                {cities.map(city => (
+                  <option key={city.id} value={city.city_name}>
+                    {city.city_name}
+                  </option>
+                ))}
+              </select>
+              {hasError(`${addressPrefix}Address.city`) && (
+                <div className={errorTextClassName}>
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>{getFieldError(`${addressPrefix}Address.city`)}</span>
+                </div>
+              )}
+            </div>
 
-          <FormField
-            name={`${addressPrefix}.pincode`}
-            label="Pincode"
-            placeholder="6-digit"
-            required
-            maxLength="6"
-            value={values?.[addressPrefix]?.pincode || ''}
-            onChange={(e) => setFieldValue(`${addressPrefix}.pincode`, e.target.value)}
-            error={errors?.[`${addressPrefix}.pincode`]}
-            isDark={isDark}
-          />
+            {/* Pincode */}
+            <div>
+              <label className={hasError(`${addressPrefix}Address.pincode`) ? errorLabelClassName : labelClassName}>
+                Pincode {isRequired && <span className="text-red-500">*</span>}
+              </label>
+              <input
+                type="text"
+                name={`${addressPrefix}Address.pincode`}
+                value={formik.values[`${addressPrefix}Address`]?.pincode || ''}
+                onChange={formik.handleChange}
+                onBlur={(e) => handleBlur(`${addressPrefix}Address.pincode`, e)}
+                disabled={sameAddress}
+                maxLength="6"
+                className={hasError(`${addressPrefix}Address.pincode`) ? errorInputClassName : inputClassName}
+                placeholder="6-digit pincode"
+              />
+              {hasError(`${addressPrefix}Address.pincode`) && (
+                <div className={errorTextClassName}>
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>{getFieldError(`${addressPrefix}Address.pincode`)}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -6,7 +6,7 @@ import AddressProofDocument from "../documents/AddressProofDocument";
 import IdProofDocument from "../documents/IdProofDocument";
 import ActionButton from "../action-buttons/ActionButton";
 import AppraisalReportButton from "../action-buttons/AppraisalReportButton";
-import EligibilityButton from "../action-buttons/EligibilityButton";
+import GoldEvaluationButton from "../action-buttons/GoldEvalutionButton";
 import CRNLink from "../CRNLink";
 import CallButton from "../call/CallButton";
 import BlacklistButton from "../action-buttons/BlacklistButton";
@@ -97,7 +97,7 @@ const FollowUpRow = ({
       </td>
       <td className={cellStyle}><ActionButton enquiry={application} isDark={isDark} /></td>
       <td className={cellStyle}><AppraisalReportButton enquiry={application} isDark={isDark} /></td>
-      <td className={cellStyle}><EligibilityButton enquiry={application} isDark={isDark} /></td>
+      <td className={cellStyle}><GoldEvaluationButton enquiry={application} isDark={isDark} /></td>
       <td className={cellStyle}>
         <BlacklistButton application={application} isDark={isDark} onBlacklist={() => onBlacklist?.(application)} />
       </td>

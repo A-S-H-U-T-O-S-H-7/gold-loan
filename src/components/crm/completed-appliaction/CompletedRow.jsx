@@ -7,7 +7,7 @@ import IdProofDocument from "../documents/IdProofDocument";
 import CallButton from "../call/CallButton";
 import ActionButton from "../action-buttons/ActionButton";
 import AppraisalReportButton from "../action-buttons/AppraisalReportButton";
-import EligibilityButton from "../action-buttons/EligibilityButton";
+import GoldEvaluationButton from "../action-buttons/GoldEvalutionButton";
 import BlacklistButton from "../action-buttons/BlacklistButton";
 import CRNLink from "../CRNLink";
 
@@ -123,8 +123,14 @@ const CompletedRow = ({
       </td>
       <td className={cellStyle}><ActionButton enquiry={application} isDark={isDark} /></td>
       <td className={cellStyle}><AppraisalReportButton enquiry={application} isDark={isDark} /></td>
-      <td className={cellStyle}><EligibilityButton enquiry={application} isDark={isDark} /></td>
+
       <td className={cellStyle}>
+        <GoldEvaluationButton
+         enquiry={application}
+          isDark={isDark} />
+          </td>
+
+      <td className={cellStyle}> 
         <BlacklistButton
           application={application}
           isDark={isDark}

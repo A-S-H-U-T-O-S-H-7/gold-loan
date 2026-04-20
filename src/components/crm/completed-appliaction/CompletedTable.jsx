@@ -51,7 +51,7 @@ const CompletedTable = ({
     { label: "Status", width: "100px" }, 
     { label: "Action", width: "90px" },
     { label: "Appraisal Report", width: "120px" },
-    { label: "Eligibility", width: "60px" },
+    { label: "Eligibility", width: "120px" },
     { label: "BlackList", width: "120px" },
   ];
 
