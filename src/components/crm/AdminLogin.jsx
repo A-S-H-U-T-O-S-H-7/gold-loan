@@ -31,8 +31,16 @@ export default function AdminLogin() {
 
   const handleLogin = (e) => {
     e.preventDefault();
+    
+    // Validate branch_id
+    const branchId = parseInt(formData.branch_id);
+    if (isNaN(branchId) || branchId <= 0) {
+      // You can set an error state here
+      return;
+    }
+    
     login({
-      branch_id: parseInt(formData.branch_id),
+      branch_id: branchId,
       username: formData.username,
       password: formData.password
     });
@@ -91,12 +99,12 @@ export default function AdminLogin() {
             <div className="relative">
               <Building2 className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${theme === "dark" ? 'text-foreground-muted' : 'text-navy-400'}`} />
               <input
-                type="number"
+                type="text"
                 name="branch_id"
                 required
                 value={formData.branch_id}
                 onChange={handleInputChange}
-                placeholder="Enter branch ID"
+                placeholder="Enter branch ID (e.g., 1)"
                 className={`w-full pl-10 pr-4 py-3 rounded-lg border transition-all duration-200 
                   focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500 outline-none
                   ${theme === "dark" 
@@ -178,7 +186,7 @@ export default function AdminLogin() {
         {/* Footer */}
         <div className="mt-6 text-center">
           <p className={`text-xs ${theme === "dark" ? 'text-foreground-muted' : 'text-navy-400'}`}>
-            Demo login: Branch <span className="font-mono">1</span> / <span className="font-mono">admin</span> / <span className="font-mono">admin</span>
+            Demo login: Branch <span className="font-mono font-semibold text-gold-500">1</span> / <span className="font-mono font-semibold text-gold-500">admin</span> / <span className="font-mono font-semibold text-gold-500">admin</span>
           </p>
         </div>
       </div>
