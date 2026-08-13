@@ -9,8 +9,8 @@ const Footer = () => {
 
   return (
     <footer className={`py-2 px-4 border-t transition-colors duration-300 ${theme === "dark"
-      ? 'bg-gray-900 border-gray-700 text-gray-300'
-      : 'bg-crm-accent-soft border-crm-border-strong text-gray-600'
+      ? 'bg-surface border-border text-foreground-muted'
+      : 'bg-surface border-border text-foreground-muted'
       }`}>
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col items-center justify-center space-y-2">

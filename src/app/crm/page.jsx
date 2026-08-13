@@ -1,7 +1,7 @@
-import AdminLogin from "@/components/crm/AdminLogin"
+"use client";
+
+import AdminLogin from "@/components/crm/AdminLogin";
 
 export default function AdminLoginPage() {
-  return (
-    <AdminLogin />
-  )
+  return <AdminLogin />;
 }

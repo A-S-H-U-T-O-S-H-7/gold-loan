@@ -1,338 +1,246 @@
 'use client';
+
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FiMenu, FiX, FiChevronRight } from 'react-icons/fi';
 import {
-  FaHome, FaSms, FaFileExport, FaMoneyCheckAlt, FaBook, FaHandHoldingUsd, FaMobileAlt,
-  FaEnvelopeOpenText, FaHourglassHalf, FaBriefcase, FaUserTie, FaShieldAlt
+  FaHome, FaGem, FaUserPlus, FaPhone, FaHandHoldingUsd,
+  FaFileInvoiceDollar, FaShieldAlt, FaMoneyBillWave, FaClock,
+  FaCheckCircle, FaTimesCircle, FaBoxes, FaWallet, FaHistory,
+  FaChartBar, FaCog, FaUsers, FaBuilding
 } from 'react-icons/fa';
 import {
-  MdReviews, MdReportProblem, MdOutlineAccessTimeFilled, MdFlashAuto, MdOutlineQrCode2,
-  MdAssignmentTurnedIn, MdCreditScore, MdPendingActions, MdDoneAll, MdCancel, MdMenuBook,
-  MdDownload, MdSupportAgent, MdAttachMoney, MdOutlineHistoryEdu, MdSettings, MdAccountBalance,
+  MdDashboard, MdPendingActions, MdDoneAll, MdCancel,
+  MdAccountBalance, MdReceipt, MdSecurity, MdSettings,
+  MdVerified, MdGold, MdStore, MdLock, MdAttachMoney
 } from "react-icons/md";
-import { SiBlogger } from "react-icons/si";
-import { RiAccountPinBoxFill, RiAdminFill } from "react-icons/ri";
-import { IoMdNotifications, IoMdCash } from "react-icons/io";
-import { IoBarChart } from "react-icons/io5";
-import { VscReferences } from "react-icons/vsc";
-import { BiPlus, BiCog } from "react-icons/bi";
-import {
-  Scale, BanknoteArrowUp, ChartNoAxesCombined, Codesandbox, Boxes,
-  ReceiptIndianRupee, BadgeCheck, Stamp,
-} from "lucide-react";
+import { IoMdCash } from "react-icons/io";
+import { GiGoldBar,GiBank, GiExpense } from "react-icons/gi";
 import { BsBank2 } from "react-icons/bs";
-import { GiExpense, GiWallet, GiMoneyStack } from "react-icons/gi";
-import { TbMessageCircleFilled } from "react-icons/tb";
-import { FaHourglassEnd } from "react-icons/fa6";
-import { BsCreditCard2FrontFill } from "react-icons/bs";
-import { BiSpreadsheet } from "react-icons/bi";
+import { RiAdminFill } from "react-icons/ri";
 import { useAdminAuthStore } from '@/lib/store/authAdminStore';
 import { useThemeStore } from '@/lib/store/useThemeStore';
 
-// Menu items with permission keys mapped from API
+// ============================================
+// GOLD LOAN CRM - SIDEBAR MENU ITEMS
+// ============================================
 const allMenuItems = [
-  { 
-    name: 'Dashboard', 
-    link: '/crm/dashboard', 
+  // ========== DASHBOARD ==========
+  {
+    name: 'Dashboard',
+    link: '/crm/dashboard',
     icon: <FaHome />,
     permissionKey: 'dashboard'
   },
+
+  // ========== APPLICATION PIPELINE ==========
   {
-    name: 'Manage Enquiries',
-    icon: <Codesandbox />,
+    name: 'Application Pipeline',
+    icon: <FaBoxes />,
     isDropdown: true,
+    isSection: true,
     subItems: [
-      { 
-        name: 'Manage Application', 
-        link: '/crm/manage-application', 
-        icon: <Boxes size={16} />,
-        permissionKey: 'manage_application'
+      {
+        name: 'Manage Loans',
+        link: '/crm/manage-loans',
+        icon: <MdDashboard />,
+        permissionKey: 'manage_loans'
       },
-      { 
-        name: 'Disburse Application', 
-        link: '/crm/disburse-application', 
-        icon: <MdAssignmentTurnedIn />,
-        permissionKey: 'disburse_application'
+      {
+        name: 'Transaction',
+        link: '/crm/transaction',
+        icon: <FaMoneyBillWave />,
+        permissionKey: 'transaction'
       },
-      { 
-        name: 'Credit Approval', 
-        link: '/crm/credit-approval', 
-        icon: <MdCreditScore />,
+      {
+        name: 'Disbursement',
+        link: '/crm/disbursement',
+        icon: <FaHandHoldingUsd />,
+        permissionKey: 'disbursement'
+      },
+      {
+        name: 'Credit Approval',
+        link: '/crm/credit-approval',
+        icon: <FaShieldAlt />,
         permissionKey: 'credit_approval'
       },
-      { 
-        name: 'Sanction Application', 
-        link: '/crm/sanction-application', 
-        icon: <Stamp />,
-        permissionKey: 'sanction_application'
+      {
+        name: 'Loan Offer',
+        link: '/crm/loan-offer',
+        icon: <FaFileInvoiceDollar />,
+        permissionKey: 'loan_offer'
       },
-      { 
-        name: 'Inprocess Application', 
-        link: '/crm/inprogress-application', 
-        icon: <MdPendingActions />,
-        permissionKey: 'inprocess_application'
+      {
+        name: 'Gold Evaluation',
+        link: '/crm/gold-evaluation',
+        icon: <FaGem />,
+        permissionKey: 'gold_evaluation'
       },
-      { 
-        name: 'Followup Application', 
-        link: '/crm/followup-application', 
-        icon: <FaEnvelopeOpenText />,
-        permissionKey: 'followup_application'
+      {
+        name: 'Follow-Up',
+        link: '/crm/follow-up',
+        icon: <FaPhone />,
+        permissionKey: 'follow_up'
       },
-      { 
-        name: 'Completed Application', 
-        link: '/crm/completed-application', 
-        icon: <MdDoneAll />,
-        permissionKey: 'complete_application'
+      {
+        name: 'Create Customer',
+        link: '/crm/create-customer',
+        icon: <FaUserPlus />,
+        permissionKey: 'create_customer'
       },
-      
-      { 
-        name: 'Rejected Application', 
-        link: '/crm/rejected-application', 
-        icon: <MdCancel />,
-        permissionKey: 'rejected_application'
-      },
-    ]
-  },
-  { 
-    name: 'All Enquiries', 
-    link: '/crm/all-enquiries', 
-    icon: <TbMessageCircleFilled />,
-    permissionKey: 'all_enquiries'
-  },
-  { 
-    name: 'Disburse Reporting', 
-    link: '/crm/disburse-reporting', 
-    icon: <FaHandHoldingUsd />,
-    permissionKey: 'disburse_reporting'
-  },
-  { 
-    name: 'Collection Reporting', 
-    link: '/crm/collection-reporting', 
-    icon: <GiWallet />,
-    permissionKey: 'collection_reporting'
-  },
-  {
-    name: 'Auto Collection',
-    icon: <MdFlashAuto />,
-    isDropdown: true,
-    subItems: [
-      { 
-        name: 'E-Collection', 
-        link: '/crm/e-collection', 
-        icon: <BsCreditCard2FrontFill />,
-        permissionKey: 'auto_collection'
-      },
-      { 
-        name: 'UPI Collection', 
-        link: '/crm/upi-collection', 
-        icon: <MdOutlineQrCode2 />,
-        permissionKey: 'auto_collection'
+      {
+        name: 'Reject Application',
+        link: '/crm/rejected-applications',
+        icon: <FaTimesCircle />,
+        permissionKey: 'rejected_applications'
       },
     ]
   },
-  { 
-    name: 'Ledger', 
-    link: '/crm/ledger', 
-    icon: <BiSpreadsheet />,
-    permissionKey: 'ledger'
-  },
-  { 
-    name: 'Bank Ledger', 
-    link: '/crm/bank-ledger', 
-    icon: <BsBank2 />,
-    permissionKey: 'bank_ledger'
-  },
-  { 
-    name: 'Cibil Report', 
-    link: '/crm/cibil-report', 
-    icon: <BadgeCheck />,
-    permissionKey: 'cibil_report'
-  },
-  { 
-    name: 'Tally Ledger', 
-    link: '/crm/tally-ledger', 
-    icon: <FaBook />,
-    permissionKey: 'tally_ledger'
-  },
-  { 
-    name: 'Tally Export', 
-    link: '/crm/tally-export', 
-    icon: <FaFileExport />,
-    permissionKey: 'tally_export'
-  },
-  { 
-    name: 'Overdue Applicants', 
-    link: '/crm/overdue-applicant-list', 
-    icon: <FaHourglassEnd />,
-    permissionKey: 'overdue_applicants'
-  },
-  { 
-    name: 'Payment Receipt', 
-    link: '/crm/payment-receipt', 
-    icon: <ReceiptIndianRupee />,
-    permissionKey: 'payment_receipt'
-  },
-  {
-    name: 'Profit/Loss Deposit',
-    icon: <IoBarChart />,
-    isDropdown: true,
-    subItems: [
-      { 
-        name: 'Manage Expenses', 
-        link: '/crm/manage-expenses', 
-        icon: <GiExpense />,
-        permissionKey: 'profit_and_loss'
-      },
-      { 
-        name: 'Track Profit/Loss', 
-        link: '/crm/profit-loss', 
-        icon: <ChartNoAxesCombined size={16} />,
-        permissionKey: 'profit_and_loss'
-      },
-    ]
-  },
-  {
-    name: 'Master Settings',
-    icon: <MdSettings />,
-    isDropdown: true,
-    subItems: [
-      { 
-        name: 'Manage Advocate', 
-        link: '/crm/manage-advocate', 
-        icon: <FaUserTie/>,
-        permissionKey: 'manage_advocate'
-      },
-      { 
-        name: 'Manage Banks', 
-        link: '/crm/manage-bank', 
-        icon: <MdAccountBalance />,
-        permissionKey: 'manage_bank'
-      },
-      { 
-        name: 'Manage Branches', 
-        link: '/crm/manage-branch', 
-        icon: <MdAccountBalance />,
-        permissionKey: 'manage_branch'
-      },
-      { 
-        name: 'Manage Admin', 
-        link: '/crm/manage-admin', 
-        icon: <RiAdminFill />,
-        // permissionKey: 'manage_admin'
-      },
-    ]
-  },
-  {
-    name: 'Cash/Cheque Deposit',
-    icon: <FaMoneyCheckAlt />,
-    isDropdown: true,
-    subItems: [
-      { 
-        name: 'Cheque Management', 
-        link: '/crm/cheque-management', 
-        icon: <BanknoteArrowUp size={16} />,
-        permissionKey: 'cheque_deposit'
-      },
-      { 
-        name: 'Cash Management', 
-        link: '/crm/cash-management', 
-        icon: <IoMdCash />,
-        permissionKey: 'cash_deposit'
-      },
-      
-    ]
-  },
-  { 
-    name: 'Legal Case', 
-    link: '/crm/legal', 
-    icon: <Scale />,
-    permissionKey: 'legal'
-  },
-  {
-    name: 'Complaints',
-    icon: <MdReportProblem />,
-    isDropdown: true,
-    subItems: [
-      { 
-        name: 'Add Complaints', 
-        link: '/crm/complaints/add-complaint', 
-        icon: <BiPlus />,
-        permissionKey: 'complaints'
-      },
-      { 
-        name: 'Manage Complaints', 
-        link: '/crm/complaints/manage-complaints', 
-        icon: <BiCog />,
-        permissionKey: 'complaints'
-      },
-    ]
-  },
-  { 
-    name: 'RBI Guidelines Management', 
-    link: '/crm/rbi-guidelines', 
-    icon: <MdMenuBook />,
-    permissionKey: 'rbi_guidelines'
-  },
-  { 
-    name: 'Client History', 
-    link: '/crm/client-history', 
-    icon: <MdOutlineHistoryEdu />,
-    permissionKey: 'clients_history'
-  },
-  
-  { 
-    name: 'Notifications', 
-    link: '/crm/notifications', 
-    icon: <IoMdNotifications />,
-    permissionKey: 'notification'
-  },
-  { 
-    name: 'References', 
-    link: '/crm/references', 
-    icon: <VscReferences />,
-    permissionKey: 'references'
-  },
-  { 
-    name: 'Help Ticket', 
-    link: '/crm/help-ticket', 
-    icon: <MdSupportAgent />,
-    permissionKey: 'help_ticket'
-  },
-  { 
-    name: 'Blogs', 
-    link: '/crm/blogs', 
-    icon: <SiBlogger />,
-    permissionKey: 'blogs'
-  },
-  { 
-    name: 'Reviews', 
-    link: '/crm/reviews', 
-    icon: <MdReviews />,
-    permissionKey: 'reviews'
-  },
-  { 
-    name: 'Send SMS', 
-    link: '/crm/send-sms', 
-    icon: <FaSms />,
-    permissionKey: 'send_sms'
-  },
-  
-  { 
-    name: 'Registered From App', 
-    link: '/crm/registered-from-app', 
-    icon: <FaMobileAlt />,
-    permissionKey: 'register_from_app'
-  },
-  
 
+  // ========== LOAN MANAGEMENT ==========
+  {
+    name: 'Active / Overdue',
+    link: '/crm/active-loans',
+    icon: <FaClock />,
+    permissionKey: 'active_loans',
+    badge: 'Live'
+  },
+
+  // ========== COLLECTIONS ==========
+  {
+    name: 'Collections',
+    icon: <IoMdCash />,
+    isDropdown: true,
+    isSection: true,
+    subItems: [
+      {
+        name: 'Collect Payment',
+        link: '/crm/collect-payment',
+        icon: <FaMoneyBillWave />,
+        permissionKey: 'collect_payment'
+      },
+      {
+        name: 'Payment History',
+        link: '/crm/payment-history',
+        icon: <MdReceipt />,
+        permissionKey: 'payment_history'
+      },
+    ]
+  },
+
+  // ========== GOLD OPERATIONS ==========
+  {
+    name: 'Gold Operations',
+    icon: <GiGoldBar />,
+    isDropdown: true,
+    isSection: true,
+    subItems: [
+      {
+        name: 'Vault Management',
+        link: '/crm/vault-management',
+        icon: <GiBank />,
+        permissionKey: 'vault_management'
+      },
+      {
+        name: 'Loan Closure & Gold Release',
+        link: '/crm/gold-release',
+        icon: <MdLock />,
+        permissionKey: 'gold_release'
+      },
+      {
+        name: 'Gold Rate Settings',
+        link: '/crm/gold-rate-settings',
+        icon: <MdAttachMoney />,
+        permissionKey: 'gold_rate_settings'
+      },
+    ]
+  },
+
+  // ========== REPORTS ==========
+  {
+    name: 'Reports',
+    icon: <FaChartBar />,
+    isDropdown: true,
+    isSection: true,
+    subItems: [
+      {
+        name: 'Branch Reports',
+        link: '/crm/branch-reports',
+        icon: <FaBuilding />,
+        permissionKey: 'branch_reports'
+      },
+      {
+        name: 'Disbursement Reports',
+        link: '/crm/disbursement-reports',
+        icon: <FaHandHoldingUsd />,
+        permissionKey: 'disbursement_reports'
+      },
+      {
+        name: 'NPA Reports',
+        link: '/crm/npa-reports',
+        icon: <MdCancel />,
+        permissionKey: 'npa_reports'
+      },
+      {
+        name: 'Audit Logs',
+        link: '/crm/audit-logs',
+        icon: <MdSecurity />,
+        permissionKey: 'audit_logs'
+      },
+    ]
+  },
+
+  // ========== ADMIN ==========
+  {
+    name: 'Admin Settings',
+    icon: <FaCog />,
+    isDropdown: true,
+    isSection: true,
+    subItems: [
+      {
+        name: 'Branch Management',
+        link: '/crm/branch-management',
+        icon: <FaBuilding />,
+        permissionKey: 'branch_management'
+      },
+      {
+        name: 'User Roles',
+        link: '/crm/user-roles',
+        icon: <FaUsers />,
+        permissionKey: 'user_roles'
+      },
+      {
+        name: 'System Config',
+        link: '/crm/system-config',
+        icon: <MdSettings />,
+        permissionKey: 'system_config'
+      },
+      {
+        name: 'User Management',
+        link: '/crm/user-management',
+        icon: <RiAdminFill />,
+        permissionKey: 'user_management'
+      },
+    ]
+  },
+
+  // ========== CLIENT HISTORY ==========
+  {
+    name: 'Client History',
+    link: '/crm/client-history',
+    icon: <FaHistory />,
+    permissionKey: 'client_history'
+  },
 ];
 
+// ============================================
+// SIDEBAR COMPONENT
+// ============================================
 export default function Sidebar() {
   const pathname = usePathname();
   const { theme } = useThemeStore();
-  const { hasPermission, permissions } = useAdminAuthStore();
+  const { hasPermission, permissions, branch_id: branchId } = useAdminAuthStore();
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -357,14 +265,14 @@ export default function Sidebar() {
             if (!subItem.permissionKey) return true;
             return hasPermission(subItem.permissionKey);
           });
-          
+
           // Only show dropdown if it has visible sub-items
           if (filteredSubItems.length > 0) {
             return { ...item, subItems: filteredSubItems };
           }
           return null;
         }
-        
+
         // Handle regular menu items
         if (!item.permissionKey) return item;
         return hasPermission(item.permissionKey) ? item : null;
@@ -383,6 +291,7 @@ export default function Sidebar() {
     return subItems?.some(subItem => pathname === subItem.link);
   };
 
+  // Auto-expand dropdowns based on active path
   useEffect(() => {
     filteredMenu.forEach(item => {
       if (item.isDropdown && isParentActive(item.subItems)) {
@@ -395,12 +304,13 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile menu button */}
+      {/* Mobile menu button - Gold Themed */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className={`fixed top-3 left-4 z-[50] lg:hidden p-3 rounded-xl shadow-lg transition-all duration-300 ${theme === "dark"
-          ? 'bg-gray-800/90 hover:bg-gray-700/90 text-crm-primary-strong border border-gray-600'
-          : 'bg-white/90 hover:bg-crm-accent-soft text-crm-primary-strong border border-crm-border'
+        className={`fixed top-3 left-4 z-[50] lg:hidden p-3 rounded-xl shadow-lg transition-all duration-300 
+          ${theme === "dark"
+            ? 'bg-surface hover:bg-surface-hover text-gold-400 border border-border'
+            : 'bg-white/90 hover:bg-gold-50 text-gold-600 border border-gold-200/50'
           } backdrop-blur-sm`}
       >
         {isMobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
@@ -414,30 +324,42 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Gold Theme */}
       <div
-        className={`fixed top-0 left-0 h-full shadow-xl z-50 transition-all duration-300 ease-in-out ${theme === "dark"
-          ? 'bg-gray-900/95 text-white border-r border-gray-700'
-          : 'bg-white/98 text-gray-900 border-r border-crm-border'
-          } backdrop-blur-md ${isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64'
-          } lg:translate-x-0 ${isExpanded ? 'lg:w-74' : 'lg:w-20'
-          } flex flex-col overflow-hidden`}
+        className={`fixed top-0 left-0 h-full shadow-2xl z-50 transition-all duration-300 ease-in-out
+          ${theme === "dark"
+            ? 'bg-surface/95 text-foreground border-r border-border'
+            : 'bg-white/98 text-navy-900 border-r border-gold-100/50'
+          } backdrop-blur-md 
+          ${isMobileOpen ? 'translate-x-0 w-72' : '-translate-x-full w-72'}
+          lg:translate-x-0 ${isExpanded ? 'lg:w-72' : 'lg:w-20'}
+          flex flex-col overflow-hidden`}
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
       >
-        {/* Logo Section */}
-        <div className={`flex items-center justify-between px-4 py-6 border-b transition-all duration-200 ${theme === "dark" ? 'border-gray-700' : 'border-crm-border'}`}>
+        {/* Logo Section - Gold Brand */}
+        <div className={`flex items-center justify-between px-4 py-5 border-b transition-all duration-200 
+          ${theme === "dark" ? 'border-border' : 'border-gold-100/50'}`}>
           <Link
             href="/crm/dashboard"
             className="flex items-center hover:opacity-80 transition-opacity duration-200"
             onClick={() => setIsMobileOpen(false)}
           >
-            <img src="/atdlogo.png" alt="Logo" className="w-10 h-10" />
+            {/* Gold Icon */}
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center
+              ${theme === "dark" ? 'bg-gold-500/20 border border-gold-500/30' : 'bg-gold-50 border border-gold-200'}`}>
+              <span className="text-xl">🏦</span>
+            </div>
             {(isExpanded || isMobileOpen) && (
               <div className="ml-3 overflow-hidden">
-                <span className="text-xl font-bold bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to bg-clip-text text-transparent">
-                  ATD
+                <span className="text-xl font-serif font-bold gold-gradient-text">
+                  Gold Loan CRM
                 </span>
+                {branchId && (
+                  <span className={`block text-xs ${theme === "dark" ? 'text-foreground-muted' : 'text-navy-400'}`}>
+                    Branch #{branchId}
+                  </span>
+                )}
               </div>
             )}
           </Link>
@@ -445,9 +367,9 @@ export default function Sidebar() {
           {isMobileOpen && (
             <button
               onClick={() => setIsMobileOpen(false)}
-              className={`lg:hidden p-2 rounded-lg transition-colors duration-200 ${theme === "dark"
-                ? 'hover:bg-gray-700 text-gray-400 hover:text-white'
-                : 'hover:bg-crm-accent-soft text-gray-600 hover:text-crm-primary-strong'
+              className={`p-2 rounded-lg transition-colors duration-200 ${theme === "dark"
+                  ? 'hover:bg-surface-hover text-foreground-muted hover:text-foreground'
+                  : 'hover:bg-gold-50 text-navy-400 hover:text-gold-600'
                 }`}
             >
               <FiX size={20} />
@@ -455,104 +377,138 @@ export default function Sidebar() {
           )}
         </div>
 
-        {/* Navigation with filtered menu */}
+        {/* Navigation */}
         <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
-          <nav className="flex flex-col px-3 space-y-2">
+          <nav className="flex flex-col px-3 space-y-1">
             {filteredMenu.map((item, index) => (
               <div key={index}>
                 {item.isDropdown ? (
-                  <button
-                    onClick={() => toggleDropdown(item.name)}
-                    className={`group cursor-pointer flex items-center justify-between w-full gap-4 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${isParentActive(item.subItems)
-                      ? theme === "dark"
-                        ? 'bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to text-white shadow-lg'
-                        : 'bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to text-white shadow-lg'
-                      : theme === "dark"
-                        ? 'hover:bg-gray-800 text-gray-300 hover:text-crm-primary-strong'
-                        : 'hover:bg-crm-accent-soft text-gray-700 hover:text-crm-primary-strong'
-                      }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`text-xl flex-shrink-0 transition-colors duration-200 ${isParentActive(item.subItems)
-                        ? 'text-white'
-                        : 'group-hover:scale-110'
-                        }`}>
-                        {item.icon}
-                      </div>
-                      {(isExpanded || isMobileOpen) && (
-                        <span className="text-base whitespace-nowrap transition-all duration-200">
-                          {item.name}
-                        </span>
-                      )}
-                    </div>
-                    {(isExpanded || isMobileOpen) && (
-                      <div className={`transition-transform duration-200 ${openDropdowns[item.name] ? 'rotate-90' : ''}`}>
-                        <FiChevronRight size={16} />
+                  <div>
+                    {/* Section Header */}
+                    {item.isSection && (isExpanded || isMobileOpen) && (
+                      <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider 
+                        ${theme === "dark" ? 'text-foreground-muted' : 'text-navy-400'}`}>
+                        {item.name}
                       </div>
                     )}
-                  </button>
+
+                    {/* Dropdown Button */}
+                    <button
+                      onClick={() => toggleDropdown(item.name)}
+                      className={`group cursor-pointer flex items-center justify-between w-full gap-4 px-3 py-2.5 rounded-xl transition-all duration-200 font-medium
+                        ${isParentActive(item.subItems)
+                          ? theme === "dark"
+                            ? 'bg-gold-500/20 text-gold-400 border border-gold-500/30'
+                            : 'bg-gold-50 text-gold-600 border border-gold-200'
+                          : theme === "dark"
+                            ? 'hover:bg-surface-hover text-foreground-secondary hover:text-foreground'
+                            : 'hover:bg-gold-50/50 text-navy-600 hover:text-gold-600'
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`text-xl flex-shrink-0 transition-colors duration-200
+                          ${isParentActive(item.subItems)
+                            ? 'text-gold-500'
+                            : 'group-hover:text-gold-500'
+                          }`}>
+                          {item.icon}
+                        </div>
+                        {(isExpanded || isMobileOpen) && (
+                          <span className="text-sm whitespace-nowrap transition-all duration-200">
+                            {item.name}
+                          </span>
+                        )}
+                      </div>
+                      {(isExpanded || isMobileOpen) && (
+                        <div className={`transition-transform duration-200 ${openDropdowns[item.name] ? 'rotate-90' : ''}`}>
+                          <FiChevronRight size={14} />
+                        </div>
+                      )}
+                    </button>
+
+                    {/* Sub-items */}
+                    {item.isDropdown && openDropdowns[item.name] && (isExpanded || isMobileOpen) && (
+                      <div className="mt-1 ml-4 space-y-0.5 border-l-2 border-gold-500/30 pl-3">
+                        {item.subItems.map((subItem, subIndex) => (
+                          <Link
+                            key={subIndex}
+                            href={subItem.link}
+                            className={`group flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-sm
+                              ${pathname === subItem.link
+                                ? theme === "dark"
+                                  ? 'bg-gold-500/20 text-gold-400'
+                                  : 'bg-gold-50 text-gold-600'
+                                : theme === "dark"
+                                  ? 'hover:bg-surface-hover text-foreground-muted hover:text-foreground'
+                                  : 'hover:bg-gold-50/50 text-navy-500 hover:text-gold-600'
+                              }`}
+                            onClick={() => setIsMobileOpen(false)}
+                          >
+                            <div className={`text-base flex-shrink-0 transition-colors duration-200
+                              ${pathname === subItem.link
+                                ? 'text-gold-500'
+                                : 'group-hover:text-gold-500'
+                              }`}>
+                              {subItem.icon}
+                            </div>
+                            <span className="flex-1 whitespace-nowrap">
+                              {subItem.name}
+                            </span>
+                            {subItem.badge && (
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium
+                                ${subItem.badge === 'Live' ? 'bg-green-500/20 text-green-600' :
+                                  subItem.badge === 'Urgent' ? 'bg-red-500/20 text-red-600' :
+                                  'bg-gold-500/20 text-gold-600'}`}>
+                                {subItem.badge}
+                              </span>
+                            )}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ) : (
+                  /* Regular Menu Item */
                   <Link
                     href={item.link}
-                    className={`group flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${pathname === item.link
-                      ? theme === "dark"
-                        ? 'bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to text-white shadow-lg'
-                        : 'bg-gradient-to-r from-crm-gradient-from to-crm-gradient-to text-white shadow-lg'
-                      : theme === "dark"
-                        ? 'hover:bg-gray-800 text-gray-300 hover:text-crm-primary-strong'
-                        : 'hover:bg-crm-accent-soft text-gray-700 hover:text-crm-primary-strong'
+                    className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 font-medium
+                      ${pathname === item.link
+                        ? theme === "dark"
+                          ? 'bg-gold-500/20 text-gold-400 border border-gold-500/30'
+                          : 'bg-gold-50 text-gold-600 border border-gold-200'
+                        : theme === "dark"
+                          ? 'hover:bg-surface-hover text-foreground-secondary hover:text-foreground'
+                          : 'hover:bg-gold-50/50 text-navy-600 hover:text-gold-600'
                       }`}
                     onClick={() => setIsMobileOpen(false)}
                   >
-                    <div className={`text-xl flex-shrink-0 transition-colors duration-200 ${pathname === item.link
-                      ? 'text-white'
-                      : 'group-hover:scale-110'
-                      }`}>
+                    <div className={`text-xl flex-shrink-0 transition-colors duration-200
+                      ${pathname === item.link ? 'text-gold-500' : 'group-hover:text-gold-500'}`}>
                       {item.icon}
                     </div>
                     {(isExpanded || isMobileOpen) && (
-                      <span className="text-base whitespace-nowrap transition-all duration-200">
+                      <span className="text-sm whitespace-nowrap transition-all duration-200">
                         {item.name}
                       </span>
                     )}
                   </Link>
                 )}
-
-                {item.isDropdown && openDropdowns[item.name] && (isExpanded || isMobileOpen) && (
-                  <div className="mt-2 ml-4 space-y-1">
-                    {item.subItems.map((subItem, subIndex) => (
-                      <Link
-                        key={subIndex}
-                        href={subItem.link}
-                        className={`group flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${pathname === subItem.link
-                          ? theme === "dark"
-                            ? 'bg-crm-primary/80 text-white shadow-md'
-                            : 'bg-crm-primary/80 text-white shadow-md'
-                          : theme === "dark"
-                            ? 'hover:bg-gray-800/80 text-gray-400 hover:text-crm-primary-strong'
-                            : 'hover:bg-crm-accent-soft/80 text-gray-600 hover:text-crm-primary-strong'
-                          }`}
-                        onClick={() => setIsMobileOpen(false)}
-                      >
-                        <div className={`text-lg flex-shrink-0 transition-colors duration-200 ${pathname === subItem.link
-                          ? 'text-white'
-                          : 'group-hover:scale-110'
-                          }`}>
-                          {subItem.icon}
-                        </div>
-                        <span className="whitespace-nowrap">
-                          {subItem.name}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
               </div>
             ))}
           </nav>
         </div>
+
+        {/* Footer - Branch Info */}
+        {(isExpanded || isMobileOpen) && (
+          <div className={`px-4 py-3 border-t text-xs ${theme === "dark" ? 'border-border text-foreground-muted' : 'border-gold-100/50 text-navy-400'}`}>
+            <div className="flex items-center gap-2">
+              <span>© 2026 Gold Loan CRM</span>
+              <span className="w-1 h-1 rounded-full bg-gold-500/50"></span>
+              <span>v1.0</span>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
 }
-

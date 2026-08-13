@@ -147,6 +147,13 @@ export default function Header() {
             {/* CTA Buttons */}
             <div className="hidden lg:flex items-center space-x-4">
               <Link
+                href="/crm"
+                className="border-2 border-amber-500 text-amber-700 px-6 py-3 rounded-xl font-semibold hover:bg-amber-50 transition-all"
+              >
+                Admin
+              </Link>
+
+              <Link
                 href="/apply"
                 className="bg-linear-to-r from-amber-500 to-amber-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all hover:scale-105"
               >
@@ -223,6 +230,13 @@ export default function Header() {
                 </div>
 
                 <div className="pt-4 border-t space-y-3">
+                  <Link
+                    href="/crm"
+                    className="block border-2 border-amber-500 text-amber-700 px-4 py-3 rounded-lg font-semibold text-center hover:bg-amber-50 transition-all"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Admin Login
+                  </Link>
                   <Link
                     href="/apply"
                     className="block bg-linear-to-r from-amber-500 to-amber-600 text-white px-4 py-3 rounded-lg font-semibold text-center hover:shadow-md transition-all"

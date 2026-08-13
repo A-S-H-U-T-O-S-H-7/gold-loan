@@ -2,7 +2,7 @@ import axios from "axios";
 import { useAdminAuthStore } from "@/lib/store/authAdminStore";
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || "https://api.atdmoney.in/api/",
+    baseURL: process.env.NEXT_PUBLIC_API_URL || "https://atdmoney.in/api/",
     timeout: 10000,
 });
 
@@ -20,6 +20,8 @@ api.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`;
         }
         config.headers["X-App-Version"] = "1.0.0";
+        config.headers["Accept"] = "application/json";
+        config.headers["Content-Type"] = "application/json";
         
         // Store original URL for response interceptor
         config._isAuthRequest = isAuthRequest(config.url);
@@ -30,7 +32,10 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-    (response) => response.data,
+    (response) => {
+        // Return the full response data
+        return response.data;
+    },
     (error) => {
         if (error.response) {
             // Only logout/redirect for 401 if NOT an auth request
