@@ -8,7 +8,7 @@ import AdminForm from './AdminForm';
 import AdminTable from './AdminTable';
 import PermissionsModal from './PermissionsModal';
 import { adminService, formatAdminForUI } from '@/lib/services/AdminServices';
-import Pagination from '../Pagination';
+import Pagination from '../ui/Pagination';
 
 const ManageAdminPage = () => {
   const { theme } = useThemeStore();
