@@ -92,7 +92,32 @@ const allMenuItems = [
       },
     ]
   },
-
+ {
+    name: 'Gold Operations',
+    icon: <GiGoldBar />,
+    isDropdown: true,
+    isSection: true,
+    subItems: [
+      {
+        name: 'Vault Management',
+        link: '/crm/vault-management',
+        icon: <GiBank />,
+        permissionKey: 'vault_management'
+      },
+      {
+        name: 'Gold Release',
+        link: '/crm/gold-release',
+        icon: <MdLock />,
+        permissionKey: 'gold_release'
+      },
+      {
+        name: 'Gold Rate Settings',
+        link: '/crm/gold-rate-settings',
+        icon: <MdAttachMoney />,
+        permissionKey: 'gold_rate_settings'
+      },
+    ]
+  },
   {
     name: 'Active Loans',
     link: '/crm/active-loans',
@@ -133,32 +158,6 @@ const allMenuItems = [
     ]
   },
 
-  {
-    name: 'Gold Operations',
-    icon: <GiGoldBar />,
-    isDropdown: true,
-    isSection: true,
-    subItems: [
-      {
-        name: 'Vault Management',
-        link: '/crm/vault-management',
-        icon: <GiBank />,
-        permissionKey: 'vault_management'
-      },
-      {
-        name: 'Gold Release',
-        link: '/crm/gold-release',
-        icon: <MdLock />,
-        permissionKey: 'gold_release'
-      },
-      {
-        name: 'Gold Rate Settings',
-        link: '/crm/gold-rate-settings',
-        icon: <MdAttachMoney />,
-        permissionKey: 'gold_rate_settings'
-      },
-    ]
-  },
 
   {
     name: 'Reports',
