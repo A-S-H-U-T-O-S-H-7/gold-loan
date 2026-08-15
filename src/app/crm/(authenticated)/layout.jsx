@@ -24,7 +24,6 @@ export default function CRMLayout({ children }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          {/* Gold Spinner */}
           <div className="relative w-12 h-12">
             <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
             <div className="absolute inset-0 rounded-full border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
@@ -40,7 +39,7 @@ export default function CRMLayout({ children }) {
   }
 
   return (
-    <div className={`min-h-screen bg-background ${theme === "dark" ? 'dark' : ''}`}>
+    <div className={`min-h-screen ${theme === "dark" ? 'dark bg-background' : 'bg-background'}`}>
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -49,21 +48,16 @@ export default function CRMLayout({ children }) {
         }}
       />
       
-      <div className="min-h-screen">
-        <Sidebar />
-
-        <div className="flex flex-col min-h-screen lg:ml-20">
-          <AdminHeader />
-
-          <main className="flex-1 p-4 md:p-6 bg-background">
-            <div className="max-w-[1400px] mx-auto w-full">
-              {children}
-            </div>
-          </main>
-
-          <Footer />
+      <AdminHeader />
+      <Sidebar />
+      
+      <main className="ml:0 md:ml-20  min-h-screen">
+        <div className="p-4">
+          {children}
         </div>
-      </div>
+      </main>
+      
+      <Footer />
     </div>
   );
 }

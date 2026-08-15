@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { Camera, X, AlertTriangle } from 'lucide-react';
 
@@ -58,37 +59,37 @@ const GoldItemForm = ({ onSubmit, onCancel, isDark, initialData = null }) => {
     }
   };
 
-  const inputClassName = `w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm outline-none ${
+  const inputClassName = `w-full px-3 py-2 rounded border-2 transition-all duration-200 text-sm outline-none ${
     isDark
-      ? "bg-gray-700 border-gray-600 text-white hover:border-crm-primary focus:border-crm-primary-strong focus:ring-2 focus:ring-crm-ring"
-      : "bg-gray-50 border-gray-300 text-gray-900 hover:border-crm-primary focus:border-crm-primary focus:ring-2 focus:ring-crm-ring"
-  }`;
+      ? "bg-gray-700 border-gray-600 text-white hover:border-gold-500 focus:border-gold-400"
+      : "bg-gray-50 border-gray-300 text-gray-900 hover:border-gold-400 focus:border-gold-500"
+  } focus:ring-2 focus:ring-gold-500/20`;
 
-  const errorInputClassName = `w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm outline-none ${
+  const errorInputClassName = `w-full px-3 py-2 rounded border-2 transition-all duration-200 text-sm outline-none ${
     isDark
       ? "bg-gray-700 border-red-500 text-white hover:border-red-400 focus:border-red-400"
       : "bg-red-50 border-red-400 text-gray-900 hover:border-red-400 focus:border-red-500"
   } focus:ring-2 focus:ring-red-500/20`;
 
-  const selectClassName = `w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm outline-none ${
+  const selectClassName = `w-full px-3 py-2 rounded border-2 transition-all duration-200 text-sm outline-none ${
     isDark
-      ? "bg-gray-700 border-gray-600 text-white hover:border-crm-primary focus:border-crm-primary-strong focus:ring-2 focus:ring-crm-ring"
-      : "bg-gray-50 border-gray-300 text-gray-900 hover:border-crm-primary focus:border-crm-primary focus:ring-2 focus:ring-crm-ring"
-  }`;
+      ? "bg-gray-700 border-gray-600 text-white hover:border-gold-500 focus:border-gold-400"
+      : "bg-gray-50 border-gray-300 text-gray-900 hover:border-gold-400 focus:border-gold-500"
+  } focus:ring-2 focus:ring-gold-500/20`;
 
-  const labelClassName = `block text-xs font-medium mb-1 ${isDark ? "text-gray-200" : "text-gray-700"}`;
+  const labelClassName = `block text-xs font-medium mb-1 ${isDark ? "text-gray-300" : "text-gray-700"}`;
   const errorTextClassName = `text-xs mt-1 flex items-center gap-1 ${isDark ? "text-red-400" : "text-red-600"}`;
 
   return (
     <div className={`rounded-xl shadow-lg border-2 overflow-hidden ${
-      isDark ? "bg-gray-800 border-crm-border shadow-crm-soft" : "bg-white border-crm-border shadow-crm-soft"
+      isDark ? "bg-gray-800 border-gold-700/50" : "bg-white border-gold-200"
     }`}>
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className={`text-lg font-semibold ${isDark ? "text-crm-primary-strong" : "text-crm-primary"}`}>
+          <h3 className={`text-lg font-semibold ${isDark ? "text-gold-400" : "text-gold-600"}`}>
             Add Gold Item
           </h3>
-          <button onClick={onCancel} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
+          <button onClick={onCancel} className="p-1 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
             <X className={`w-5 h-5 ${isDark ? "text-gray-400" : "text-gray-500"}`} />
           </button>
         </div>
@@ -185,7 +186,7 @@ const GoldItemForm = ({ onSubmit, onCancel, isDark, initialData = null }) => {
               <div className="mt-1">
                 {formData.imagePreview ? (
                   <div className="relative inline-block">
-                    <img src={formData.imagePreview} alt="Preview" className="w-24 h-24 object-cover rounded-lg border-2 border-crm-border" />
+                    <img src={formData.imagePreview} alt="Preview" className="w-24 h-24 object-cover rounded-lg border-2 border-gold-200" />
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, imagePreview: '', image: null })}
@@ -198,10 +199,10 @@ const GoldItemForm = ({ onSubmit, onCancel, isDark, initialData = null }) => {
                   <div
                     onClick={() => document.getElementById('itemImageInput').click()}
                     className={`border-2 border-dashed rounded-lg p-4 cursor-pointer transition-all duration-200 text-center ${
-                      isDark ? "border-gray-600 hover:border-crm-primary bg-gray-700/40" : "border-crm-border hover:border-crm-primary bg-crm-accent-soft/60"
+                      isDark ? "border-gray-600 hover:border-gold-500 bg-gray-700/40" : "border-gray-300 hover:border-gold-500 bg-gray-50"
                     }`}
                   >
-                    <Camera className={`w-6 h-6 mx-auto mb-2 ${isDark ? "text-gray-400" : "text-crm-primary"}`} />
+                    <Camera className={`w-6 h-6 mx-auto mb-2 ${isDark ? "text-gray-400" : "text-gold-600"}`} />
                     <p className="text-xs">Click to upload image</p>
                     <p className="text-[10px] text-gray-500">JPG, PNG (Max 5MB)</p>
                   </div>
@@ -216,13 +217,21 @@ const GoldItemForm = ({ onSubmit, onCancel, isDark, initialData = null }) => {
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 rounded-lg border-2 border-crm-border text-crm-primary hover:bg-crm-accent-soft transition-all duration-200"
+              className={`px-4 py-2 rounded border-2 transition-all duration-200 ${
+                isDark
+                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+              }`}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-crm-primary text-white rounded-lg hover:bg-crm-primary-strong transition-all duration-200"
+              className={`px-4 py-2 rounded font-semibold text-white transition-all duration-200 ${
+                isDark
+                  ? 'bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500'
+                  : 'bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700'
+              }`}
             >
               Add Item
             </button>

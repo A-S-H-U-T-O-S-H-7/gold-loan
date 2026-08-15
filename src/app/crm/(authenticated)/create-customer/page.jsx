@@ -1,5 +1,12 @@
-'use client';
-import CreateCustomerPage from '@/components/crm/pages/CreateCustomerPage';
-export default function Page() {
-  return <CreateCustomerPage />;
+import CreateCustomerPage from '@/components/crm/create-customer/CreateCustomer'
+import React from 'react'
+
+function page() {
+  return (
+    <div>
+      <CreateCustomerPage/>
+    </div>
+  )
 }
+
+export default page

@@ -1,5 +1,4 @@
 'use client';
-
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -11,13 +10,11 @@ import {
   FaChartBar, FaCog, FaUsers, FaBuilding
 } from 'react-icons/fa';
 import {
-  MdDashboard, MdPendingActions, MdDoneAll, MdCancel,
-  MdAccountBalance, MdReceipt, MdSecurity, MdSettings,
-  MdVerified, MdGold, MdStore, MdLock, MdAttachMoney
+  MdDashboard, MdReceipt, MdSecurity, MdSettings,
+  MdLock, MdAttachMoney
 } from "react-icons/md";
 import { IoMdCash } from "react-icons/io";
-import { GiGoldBar,GiBank, GiExpense } from "react-icons/gi";
-import { BsBank2 } from "react-icons/bs";
+import { GiGoldBar, GiBank } from "react-icons/gi";
 import { RiAdminFill } from "react-icons/ri";
 import { useAdminAuthStore } from '@/lib/store/authAdminStore';
 import { useThemeStore } from '@/lib/store/useThemeStore';
@@ -26,7 +23,6 @@ import { useThemeStore } from '@/lib/store/useThemeStore';
 // GOLD LOAN CRM - SIDEBAR MENU ITEMS
 // ============================================
 const allMenuItems = [
-  // ========== DASHBOARD ==========
   {
     name: 'Dashboard',
     link: '/crm/dashboard',
@@ -34,9 +30,8 @@ const allMenuItems = [
     permissionKey: 'dashboard'
   },
 
-  // ========== APPLICATION PIPELINE ==========
   {
-    name: 'Application Pipeline',
+    name: 'Manage-Applications',
     icon: <FaBoxes />,
     isDropdown: true,
     isSection: true,
@@ -98,16 +93,25 @@ const allMenuItems = [
     ]
   },
 
-  // ========== LOAN MANAGEMENT ==========
   {
-    name: 'Active / Overdue',
+    name: 'Active Loans',
     link: '/crm/active-loans',
     icon: <FaClock />,
-    permissionKey: 'active_loans',
-    badge: 'Live'
+    permissionKey: 'active_loans'
+  },
+  {
+    name: 'Overdue Loans',
+    link: '/crm/overdue-loans',
+    icon: <FaClock />,
+    permissionKey: 'overdue_loans'
+  },
+  {
+    name: 'Closed Loans',
+    link: '/crm/closed-loans',
+    icon: <FaCheckCircle />,
+    permissionKey: 'closed_loans'
   },
 
-  // ========== COLLECTIONS ==========
   {
     name: 'Collections',
     icon: <IoMdCash />,
@@ -129,7 +133,6 @@ const allMenuItems = [
     ]
   },
 
-  // ========== GOLD OPERATIONS ==========
   {
     name: 'Gold Operations',
     icon: <GiGoldBar />,
@@ -143,7 +146,7 @@ const allMenuItems = [
         permissionKey: 'vault_management'
       },
       {
-        name: 'Loan Closure & Gold Release',
+        name: 'Gold Release',
         link: '/crm/gold-release',
         icon: <MdLock />,
         permissionKey: 'gold_release'
@@ -157,7 +160,6 @@ const allMenuItems = [
     ]
   },
 
-  // ========== REPORTS ==========
   {
     name: 'Reports',
     icon: <FaChartBar />,
@@ -179,7 +181,7 @@ const allMenuItems = [
       {
         name: 'NPA Reports',
         link: '/crm/npa-reports',
-        icon: <MdCancel />,
+        icon: <FaTimesCircle />,
         permissionKey: 'npa_reports'
       },
       {
@@ -191,7 +193,6 @@ const allMenuItems = [
     ]
   },
 
-  // ========== ADMIN ==========
   {
     name: 'Admin Settings',
     icon: <FaCog />,
@@ -225,7 +226,6 @@ const allMenuItems = [
     ]
   },
 
-  // ========== CLIENT HISTORY ==========
   {
     name: 'Client History',
     link: '/crm/client-history',
@@ -240,7 +240,7 @@ const allMenuItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { theme } = useThemeStore();
-  const { hasPermission, permissions, branch_id: branchId } = useAdminAuthStore();
+  const { hasPermission } = useAdminAuthStore();
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -253,32 +253,23 @@ export default function Sidebar() {
 
   // Filter menu based on user permissions
   const filteredMenu = useMemo(() => {
-    if (!permissions) {
-      return allMenuItems;
-    }
-
     return allMenuItems
       .map(item => {
-        // Handle dropdown items
         if (item.isDropdown && item.subItems) {
           const filteredSubItems = item.subItems.filter(subItem => {
             if (!subItem.permissionKey) return true;
             return hasPermission(subItem.permissionKey);
           });
-
-          // Only show dropdown if it has visible sub-items
           if (filteredSubItems.length > 0) {
             return { ...item, subItems: filteredSubItems };
           }
           return null;
         }
-
-        // Handle regular menu items
         if (!item.permissionKey) return item;
         return hasPermission(item.permissionKey) ? item : null;
       })
       .filter(Boolean);
-  }, [hasPermission, permissions]);
+  }, [hasPermission]);
 
   const toggleDropdown = (itemName) => {
     setOpenDropdowns(prev => ({
@@ -291,7 +282,6 @@ export default function Sidebar() {
     return subItems?.some(subItem => pathname === subItem.link);
   };
 
-  // Auto-expand dropdowns based on active path
   useEffect(() => {
     filteredMenu.forEach(item => {
       if (item.isDropdown && isParentActive(item.subItems)) {
@@ -304,14 +294,14 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile menu button - Gold Themed */}
+      {/* Mobile menu button - GOLD THEME */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className={`fixed top-3 left-4 z-[50] lg:hidden p-3 rounded-xl shadow-lg transition-all duration-300 
-          ${theme === "dark"
-            ? 'bg-surface hover:bg-surface-hover text-gold-400 border border-border'
-            : 'bg-white/90 hover:bg-gold-50 text-gold-600 border border-gold-200/50'
-          } backdrop-blur-sm`}
+        className={`fixed top-3 left-4 z-[50] lg:hidden p-3 rounded-md shadow-lg transition-all duration-300 ${
+          theme === "dark"
+            ? 'bg-gray-800/90 hover:bg-gray-700/90 text-gold-400 border border-gray-600'
+            : 'bg-white/90 hover:bg-gold-50 text-gold-600 border border-gold-200'
+        } backdrop-blur-sm`}
       >
         {isMobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
       </button>
@@ -324,42 +314,39 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Sidebar - Gold Theme */}
+      {/* Sidebar - GOLD THEME */}
       <div
-        className={`fixed top-0 left-0 h-full shadow-2xl z-50 transition-all duration-300 ease-in-out
-          ${theme === "dark"
-            ? 'bg-surface/95 text-foreground border-r border-border'
-            : 'bg-white/98 text-navy-900 border-r border-gold-100/50'
-          } backdrop-blur-md 
-          ${isMobileOpen ? 'translate-x-0 w-72' : '-translate-x-full w-72'}
-          lg:translate-x-0 ${isExpanded ? 'lg:w-72' : 'lg:w-20'}
-          flex flex-col overflow-hidden`}
+        className={`fixed top-0 left-0 h-full shadow-xl z-50 transition-all duration-300 ease-in-out ${
+          theme === "dark"
+            ? 'bg-gray-900/95 text-white border-r border-gray-700'
+            : 'bg-white/98 text-gray-900 border-r border-gold-200'
+        } backdrop-blur-md ${
+          isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64'
+        } lg:translate-x-0 ${
+          isExpanded ? 'lg:w-74' : 'lg:w-20'
+        } flex flex-col overflow-hidden`}
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
       >
-        {/* Logo Section - Gold Brand */}
-        <div className={`flex items-center justify-between px-4 py-5 border-b transition-all duration-200 
-          ${theme === "dark" ? 'border-border' : 'border-gold-100/50'}`}>
+        {/* Logo Section */}
+        <div className={`flex items-center justify-between px-4 py-6 border-b transition-all duration-200 ${
+          theme === "dark" ? 'border-gray-700' : 'border-gold-200'
+        }`}>
           <Link
             href="/crm/dashboard"
             className="flex items-center hover:opacity-80 transition-opacity duration-200"
             onClick={() => setIsMobileOpen(false)}
           >
-            {/* Gold Icon */}
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center
-              ${theme === "dark" ? 'bg-gold-500/20 border border-gold-500/30' : 'bg-gold-50 border border-gold-200'}`}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              theme === "dark" ? 'bg-gold-500/20 border border-gold-500/30' : 'bg-gold-50 border border-gold-200'
+            }`}>
               <span className="text-xl">🏦</span>
             </div>
             {(isExpanded || isMobileOpen) && (
               <div className="ml-3 overflow-hidden">
-                <span className="text-xl font-serif font-bold gold-gradient-text">
-                  Gold Loan CRM
+                <span className="text-xl font-bold bg-gradient-to-r from-gold-600 to-gold-500 bg-clip-text text-transparent">
+                  ATD
                 </span>
-                {branchId && (
-                  <span className={`block text-xs ${theme === "dark" ? 'text-foreground-muted' : 'text-navy-400'}`}>
-                    Branch #{branchId}
-                  </span>
-                )}
               </div>
             )}
           </Link>
@@ -367,10 +354,11 @@ export default function Sidebar() {
           {isMobileOpen && (
             <button
               onClick={() => setIsMobileOpen(false)}
-              className={`p-2 rounded-lg transition-colors duration-200 ${theme === "dark"
-                  ? 'hover:bg-surface-hover text-foreground-muted hover:text-foreground'
-                  : 'hover:bg-gold-50 text-navy-400 hover:text-gold-600'
-                }`}
+              className={`lg:hidden p-2 rounded-lg transition-colors duration-200 ${
+                theme === "dark"
+                  ? 'hover:bg-gray-700 text-gray-400 hover:text-white'
+                  : 'hover:bg-gold-50 text-gray-600 hover:text-gold-600'
+              }`}
             >
               <FiX size={20} />
             </button>
@@ -379,135 +367,108 @@ export default function Sidebar() {
 
         {/* Navigation */}
         <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
-          <nav className="flex flex-col px-3 space-y-1">
+          <nav className="flex flex-col px-3 space-y-2">
             {filteredMenu.map((item, index) => (
               <div key={index}>
                 {item.isDropdown ? (
-                  <div>
-                    {/* Section Header */}
-                    {item.isSection && (isExpanded || isMobileOpen) && (
-                      <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider 
-                        ${theme === "dark" ? 'text-foreground-muted' : 'text-navy-400'}`}>
-                        {item.name}
-                      </div>
-                    )}
-
-                    {/* Dropdown Button */}
-                    <button
-                      onClick={() => toggleDropdown(item.name)}
-                      className={`group cursor-pointer flex items-center justify-between w-full gap-4 px-3 py-2.5 rounded-xl transition-all duration-200 font-medium
-                        ${isParentActive(item.subItems)
-                          ? theme === "dark"
-                            ? 'bg-gold-500/20 text-gold-400 border border-gold-500/30'
-                            : 'bg-gold-50 text-gold-600 border border-gold-200'
-                          : theme === "dark"
-                            ? 'hover:bg-surface-hover text-foreground-secondary hover:text-foreground'
-                            : 'hover:bg-gold-50/50 text-navy-600 hover:text-gold-600'
-                        }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`text-xl flex-shrink-0 transition-colors duration-200
-                          ${isParentActive(item.subItems)
-                            ? 'text-gold-500'
-                            : 'group-hover:text-gold-500'
-                          }`}>
-                          {item.icon}
-                        </div>
-                        {(isExpanded || isMobileOpen) && (
-                          <span className="text-sm whitespace-nowrap transition-all duration-200">
-                            {item.name}
-                          </span>
-                        )}
+                  <button
+                    onClick={() => toggleDropdown(item.name)}
+                    className={`group cursor-pointer flex items-center justify-between w-full gap-4 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
+                      isParentActive(item.subItems)
+                        ? theme === "dark"
+                          ? 'bg-gradient-to-r from-gold-600 to-gold-500 text-white shadow-lg'
+                          : 'bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-lg'
+                        : theme === "dark"
+                          ? 'hover:bg-gray-800 text-gray-300 hover:text-gold-400'
+                          : 'hover:bg-gold-50 text-gray-700 hover:text-gold-600'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`text-xl flex-shrink-0 transition-colors duration-200 ${
+                        isParentActive(item.subItems)
+                          ? 'text-white'
+                          : 'group-hover:scale-110'
+                      }`}>
+                        {item.icon}
                       </div>
                       {(isExpanded || isMobileOpen) && (
-                        <div className={`transition-transform duration-200 ${openDropdowns[item.name] ? 'rotate-90' : ''}`}>
-                          <FiChevronRight size={14} />
-                        </div>
+                        <span className="text-base font-medium whitespace-nowrap transition-all duration-200">
+                          {item.name}
+                        </span>
                       )}
-                    </button>
-
-                    {/* Sub-items */}
-                    {item.isDropdown && openDropdowns[item.name] && (isExpanded || isMobileOpen) && (
-                      <div className="mt-1 ml-4 space-y-0.5 border-l-2 border-gold-500/30 pl-3">
-                        {item.subItems.map((subItem, subIndex) => (
-                          <Link
-                            key={subIndex}
-                            href={subItem.link}
-                            className={`group flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-sm
-                              ${pathname === subItem.link
-                                ? theme === "dark"
-                                  ? 'bg-gold-500/20 text-gold-400'
-                                  : 'bg-gold-50 text-gold-600'
-                                : theme === "dark"
-                                  ? 'hover:bg-surface-hover text-foreground-muted hover:text-foreground'
-                                  : 'hover:bg-gold-50/50 text-navy-500 hover:text-gold-600'
-                              }`}
-                            onClick={() => setIsMobileOpen(false)}
-                          >
-                            <div className={`text-base flex-shrink-0 transition-colors duration-200
-                              ${pathname === subItem.link
-                                ? 'text-gold-500'
-                                : 'group-hover:text-gold-500'
-                              }`}>
-                              {subItem.icon}
-                            </div>
-                            <span className="flex-1 whitespace-nowrap">
-                              {subItem.name}
-                            </span>
-                            {subItem.badge && (
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium
-                                ${subItem.badge === 'Live' ? 'bg-green-500/20 text-green-600' :
-                                  subItem.badge === 'Urgent' ? 'bg-red-500/20 text-red-600' :
-                                  'bg-gold-500/20 text-gold-600'}`}>
-                                {subItem.badge}
-                              </span>
-                            )}
-                          </Link>
-                        ))}
+                    </div>
+                    {(isExpanded || isMobileOpen) && (
+                      <div className={`transition-transform duration-200 ${
+                        openDropdowns[item.name] ? 'rotate-90' : ''
+                      }`}>
+                        <FiChevronRight size={16} />
                       </div>
                     )}
-                  </div>
+                  </button>
                 ) : (
-                  /* Regular Menu Item */
                   <Link
                     href={item.link}
-                    className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 font-medium
-                      ${pathname === item.link
+                    className={`group flex items-center gap-4 px-4 py-3 rounded-md transition-all duration-200 font-medium ${
+                      pathname === item.link
                         ? theme === "dark"
-                          ? 'bg-gold-500/20 text-gold-400 border border-gold-500/30'
-                          : 'bg-gold-50 text-gold-600 border border-gold-200'
+                          ? 'bg-gradient-to-r from-gold-600 to-gold-500 text-white shadow-lg'
+                          : 'bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-lg'
                         : theme === "dark"
-                          ? 'hover:bg-surface-hover text-foreground-secondary hover:text-foreground'
-                          : 'hover:bg-gold-50/50 text-navy-600 hover:text-gold-600'
-                      }`}
+                          ? 'hover:bg-gray-800 text-gray-300 hover:text-gold-400'
+                          : 'hover:bg-gold-50 text-gray-700 hover:text-gold-600'
+                    }`}
                     onClick={() => setIsMobileOpen(false)}
                   >
-                    <div className={`text-xl flex-shrink-0 transition-colors duration-200
-                      ${pathname === item.link ? 'text-gold-500' : 'group-hover:text-gold-500'}`}>
+                    <div className={`text-xl flex-shrink-0 transition-colors duration-200 ${
+                      pathname === item.link
+                        ? 'text-white'
+                        : 'group-hover:scale-110'
+                    }`}>
                       {item.icon}
                     </div>
                     {(isExpanded || isMobileOpen) && (
-                      <span className="text-sm whitespace-nowrap transition-all duration-200">
+                      <span className="text-base font-medium whitespace-nowrap transition-all duration-200">
                         {item.name}
                       </span>
                     )}
                   </Link>
                 )}
+
+                {item.isDropdown && openDropdowns[item.name] && (isExpanded || isMobileOpen) && (
+                  <div className="mt-2 ml-4 space-y-1">
+                    {item.subItems.map((subItem, subIndex) => (
+                      <Link
+                        key={subIndex}
+                        href={subItem.link}
+                        className={`group flex items-center gap-3 px-4 py-2 rounded-sm transition-all duration-200 text-sm font-medium ${
+                          pathname === subItem.link
+                            ? theme === "dark"
+                              ? 'bg-gold-600/80 text-white shadow-md'
+                              : 'bg-gold-500/80 text-white shadow-md'
+                            : theme === "dark"
+                              ? 'hover:bg-gray-800/80 text-gray-400 hover:text-gold-300'
+                              : 'hover:bg-gold-50/80 text-gray-600 hover:text-gold-600'
+                        }`}
+                        onClick={() => setIsMobileOpen(false)}
+                      >
+                        <div className={`text-lg flex-shrink-0 transition-colors duration-200 ${
+                          pathname === subItem.link
+                            ? 'text-white'
+                            : 'group-hover:scale-110'
+                        }`}>
+                          {subItem.icon}
+                        </div>
+                        <span className="font-medium whitespace-nowrap">
+                          {subItem.name}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </nav>
         </div>
-
-        {/* Footer - Branch Info */}
-        {(isExpanded || isMobileOpen) && (
-          <div className={`px-4 py-3 border-t text-xs ${theme === "dark" ? 'border-border text-foreground-muted' : 'border-gold-100/50 text-navy-400'}`}>
-            <div className="flex items-center gap-2">
-              <span>© 2026 Gold Loan CRM</span>
-              <span className="w-1 h-1 rounded-full bg-gold-500/50"></span>
-              <span>v1.0</span>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );

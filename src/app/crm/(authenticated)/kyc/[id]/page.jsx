@@ -1,5 +1,12 @@
-'use client';
-import KycFormPage from '@/components/crm/pages/KycFormPage';
-export default function Page() {
-  return <KycFormPage />;
+import KYCPage from '@/components/crm/kyc/KYCPage'
+import React from 'react'
+
+function page() {
+  return (
+    <div>
+      <KYCPage/>
+    </div>
+  )
 }
+
+export default page

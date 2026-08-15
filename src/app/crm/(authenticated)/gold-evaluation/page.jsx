@@ -1,5 +1,12 @@
-'use client';
-import GoldEvaluationListPage from '@/components/crm/pages/GoldEvaluationListPage';
-export default function Page() {
-  return <GoldEvaluationListPage />;
+import GoldEvaluationListPage from '@/components/crm/gold-evaluation/GoldEvaluation'
+import React from 'react'
+
+function page() {
+  return (
+    <div>
+      <GoldEvaluationListPage/>
+    </div>
+  )
 }
+
+export default page

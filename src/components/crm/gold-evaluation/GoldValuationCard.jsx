@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { Calculator, Edit2, Check, X } from 'lucide-react';
 
@@ -23,16 +24,16 @@ const GoldValuationCard = ({ totals, goldRate, ltvPercentage, onGoldRateChange, 
 
   const labelClassName = `text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`;
   const valueClassName = `text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`;
-  const highlightClassName = `text-lg font-bold ${isDark ? 'text-crm-primary-strong' : 'text-crm-primary'}`;
+  const highlightClassName = `text-lg font-bold ${isDark ? 'text-gold-400' : 'text-gold-600'}`;
 
   return (
     <div className={`rounded-xl shadow-lg border-2 overflow-hidden sticky top-6 ${
-      isDark ? "bg-gray-800 border-crm-border shadow-crm-soft" : "bg-white border-crm-border shadow-crm-soft"
+      isDark ? "bg-gray-800 border-gold-700/50" : "bg-white border-gold-200"
     }`}>
       <div className="p-5">
         <div className="flex items-center space-x-2 mb-4">
-          <Calculator className={`w-5 h-5 ${isDark ? "text-crm-primary-strong" : "text-crm-primary"}`} />
-          <h3 className={`text-lg font-semibold ${isDark ? "text-crm-primary-strong" : "text-crm-primary"}`}>
+          <Calculator className={`w-5 h-5 ${isDark ? "text-gold-400" : "text-gold-600"}`} />
+          <h3 className={`text-lg font-semibold ${isDark ? "text-gold-400" : "text-gold-600"}`}>
             Gold Valuation
           </h3>
         </div>
@@ -62,7 +63,7 @@ const GoldValuationCard = ({ totals, goldRate, ltvPercentage, onGoldRateChange, 
               ) : (
                 <>
                   <span className={valueClassName}>₹{goldRate.toFixed(2)}</span>
-                  <button onClick={() => setEditingRate(true)} className="p-1 hover:bg-gray-100 rounded">
+                  <button onClick={() => setEditingRate(true)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                     <Edit2 className="w-3 h-3 text-gray-400" />
                   </button>
                 </>
@@ -95,7 +96,7 @@ const GoldValuationCard = ({ totals, goldRate, ltvPercentage, onGoldRateChange, 
               ) : (
                 <>
                   <span className={valueClassName}>{ltvPercentage}%</span>
-                  <button onClick={() => setEditingLTV(true)} className="p-1 hover:bg-gray-100 rounded">
+                  <button onClick={() => setEditingLTV(true)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                     <Edit2 className="w-3 h-3 text-gray-400" />
                   </button>
                 </>

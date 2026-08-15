@@ -1,5 +1,12 @@
-'use client';
-import ManageLoansPage from '@/components/crm/pages/ManageLoansPage';
-export default function Page() {
-  return <ManageLoansPage />;
+import ManageLoansPage from '@/components/crm/manage-loans/ManageLoan'
+import React from 'react'
+
+function page() {
+  return (
+    <div>
+      <ManageLoansPage/>
+    </div>
+  )
 }
+
+export default page

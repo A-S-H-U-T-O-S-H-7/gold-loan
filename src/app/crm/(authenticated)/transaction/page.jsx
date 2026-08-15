@@ -1,5 +1,12 @@
-'use client';
-import TransactionPage from '@/components/crm/pages/TransactionPage';
-export default function Page() {
-  return <TransactionPage />;
+import TransactionPage from '@/components/crm/transaction/Transaction'
+import React from 'react'
+
+function page() {
+  return (
+    <div>
+      <TransactionPage/>
+    </div>
+  )
 }
+
+export default page

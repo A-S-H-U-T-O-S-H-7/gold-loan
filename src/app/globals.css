@@ -62,34 +62,23 @@
    ROOT VARIABLES - LIGHT MODE
    ======================================== */
 :root {
-  /* Background - Golden Gray (Easy on eyes) */
   --background: #F5F0EB;
   --background-secondary: #EDE8E2;
   --background-tertiary: #E5DDD4;
-  
-  /* Surface / Cards */
   --surface: #FCF9F6;
   --surface-hover: #F8F2EB;
   --surface-border: #E8DFD6;
-  
-  /* Text */
   --foreground: #1C1814;
   --foreground-secondary: #4A4038;
   --foreground-muted: #8A7A6E;
-  
-  /* Primary - Gold */
   --primary: #C9A84C;
   --primary-light: #E8D5A3;
   --primary-dark: #A8893A;
   --primary-surface: #F5EDD6;
-  
-  /* Secondary - Navy */
   --secondary: #1A2A3A;
   --secondary-light: #2A4055;
   --secondary-dark: #0F1A24;
   --secondary-surface: #E8ECF0;
-  
-  /* Status Colors */
   --success: #2E7D32;
   --success-light: #E8F5E9;
   --warning: #F57C00;
@@ -98,23 +87,15 @@
   --danger-light: #FFEBEE;
   --info: #1565C0;
   --info-light: #E3F2FD;
-  
-  /* Shadows */
   --shadow-sm: 0 1px 2px rgba(26, 24, 20, 0.05);
   --shadow-md: 0 4px 12px rgba(26, 24, 20, 0.08);
   --shadow-lg: 0 8px 30px rgba(26, 24, 20, 0.12);
   --shadow-xl: 0 20px 60px rgba(26, 24, 20, 0.15);
-  
-  /* Border */
   --border: #E0D6CC;
   --border-light: #EBE3DA;
-  
-  /* Radius */
   --radius: 12px;
   --radius-sm: 8px;
   --radius-lg: 16px;
-  
-  /* Transitions */
   --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -122,34 +103,23 @@
    DARK MODE - Golden Warm Dark
    ======================================== */
 .dark {
-  /* Background - Dark Warm (Not pure black) */
   --background: #12100E;
   --background-secondary: #1C1916;
   --background-tertiary: #26221E;
-  
-  /* Surface / Cards */
   --surface: #1E1B17;
   --surface-hover: #2A2520;
   --surface-border: #2D2822;
-  
-  /* Text */
   --foreground: #F5F0EB;
   --foreground-secondary: #C5BDB5;
   --foreground-muted: #8A8078;
-  
-  /* Primary - Gold (Brighter in dark) */
   --primary: #D4AF37;
   --primary-light: #E8D5A3;
   --primary-dark: #B8922E;
   --primary-surface: #2A2418;
-  
-  /* Secondary - Navy (Lighter in dark) */
   --secondary: #3A5068;
   --secondary-light: #4A6078;
   --secondary-dark: #2A3A4A;
   --secondary-surface: #1A2430;
-  
-  /* Status Colors - Adjusted for dark */
   --success: #4CAF50;
   --success-light: #1B2E1B;
   --warning: #FFA726;
@@ -158,24 +128,16 @@
   --danger-light: #2E1B1B;
   --info: #42A5F5;
   --info-light: #1A2430;
-  
-  /* Shadows - Darker shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
   --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.6);
-  
-  /* Border */
   --border: #2D2822;
   --border-light: #3A342E;
 }
 
 /* ========================================
    BASE STYLES
-   Keep these in @layer base so Tailwind utilities
-   (p-*, m-*, space-x-*, text-*) can override them.
-   Unlayered * { margin:0; padding:0 } was wiping
-   every Tailwind spacing class.
    ======================================== */
 @layer base {
   html {
@@ -183,7 +145,7 @@
   }
 
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: var(--font-sans);
     background: var(--background);
     color: var(--foreground);
     transition: background var(--transition), color var(--transition);
@@ -192,7 +154,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-serif);
     font-weight: 600;
     letter-spacing: -0.02em;
   }
@@ -227,7 +189,6 @@
   background: var(--primary-dark);
 }
 
-/* Firefox Scrollbar */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--primary) var(--background-secondary);
@@ -249,8 +210,6 @@
 /* ========================================
    CUSTOM UTILITY CLASSES
    ======================================== */
-
-/* Gold Gradient */
 .gold-gradient {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 50%, var(--primary) 100%);
 }
@@ -262,7 +221,6 @@
   background-clip: text;
 }
 
-/* Gold Glow Effect */
 .gold-glow {
   box-shadow: 0 0 30px rgba(201, 168, 76, 0.15);
 }
@@ -271,7 +229,6 @@
   box-shadow: 0 0 40px rgba(212, 175, 55, 0.1);
 }
 
-/* Glass Effect */
 .glass {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
@@ -284,7 +241,6 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Card Styles */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);

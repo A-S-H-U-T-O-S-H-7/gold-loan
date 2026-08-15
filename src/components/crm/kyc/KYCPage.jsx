@@ -1,360 +1,425 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Save, CheckCircle, XCircle } from 'lucide-react';
-import Link from 'next/link';
-import { useFormik } from 'formik';
+import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Formik } from 'formik';
+import { ArrowLeft, Check } from 'lucide-react';
 import { useThemeStore } from '@/lib/store/useThemeStore';
+import { useLoanStore } from '@/lib/store/loanStore';
+import { applicationValidationSchema } from '@/lib/schema/applicationValidationSchema';
+import PersonalDetails from '@/components/crm/kyc/PersonalDetails';
+import AddressDetails from '@/components/crm/kyc/AddressDetails';
+import BankDetails from '@/components/crm/kyc/BankDetails';
+import DocumentUpload from '@/components/crm/kyc/DocumentUpload';
+import NomineeDetails from '@/components/crm/kyc/NomineeDetails';
+import GuarantorDetails from '@/components/crm/kyc/GuarantorDetails';
+import StatusBadge from '@/components/crm/ui/StatusBadge';
 import toast from 'react-hot-toast';
-import Swal from 'sweetalert2';
-import api from '@/utils/axiosInsatnce';
-import { userKycService, mapUserKycToFormValues } from '@/lib/services/UserKYCServices';
-import { createKYCValidationSchema } from '@/utils/kycSchema';
 
-import PersonalDetails from './PersonalDetails';
-import KYCDetails from './KYCDetails';
-import AddressSection from './AddressSection';
-import NomineeDetails from './NomineeDetails';
-import BankDetails from './BankDetails';
+// Status options for dropdown
+const statusOptions = [
+  { value: 'KYC_VERIFIED', label: 'KYC Verified', color: 'bg-emerald-100 text-emerald-700' },
+  { value: 'UNDER_REVIEW', label: 'Under Review', color: 'bg-blue-100 text-blue-700' },
+  { value: 'PENDING', label: 'Pending', color: 'bg-yellow-100 text-yellow-700' },
+  { value: 'REJECTED', label: 'Rejected', color: 'bg-red-100 text-red-700' },
+  { value: 'FOLLOW_UP', label: 'Follow Up', color: 'bg-pink-100 text-pink-700' },
+];
 
-const initialFormValues = {
-  crnNo: '',
-  applicationId: '',
-  userId: '',
-  fullName: '',
-  dob: '',
-  gender: '',
-  mobile: '',
-  alternatePhone: '',
-  email: '',
-  currentAddress: {
-    houseNo: '',
-    addressLine1: '',
-    addressLine2: '',
-    state: '',
-    city: '',
-    pincode: ''
-  },
-  permanentAddress: {
-    houseNo: '',
-    addressLine1: '',
-    addressLine2: '',
-    state: '',
-    city: '',
-    pincode: ''
-  },
-  aadharNumber: '',
-  panNumber: '',
-  aadharDocument: null,
-  aadharBackDocument: null,
-  panDocument: null,
-  livePhoto: null,
-  aadharDocumentPreview: '',
-  aadharBackDocumentPreview: '',
-  panDocumentPreview: '',
-  livePhotoPreview: '',
-  nominee: {
-    name: '',
-    relation: '',
-    dob: '',
-    gender: '',
-    mobile: '',
-    email: '',
-    aadharNumber: '',
-    panNumber: ''
-  },
-  accountNumber: '',
-  ifsc: '',
-  bankName: '',
-  bankBranch: '',
-  accountType: 'Saving',
-  accountHolderName: '',
-  kycStatus: 'pending',
-  remarks: ''
-};
-
-const UserKYC = ({ mode = 'edit', userId: userIdProp = null }) => {
+export default function KYCPage() {
+  const { id } = useParams();
   const router = useRouter();
-  const params = useParams();
   const { theme } = useThemeStore();
-  const isDark = theme === "dark";
+  const isDark = theme === 'dark';
+  const { applications, updateApplication, setStatus } = useLoanStore();
   
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [isNewUser, setIsNewUser] = useState(false);
-  const [sameAsCurrent, setSameAsCurrent] = useState(false);
-  const [submitError, setSubmitError] = useState('');
-  
-  // Refs for file inputs
-  const aadharFileRef = useRef(null);
-  const aadharBackFileRef = useRef(null);
-  const panFileRef = useRef(null);
-  const livePhotoRef = useRef(null);
+  const [application, setApplication] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState('');
 
-  const formik = useFormik({
-    initialValues: initialFormValues,
-    enableReinitialize: true,
-    validationSchema: createKYCValidationSchema({ isNewUser, sameAsCurrent }),
-    validateOnBlur: true,
-    validateOnChange: false,
-    onSubmit: async (values) => {
-      try {
-        setSaving(true);
-        setSubmitError('');
-        const id = userIdProp ?? params?.id;
-        const payload = { ...values, sameAsCurrent };
-        const response = isNewUser
-          ? await userKycService.createUserKyc(payload)
-          : await userKycService.updateUserKyc(id, payload);
-
-        await Swal.fire({
-          title: 'Success!',
-          text: response?.message || (isNewUser ? 'User created successfully' : 'KYC details updated'),
-          icon: 'success',
-          confirmButtonColor: '#d97706',
-        });
-        
-        const createdApplicationId = response?.data?.application_id || response?.application_id;
-        if (isNewUser && createdApplicationId) {
-          router.push(`/crm/user-kyc/${createdApplicationId}`);
-          return;
-        }
-        router.push('/crm/all-enquiries');
-      } catch (error) {
-        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save';
-        setSubmitError(errorMessage);
-        toast.error(errorMessage);
-      } finally {
-        setSaving(false);
+  useEffect(() => {
+    if (id) {
+      const app = applications.find(a => a.id === id);
+      if (app) {
+        setApplication(app);
+        setSelectedStatus(app.status || 'PENDING');
+      } else {
+        toast.error('Application not found');
+        router.push('/crm/create-customer');
       }
     }
-  });
+  }, [id, applications, router]);
 
-  // Fetch user data if editing
-  useEffect(() => {
-    const id = userIdProp ?? params?.id;
-    const isCreateMode = mode === 'new' || id === 'new' || !id;
+  // Map application data to form initial values
+  const getInitialValues = () => {
+    const customer = application?.customer || {};
+    
+    return {
+      // Personal Details
+      name: customer.name || '',
+      email: customer.email || '',
+      phoneNo: customer.mobile || '',
+      alternativePhone: customer.alternativePhone || '',
+      gender: customer.gender || '',
+      dob: customer.dob || { day: '', month: '', year: '' },
+      personalRemark: customer.remark || '',
 
-    if (isCreateMode) {
-      setIsNewUser(true);
-      formik.resetForm({ values: initialFormValues });
-      setSameAsCurrent(false);
-    } else {
-      setIsNewUser(false);
-      fetchUserKYCData(id);
-    }
-  }, [mode, params, userIdProp]);
+      // Address - Current
+      currentHouseNo: customer.currentAddress?.houseNo || '',
+      currentAddress: customer.currentAddress?.address || '',
+      currentState: customer.currentAddress?.state || '',
+      currentCity: customer.currentAddress?.city || '',
+      currentPinCode: customer.currentAddress?.pinCode || '',
+      currentAddressType: customer.currentAddress?.type || '',
+      currentRemark: customer.currentAddress?.remark || '',
 
-  const fetchUserKYCData = async (id) => {
+      // Address - Permanent
+      permanentHouseNo: customer.permanentAddress?.houseNo || '',
+      permanentAddress: customer.permanentAddress?.address || '',
+      permanentState: customer.permanentAddress?.state || '',
+      permanentCity: customer.permanentAddress?.city || '',
+      permanentPinCode: customer.permanentAddress?.pinCode || '',
+      permanentAddressType: customer.permanentAddress?.type || '',
+      permanentRemark: customer.permanentAddress?.remark || '',
+
+      // Bank Details
+      bankName: customer.bankDetails?.bankName || '',
+      branchName: customer.bankDetails?.branchName || '',
+      accountType: customer.bankDetails?.accountType || '',
+      accountNo: customer.bankDetails?.accountNumber || '',
+      ifscCode: customer.bankDetails?.ifscCode || '',
+      bankRemark: customer.bankDetails?.remark || '',
+
+      // Documents
+      aadhaarFront: customer.documents?.aadhaarFront || null,
+      aadhaarBack: customer.documents?.aadhaarBack || null,
+      panCard: customer.documents?.panCard || null,
+      photo: customer.documents?.photo || null,
+      addressProof: customer.documents?.addressProof || null,
+
+      // Nominee
+      nomineeName: customer.nominee?.name || '',
+      nomineeRelation: customer.nominee?.relation || '',
+      nomineeMobile: customer.nominee?.mobile || '',
+      nomineeEmail: customer.nominee?.email || '',
+      nomineeAddress: customer.nominee?.address || '',
+      nomineeRemark: customer.nominee?.remark || '',
+
+      // Guarantor
+      guarantorName: customer.guarantor?.name || '',
+      guarantorRelation: customer.guarantor?.relation || '',
+      guarantorMobile: customer.guarantor?.mobile || '',
+      guarantorEmail: customer.guarantor?.email || '',
+      guarantorAddress: customer.guarantor?.address || '',
+      guarantorRemark: customer.guarantor?.remark || '',
+    };
+  };
+
+  const handleStatusChange = (e) => {
+    setSelectedStatus(e.target.value);
+  };
+
+  const handleSubmit = async (values, { setSubmitting }) => {
     try {
       setLoading(true);
-      const response = await userKycService.getUserKyc(id);
-      const nextValues = mapUserKycToFormValues(response, initialFormValues);
-      formik.setValues(nextValues);
-      const isSame = JSON.stringify(nextValues.currentAddress) === JSON.stringify(nextValues.permanentAddress);
-      setSameAsCurrent(isSame);
+      
+      // Build customer object from form values
+      const customerData = {
+        name: values.name,
+        email: values.email,
+        mobile: values.phoneNo,
+        alternativePhone: values.alternativePhone,
+        gender: values.gender,
+        dob: values.dob,
+        remark: values.personalRemark,
+        
+        currentAddress: {
+          houseNo: values.currentHouseNo,
+          address: values.currentAddress,
+          state: values.currentState,
+          city: values.currentCity,
+          pinCode: values.currentPinCode,
+          type: values.currentAddressType,
+          remark: values.currentRemark,
+        },
+        
+        permanentAddress: {
+          houseNo: values.permanentHouseNo,
+          address: values.permanentAddress,
+          state: values.permanentState,
+          city: values.permanentCity,
+          pinCode: values.permanentPinCode,
+          type: values.permanentAddressType,
+          remark: values.permanentRemark,
+        },
+        
+        bankDetails: {
+          bankName: values.bankName,
+          branchName: values.branchName,
+          accountType: values.accountType,
+          accountNumber: values.accountNo,
+          ifscCode: values.ifscCode,
+          remark: values.bankRemark,
+        },
+        
+        documents: {
+          aadhaarFront: values.aadhaarFront,
+          aadhaarBack: values.aadhaarBack,
+          panCard: values.panCard,
+          photo: values.photo,
+          addressProof: values.addressProof,
+        },
+        
+        nominee: {
+          name: values.nomineeName,
+          relation: values.nomineeRelation,
+          mobile: values.nomineeMobile,
+          email: values.nomineeEmail,
+          address: values.nomineeAddress,
+          remark: values.nomineeRemark,
+        },
+        
+        guarantor: {
+          name: values.guarantorName,
+          relation: values.guarantorRelation,
+          mobile: values.guarantorMobile,
+          email: values.guarantorEmail,
+          address: values.guarantorAddress,
+          remark: values.guarantorRemark,
+        },
+      };
+
+      // Update application with customer data
+      await updateApplication(id, { customer: customerData });
+      
+      // Set status based on dropdown selection
+      await setStatus(id, selectedStatus);
+      
+      // Show success message with next step
+      const statusMessages = {
+        'KYC_VERIFIED': 'KYC verified successfully! Moving to Gold Evaluation.',
+        'UNDER_REVIEW': 'KYC submitted for review.',
+        'PENDING': 'KYC data saved as pending.',
+        'REJECTED': 'KYC rejected.',
+        'FOLLOW_UP': 'Application moved to Follow-Up.',
+      };
+
+      toast.success(statusMessages[selectedStatus] || 'KYC updated successfully!');
+
+      // Redirect based on status
+      if (selectedStatus === 'KYC_VERIFIED') {
+        router.push('/crm/gold-evaluation');
+      } else if (selectedStatus === 'REJECTED') {
+        router.push('/crm/rejected-applications');
+      } else if (selectedStatus === 'FOLLOW_UP') {
+        router.push('/crm/follow-up');
+      } else {
+        router.push('/crm/create-customer');
+      }
     } catch (error) {
-      console.error('Error:', error);
-      toast.error(error?.response?.data?.message || 'Failed to load KYC details');
+      toast.error('Failed to submit KYC. Please try again.');
+      console.error('KYC Submit Error:', error);
     } finally {
       setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  const handleSameAddressChange = (e) => {
-    const checked = e.target.checked;
-    setSameAsCurrent(checked);
-    if (checked) {
-      formik.setFieldValue('permanentAddress', { ...formik.values.currentAddress });
-    }
+  // Get status display info
+  const getStatusInfo = (status) => {
+    return statusOptions.find(opt => opt.value === status);
   };
 
-  const isCurrentAddressComplete = () => {
-    const addr = formik.values.currentAddress;
-    return addr.houseNo && addr.addressLine1 && addr.state && addr.city && addr.pincode;
-  };
-
-  const handleVerification = async (status) => {
-    const result = await Swal.fire({
-      title: `Confirm ${status}`,
-      text: `Are you sure you want to ${status} this KYC?`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: status === 'verify' ? '#d97706' : '#ef4444',
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      setSaving(true);
-      const nextStatus = status === 'verify' ? 'verified' : 'rejected';
-      const id = userIdProp ?? params?.id;
-      await userKycService.updateUserKyc(id, {
-        ...formik.values,
-        sameAsCurrent,
-        kycStatus: nextStatus
-      });
-      formik.setFieldValue('kycStatus', nextStatus);
-      toast.success(`KYC ${nextStatus} successfully`);
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to update status');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (loading) {
+  if (!application) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-crm-accent-soft/60'}`}>
+      <div className={`min-h-screen flex items-center justify-center ${
+        isDark ? 'bg-gray-900' : 'bg-gold-50/30'
+      }`}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-crm-primary mx-auto mb-4"></div>
-          <p className={isDark ? "text-white" : "text-gray-700"}>Loading KYC data...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-500 mx-auto"></div>
+          <p className={`mt-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            Loading KYC form...
+          </p>
         </div>
       </div>
     );
   }
 
+  const statusInfo = getStatusInfo(selectedStatus);
+
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-gray-900' : 'bg-crm-accent-soft/60'}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${
+      isDark ? 'bg-gray-900' : 'bg-gold-50/30'
+    }`}>
       <div className="p-4 md:p-6">
-        <div className="max-w-8xl mx-auto">
-          {/* Header */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between gap-4 mb-4">
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/crm/all-enquiries"
-                  className={`p-2.5 rounded-xl transition-all duration-200 hover:scale-105 ${
+        <Formik
+          initialValues={getInitialValues()}
+          validationSchema={applicationValidationSchema}
+          onSubmit={handleSubmit}
+          enableReinitialize={true}
+          validateOnBlur={true}
+          validateOnChange={false}
+        >
+          {(formik) => (
+            <form onSubmit={formik.handleSubmit}>
+
+{/* Header */}
+<div className="mb-6">
+  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+    {/* Left side - Back button + Title */}
+    <div className="flex items-center space-x-4">
+      <button
+        type="button"
+        onClick={() => router.back()}
+        className={`p-2 rounded-xl transition-all duration-200 hover:scale-105 ${
+          isDark
+            ? 'hover:bg-gray-800 bg-gray-800/50 border border-gold-600/30'
+            : 'hover:bg-gold-50 bg-gold-50/50 border border-gold-200'
+        }`}
+      >
+        <ArrowLeft className={`w-4 h-4 ${
+          isDark ? 'text-gold-400' : 'text-gold-600'
+        }`} />
+      </button>
+      <h1 className={`text-xl md:text-2xl font-bold ${
+        isDark ? 'text-gray-100' : 'text-gray-900'
+      }`}>
+        KYC Verification - {application.customer?.name || application.id}
+      </h1>
+    </div>
+
+    {/* Right side - Status Box */}
+    <div className={`flex items-center gap-3 px-4 py-2 rounded-xl border ${
+      isDark 
+        ? 'bg-gray-800/50 border-gold-700/30' 
+        : 'bg-white border-gold-200'
+    }`}>
+      <div className="flex items-center gap-2">
+        <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+          Status:
+        </span>
+        {application.status && (
+          <StatusBadge status={application.status} />
+        )}
+      </div>
+
+      <div className="w-px h-6 bg-gold-300/50 dark:bg-gold-700/50"></div>
+
+      <div className="flex items-center gap-2">
+        <select
+          value={selectedStatus}
+          onChange={handleStatusChange}
+          className={`px-3 py-1.5 rounded border-2 transition-all duration-200 text-sm font-medium ${
+            isDark
+              ? 'bg-gray-700 border-gold-600/50 text-white focus:border-gold-400'
+              : 'bg-white border-gold-300 text-gray-900 focus:border-gold-500'
+          } focus:ring-2 focus:ring-gold-500/20 focus:outline-none cursor-pointer`}
+        >
+          {statusOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        {selectedStatus && (
+          <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+            {selectedStatus === 'KYC_VERIFIED' && '→ Gold Evaluation'}
+            {selectedStatus === 'UNDER_REVIEW' && '→ Review'}
+            {selectedStatus === 'PENDING' && '→ Pending'}
+            {selectedStatus === 'REJECTED' && '→ Rejected'}
+            {selectedStatus === 'FOLLOW_UP' && '→ Follow-Up'}
+          </span>
+        )}
+      </div>
+    </div>
+  </div>
+</div>
+
+              {/* Form Sections */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-6">
+                  <PersonalDetails
+                    formik={formik}
+                    isDark={isDark}
+                    errors={formik.errors}
+                    touched={formik.touched}
+                  />
+                  <AddressDetails
+                    formik={formik}
+                    isDark={isDark}
+                    errors={formik.errors}
+                    touched={formik.touched}
+                  />
+                  <BankDetails
+                    formik={formik}
+                    isDark={isDark}
+                    errors={formik.errors}
+                    touched={formik.touched}
+                  />
+                </div>
+
+                <div className="space-y-6">
+                  <DocumentUpload
+                    formik={formik}
+                    isDark={isDark}
+                    errors={formik.errors}
+                    touched={formik.touched}
+                  />
+                  <NomineeDetails
+                    formik={formik}
+                    isDark={isDark}
+                    errors={formik.errors}
+                    touched={formik.touched}
+                  />
+                  <GuarantorDetails
+                    formik={formik}
+                    isDark={isDark}
+                    errors={formik.errors}
+                    touched={formik.touched}
+                  />
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="mt-8 flex gap-4 justify-end">
+                <button
+                  type="button"
+                  onClick={() => router.push('/crm/create-customer')}
+                  className={`px-6 py-2.5 rounded font-medium transition-all duration-200 cursor-pointer ${
                     isDark
-                      ? 'hover:bg-gray-800 bg-gray-800/50 border border-crm-border'
-                      : 'hover:bg-crm-accent-soft bg-crm-accent-soft border border-crm-border'
+                      ? 'bg-gray-700 hover:bg-gray-600 text-white border border-gray-600'
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-800 border border-gray-300'
                   }`}
                 >
-                  <ArrowLeft className={`w-4 h-4 ${isDark ? 'text-crm-primary-strong' : 'text-crm-primary-strong'}`} />
-                </Link>
-                <div>
-                  <h1 className={`text-xl md:text-2xl font-bold bg-gradient-to-r ${
-                    isDark ? 'from-crm-gradient-from to-crm-gradient-to' : 'from-crm-gradient-from to-crm-gradient-to'
-                  } bg-clip-text text-transparent`}>
-                    {isNewUser ? 'Create New User' : 'KYC & Customer Profile'}
-                  </h1>
-                </div>
-                {!isNewUser && (
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    formik.values.kycStatus === 'verified' 
-                      ? 'bg-green-100 text-green-700'
-                      : formik.values.kycStatus === 'rejected'
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {formik.values.kycStatus}
-                  </span>
-                )}
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading || formik.isSubmitting}
+                  className={`px-8 py-2.5 rounded font-semibold transition-all duration-200 hover:scale-105 cursor-pointer text-white shadow-lg hover:shadow-xl flex items-center gap-2 ${
+                    loading || formik.isSubmitting
+                      ? 'opacity-50 cursor-not-allowed'
+                      : isDark
+                        ? 'bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500'
+                        : 'bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700'
+                  }`}
+                >
+                  {loading || formik.isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>Submit KYC</span>
+                    </>
+                  )}
+                </button>
               </div>
-            </div>
-          </div>
-
-          {/* Error Alert */}
-          {submitError && (
-            <div className={`mb-6 p-4 rounded-xl border ${
-              isDark 
-                ? 'bg-red-900/20 border-red-600/30 text-red-400' 
-                : 'bg-red-50 border-red-200 text-red-700'
-            }`}>
-              <div className="flex items-center gap-2">
-                <span>⚠️</span>
-                <p className="text-sm">{submitError}</p>
-              </div>
-            </div>
+            </form>
           )}
-
-          {/* 2-Column Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Column 1 */}
-            <div className="space-y-6">
-              <PersonalDetails 
-                formik={formik}
-                isDark={isDark}
-              />
-              <AddressSection
-                title="Current Address"
-                addressPrefix="current"
-                formik={formik}
-                isDark={isDark}
-              />
-              <BankDetails 
-                formik={formik}
-                isDark={isDark}
-              />
-            </div>
-
-            {/* Column 2 */}
-            <div className="space-y-6">
-              <KYCDetails 
-                formik={formik}
-                isDark={isDark}
-                isNewUser={isNewUser}
-                fileRefs={{ aadharFileRef, aadharBackFileRef, panFileRef, livePhotoRef }}
-              />
-              <AddressSection
-                title="Permanent Address"
-                addressPrefix="permanent"
-                showSameAddressOption={true}
-                sameAddress={sameAsCurrent}
-                onSameAddressChange={handleSameAddressChange}
-                isCurrentAddressComplete={isCurrentAddressComplete()}
-                formik={formik}
-                isDark={isDark}
-              />
-              <NomineeDetails 
-                formik={formik}
-                isDark={isDark}
-              />
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="mt-8 flex justify-end">
-            <div className={`flex flex-wrap justify-end gap-3 rounded-2xl border px-4 py-3 ${
-              isDark
-                ? 'border-crm-border bg-gray-900'
-                : 'border-crm-border bg-white'
-            }`}>
-              {!isNewUser && formik.values.kycStatus === 'pending' && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => handleVerification('reject')}
-                    className="px-5 py-2.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all duration-200 flex items-center gap-2 shadow-lg"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    Reject
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleVerification('verify')}
-                    className="px-5 py-2.5 bg-crm-primary text-white rounded-xl hover:bg-crm-primary-strong transition-all duration-200 flex items-center gap-2 shadow-lg"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    Verify
-                  </button>
-                </>
-              )}
-              <button
-                type="button"
-                onClick={formik.handleSubmit}
-                disabled={saving}
-                className="px-5 py-2.5 bg-crm-primary text-white rounded-xl hover:bg-crm-primary-strong transition-all duration-200 flex items-center gap-2 shadow-lg disabled:opacity-50"
-              >
-                <Save className="w-4 h-4" />
-                {saving ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-          </div>
-        </div>
+        </Formik>
       </div>
     </div>
   );
-};
-
-export default UserKYC;
+}

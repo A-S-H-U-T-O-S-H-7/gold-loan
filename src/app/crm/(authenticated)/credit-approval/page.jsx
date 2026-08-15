@@ -1,5 +1,12 @@
-'use client';
-import CreditApprovalPage from '@/components/crm/pages/CreditApprovalPage';
-export default function Page() {
-  return <CreditApprovalPage />;
+import CreditApprovalListPage from '@/components/crm/credit-approval/CreditApproval'
+import React from 'react'
+
+function page() {
+  return (
+    <div>
+      <CreditApprovalListPage/>
+    </div>
+  )
 }
+
+export default page
