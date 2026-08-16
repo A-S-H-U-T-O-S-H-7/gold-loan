@@ -2,6 +2,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { FiMenu, FiX, FiChevronRight } from 'react-icons/fi';
 import {
   FaHome, FaGem, FaUserPlus, FaPhone, FaHandHoldingUsd,
@@ -327,8 +328,8 @@ export default function Sidebar() {
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
       >
-        {/* Logo Section */}
-        <div className={`flex items-center justify-between px-4 py-6 border-b transition-all duration-200 ${
+        {/* Logo Section with Image */}
+        <div className={`flex items-center justify-between px-4 py-2 border-b transition-all duration-200 ${
           theme === "dark" ? 'border-gray-700' : 'border-gold-200'
         }`}>
           <Link
@@ -336,11 +337,15 @@ export default function Sidebar() {
             className="flex items-center hover:opacity-80 transition-opacity duration-200"
             onClick={() => setIsMobileOpen(false)}
           >
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              theme === "dark" ? 'bg-gold-500/20 border border-gold-500/30' : 'bg-gold-50 border border-gold-200'
-            }`}>
-              <span className="text-xl">🏦</span>
-            </div>
+            {/* ✅ Using logo.png from public folder */}
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              width={90}
+              height={90}
+              className="w-12 h-14 object-contain"
+              priority
+            />
             {(isExpanded || isMobileOpen) && (
               <div className="ml-3 overflow-hidden">
                 <span className="text-xl font-bold bg-gradient-to-r from-gold-600 to-gold-500 bg-clip-text text-transparent">
