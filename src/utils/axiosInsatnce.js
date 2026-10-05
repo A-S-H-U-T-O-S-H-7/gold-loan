@@ -2,7 +2,7 @@ import axios from "axios";
 import { useAdminAuthStore } from "@/lib/store/authAdminStore";
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || "https://atdmoney.in/api/",
+    baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/",
     timeout: 10000,
 });
 

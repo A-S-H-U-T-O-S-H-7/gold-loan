@@ -59,21 +59,30 @@ export const useAdminAuthStore = create(
           }
 
           const response = await api.post("/crm/login", loginData);
-          const { admin, token } = response;
+          if (response?.success === false) {
+            throw new Error(response.message || "Login failed");
+          }
+
+          const { admin, accessToken, token } = response?.data || response || {};
+          const authToken = accessToken || token;
+          if (!admin || !authToken) {
+            throw new Error("Login response did not include an admin and access token");
+          }
+
           const permissions = admin.permissions || {};
           const { permissions: _, ...userWithoutPermissions } = admin;
 
           set({
-            token: encodeToken(token),
+            token: encodeToken(authToken),
             user: userWithoutPermissions,
             permissions,
-            branch_id: admin.branch_id || loginData.branch_id,
+            branch_id: admin.branchId ?? admin.branch_id ?? loginData.branch_id,
             isAuthenticated: true,
             loading: false,
           });
         } catch (err) {
           set({
-            error: err.response?.data?.message || "Login failed",
+            error: err.response?.data?.message || err.message || "Login failed",
             loading: false,
           });
         }
