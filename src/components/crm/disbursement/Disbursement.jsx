@@ -1,217 +1,53 @@
 'use client';
-import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useThemeStore } from '@/lib/store/useThemeStore';
-import { useLoanStore } from '@/lib/store/loanStore';
-import PageHeader from '@/components/crm/ui/PageHeader';
-import SearchBar from '@/components/crm/ui/SearchBar';
-import DataTable from '@/components/crm/ui/DataTable';
-import ExportButton from '@/components/crm/ui/ExportButton';
-import DisbursementTableRow from '@/components/crm/disbursement/DisbursementTableRow';
-import DisbursementModal from '@/components/crm/disbursement/DisbursementModal';
+import { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
-import Swal from 'sweetalert2';
+import { useThemeStore } from '@/lib/store/useThemeStore';
+import useApplicationList from '@/components/crm/application-list/useApplicationList';
+import useStaffBranch from '@/components/crm/application-list/useStaffBranch';
+import ApplicationListFilters from '@/components/crm/application-list/ApplicationListFilters';
+import PageHeader from '@/components/crm/ui/PageHeader';
+import DataTable from '@/components/crm/ui/DataTable';
+import Pagination from '@/components/crm/ui/Pagination';
+import ApplicationStatusButton from '@/components/crm/application-status/ApplicationStatusButton';
+import DisbursementModal from './DisbursementModal';
+import DisbursementProcessButton from '@/components/crm/action-buttons/DisbursementProcessButton';
+import { getDisburseApplications, getDisbursement } from '@/lib/services/crmDisbursementService';
+
+const money = (value) => value == null ? '—' : `₹${Number(value).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export default function DisbursementPage() {
-  const { theme } = useThemeStore();
-  const isDark = theme === 'dark';
-  const router = useRouter();
-  const { applications, updateApplication, setStatus } = useLoanStore();
-
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [searchFilters, setSearchFilters] = useState({ field: '', term: '' });
+  const isDark = useThemeStore((state) => state.theme) === 'dark';
+  const list = useApplicationList(getDisburseApplications);
+  const branch = useStaffBranch();
   const [selected, setSelected] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [form, setForm] = useState({
-    signatureType: 'E-Sign',
-    mode: 'Bank Transfer',
-    accountNumber: '',
-    ifsc: '',
-    upiId: ''
-  });
-
-  const searchOptions = [
-    { value: 'id', label: 'App ID' },
-    { value: 'name', label: 'Name' },
-    { value: 'mobile', label: 'Mobile' },
-  ];
-
-  // Get applications ready for disbursement
-  const eligibleApps = useMemo(() => {
-    return applications.filter(app => app.status === 'APPROVED');
-  }, [applications]);
-
-  const filteredData = useMemo(() => {
-    let data = [...eligibleApps];
-    if (searchFilters.term && searchFilters.field) {
-      data = data.filter(app => {
-        const value = app[searchFilters.field] || app.customer?.[searchFilters.field] || '';
-        return String(value).toLowerCase().includes(searchFilters.term.toLowerCase());
-      });
-    }
-    return data;
-  }, [eligibleApps, searchFilters]);
-
-  const totalItems = filteredData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
-
-  const handleRefresh = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      toast.success('List refreshed');
-    }, 500);
-  };
-
-  const handleExport = async () => {
-    toast.success('Export started');
-  };
-
-  const handleProcess = (app) => {
-    setSelected(app);
-    setForm({
-      signatureType: 'E-Sign',
-      mode: 'Bank Transfer',
-      accountNumber: app.customer?.bankDetails?.accountNumber || '',
-      ifsc: app.customer?.bankDetails?.ifscCode || '',
-      upiId: ''
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = () => {
-    if (!selected) return;
-
-    Swal.fire({
-      title: 'Ready for Transfer?',
-      text: `This will mark ${selected.id} as ready for transfer.`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#10b981',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, Mark Ready!',
-      cancelButtonText: 'Cancel',
-      background: isDark ? '#1a1a2e' : '#ffffff',
-      color: isDark ? '#f3f4f6' : '#111827',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Update with disbursement details
-        updateApplication(selected.id, {
-          disbursement: {
-            signatureType: form.signatureType,
-            mode: form.mode,
-            accountNumber: form.accountNumber,
-            ifsc: form.ifsc,
-            upiId: form.upiId,
-            disbursedAt: new Date().toISOString(),
-          },
-          lockerId: `L-${String(Math.floor(Math.random() * 100) + 1).padStart(3, '0')}`
-        });
-
-        setStatus(selected.id, 'READY_FOR_TRANSFER');
-        toast.success('Ready for transfer — locker assigned');
-        setIsModalOpen(false);
-        setSelected(null);
-      }
-    });
-  };
-
+  const [opening, setOpening] = useState(false);
+  async function open(app) {
+    setOpening(true);
+    try { setSelected(await getDisbursement(app.id)); }
+    catch (error) { toast.error(error.response?.data?.message || 'Could not load payout details.'); list.refresh(); }
+    finally { setOpening(false); }
+  }
+  const actions = (app) => <DisbursementProcessButton onClick={() => open(app)} isDark={isDark} reviewed={Boolean(app.disbursementId)} />;
+  const status = (app) => <ApplicationStatusButton application={app} onClick={open} />;
   const columns = [
-    { key: 'srNo', label: 'SR No', width: '70px' },
-    { key: 'id', label: 'App ID', width: '110px' },
-    { key: 'name', label: 'Customer', width: '160px' },
-    { key: 'mobile', label: 'Mobile', width: '120px' },
-    { key: 'amount', label: 'Amount', width: '120px' },
-    { key: 'status', label: 'Status', width: '110px' },
-    { key: 'actions', label: 'Actions', width: '100px' },
+    { key: 'applicationNo', label: 'Application No.', width: '130px' },
+    { key: 'name', label: 'Name / Mobile', width: '170px', render: (app) => <div><div className="font-medium">{app.name}</div><div className="text-xs opacity-70">{app.mobile}</div></div> },
+    { key: 'branchName', label: 'Branch', width: '130px', render: (app) => app.branchName || 'Unassigned' },
+    { key: 'approvedLoanAmount', label: 'Approved Loan', width: '130px', render: (app) => money(app.approvedLoanAmount) },
+    { key: 'deductionAmount', label: 'Deductions', width: '120px', render: (app) => money(app.deductionAmount) },
+    { key: 'netPayoutAmount', label: 'Net Payout', width: '130px', render: (app) => money(app.netPayoutAmount) },
+    { key: 'bankName', label: 'Bank Details', width: '150px', render: (app) => <div><div>{app.bankName || '—'}</div><div className="text-xs opacity-70">{app.maskedBankAccount || '—'}</div></div> },
+    { key: 'readiness', label: 'Preparation', width: '125px', render: (app) => app.disbursementId ? 'Reviewed' : 'Awaiting Review' },
+    { key: 'status', label: 'Application Status', width: '125px', render: status },
+    { key: 'actions', label: 'Actions', width: '100px', render: actions },
   ];
-
-  return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-gray-900' : 'bg-gold-50/30'}`}>
-      <div className="p-4 md:p-6">
-        <PageHeader
-          title="Disbursement"
-          count={totalItems}
-          isDark={isDark}
-          actions={
-            <div className="flex gap-2">
-              <button
-                onClick={handleRefresh}
-                disabled={loading}
-                className={`px-4 py-2 rounded font-medium transition-all duration-200 flex items-center gap-2 cursor-pointer ${
-                  isDark
-                    ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                    : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                }`}
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </button>
-              <ExportButton
-                data={filteredData}
-                filename="disbursement-applications"
-                headers={['App ID', 'Name', 'Mobile', 'Amount', 'Status']}
-                isDark={isDark}
-                disabled={filteredData.length === 0}
-                onExport={handleExport}
-              />
-            </div>
-          }
-        />
-        
-        <div className='grid grid-cols-1 md:grid-cols-2'>
-        <SearchBar
-          searchOptions={searchOptions}
-          onSearch={setSearchFilters}
-          placeholder="Search applications..."
-          buttonText="Search"
-          isDark={isDark}
-        />
-        </div>
-
-        <DataTable
-          columns={columns}
-          data={paginatedData}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={setItemsPerPage}
-          itemsPerPage={itemsPerPage}
-          pageSizeOptions={[10, 20, 50, 100]}
-          totalItems={totalItems}
-          isDark={isDark}
-          emptyMessage="No applications ready for disbursement"
-          renderRow={(app, index) => (
-            <DisbursementTableRow
-              key={app.id}
-              application={app}
-              index={index}
-              isDark={isDark}
-              startIndex={startIndex}
-              onProcess={handleProcess}
-            />
-          )}
-        />
-
-        {/* Disbursement Modal */}
-        <DisbursementModal
-          isOpen={isModalOpen}
-          selected={selected}
-          form={form}
-          setForm={setForm}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelected(null);
-          }}
-          onSubmit={handleSubmit}
-          isDark={isDark}
-        />
-      </div>
-    </div>
-  );
+  return <div className={`min-h-screen p-4 md:p-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-gold-50/30 text-gray-900'}`}>
+    <PageHeader title="Disbursement" count={list.pagination.total} isDark={isDark} actions={<button type="button" onClick={list.refresh} disabled={list.loading} className="flex cursor-pointer items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 font-semibold text-white disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${list.loading ? 'animate-spin' : ''}`} />Refresh</button>} />
+    <ApplicationListFilters list={list} isDark={isDark} branchName={branch} searchOptions={[{ value: 'application_no', label: 'Application No.' }, { value: 'name', label: 'Name' }, { value: 'mobile', label: 'Mobile' }, { value: 'all', label: 'All fields' }]} />
+    {list.error && <p role="alert" className="mb-4 text-red-600">{list.error}</p>}{opening && <p className="mb-3 text-sm text-gold-600">Loading payout details...</p>}
+    <div className="hidden lg:block"><DataTable columns={columns} data={list.applications} currentPage={list.page} totalPages={list.pagination.total_pages} totalItems={list.pagination.total} itemsPerPage={list.perPage} pageSizeOptions={[10, 20, 50, 100]} onPageChange={list.setPage} onPageSizeChange={list.setPerPage} isDark={isDark} emptyMessage={list.loading ? 'Loading applications...' : 'No applications ready for disbursement.'} /></div>
+    <div className="lg:hidden">{list.applications.length === 0 ? <p className="rounded-xl border p-8 text-center">No applications ready for disbursement.</p> : <div className="grid gap-3 sm:grid-cols-2">{list.applications.map((app) => <article key={app.id} className={`space-y-2 rounded-xl border p-4 ${isDark ? 'border-gold-700 bg-gray-800' : 'border-gold-200 bg-white'}`}><h2 className="font-semibold">#{app.applicationNo} · {app.name}</h2><p>{app.mobile} · {app.branchName || 'Unassigned'}</p><p>Principal: {money(app.approvedLoanAmount)} · Deductions: {money(app.deductionAmount)}</p><p>Net payout: {money(app.netPayoutAmount)}</p><p>{app.bankName || '—'} {app.maskedBankAccount || ''}</p><p>Preparation: {app.disbursementId ? 'Reviewed' : 'Awaiting Review'}</p><div className="flex items-center gap-3">{status(app)}{actions(app)}</div></article>)}</div>}{list.pagination.total_pages > 0 && <Pagination currentPage={list.page} totalPages={list.pagination.total_pages} totalItems={list.pagination.total} itemsPerPage={list.perPage} pageSizeOptions={[10, 20, 50, 100]} onPageChange={list.setPage} onPageSizeChange={list.setPerPage} isDark={isDark} />}</div>
+    {selected && <DisbursementModal key={selected.application.id} data={selected} onClose={() => setSelected(null)} onSuccess={() => { setSelected(null); list.refresh(); }} isDark={isDark} />}
+  </div>;
 }

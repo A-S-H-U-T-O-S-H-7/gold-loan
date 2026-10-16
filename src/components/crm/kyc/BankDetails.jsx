@@ -120,6 +120,23 @@ export default function BankDetails({ formik, isDark, errors = {}, touched = {} 
 
           {/* Account Type */}
           <div>
+            <label className={hasError('accountHolderName') ? errorLabelClassName : labelClassName}>
+              Account Holder Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="accountHolderName"
+              value={formik.values.accountHolderName || ''}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              className={hasError('accountHolderName') ? errorInputClassName : inputClassName}
+              placeholder="Name as shown on bank account"
+            />
+            {hasError('accountHolderName') && <div className={errorTextClassName}><AlertTriangle className="w-3 h-3" /><span>{getFieldError('accountHolderName')}</span></div>}
+          </div>
+
+          {/* Account Type */}
+          <div>
             <label className={hasError('accountType') ? errorLabelClassName : labelClassName}>
               Account Type <span className="text-red-500">*</span>
             </label>

@@ -108,7 +108,8 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
     return errors[fieldName];
   };
 
-  const AddressSection = ({ prefix, title }) => {
+  // Render the section directly so Formik updates keep the same input elements mounted.
+  const renderAddressSection = (prefix, title) => {
     const houseNoField = `${prefix}HouseNo`;
     const pinCodeField = `${prefix}PinCode`;
     const addressField = `${prefix}Address`;
@@ -311,13 +312,13 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
         </div>
 
         {/* Current Address */}
-        <AddressSection prefix="current" title="Current Address" />
+        {renderAddressSection('current', 'Current Address')}
 
         {/* Divider */}
         <div className={`border-t ${isDark ? 'border-gold-700/30' : 'border-gold-200'} my-4`} />
 
         {/* Permanent Address */}
-        <AddressSection prefix="permanent" title="Permanent Address" />
+        {renderAddressSection('permanent', 'Permanent Address')}
       </div>
     </div>
   );

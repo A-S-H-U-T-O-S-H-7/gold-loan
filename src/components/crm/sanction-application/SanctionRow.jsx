@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { Calendar, Mail, Edit, CheckCircle, X, Edit2, Loader2, Ban, Trash2 } from "lucide-react";
+import { Calendar, Mail, Edit, CheckCircle, X, Loader2, Ban, Trash2 } from "lucide-react";
 import Swal from 'sweetalert2';
 import { sanctionApplicationAPI } from "@/lib/services/SanctionApplicationServices";
 import { useAdminAuthStore } from '@/lib/store/authAdminStore';
@@ -40,7 +40,6 @@ const SanctionRow = ({
   onCourierPickedModalOpen,
   onOriginalDocumentsModalOpen,
   onDisburseEmandateModalOpen,
-  onChangeStatusClick,
   onStatusClick,
   onFileView,
   fileLoading,
@@ -1073,40 +1072,6 @@ const SanctionRow = ({
       <div className="absolute z-50 hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2">
         <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
           No permission to update loan status
-        </div>
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-      </div>
-    )}
-  </div>
-</td>
-
-      {/* Change Status */}
-<td className={cellStyle}>
-  <div className="relative group">
-    <div className="flex items-center justify-center">
-      {!hasPermission('original_document_status_change') ? (
-        <div className="opacity-50 cursor-not-allowed">
-          <div className="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-gray-500 to-gray-600 text-gray-300 flex items-center space-x-1">
-            <Edit2 className="w-4 h-4" />
-            <span>Change Status</span>
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => onChangeStatusClick(application)}
-          className="px-4 py-2 cursor-pointer rounded-md text-sm font-medium transition-all duration-200 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-1"
-          title="Change Status"
-        >
-          <Edit2 className="w-4 h-4" />
-          <span>Change Status</span>
-        </button>
-      )}
-    </div>
-    
-    {!hasPermission('original_document_status_change') && (
-      <div className="absolute z-50 hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2">
-        <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-          No permission to change document status
         </div>
         <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
       </div>

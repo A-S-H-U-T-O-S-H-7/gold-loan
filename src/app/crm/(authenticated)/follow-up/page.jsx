@@ -1,12 +1,5 @@
-import FollowUpPage from '@/components/crm/follow-up/Followup'
-import React from 'react'
+import FollowUpPage from '@/components/crm/follow-up/Followup';
 
-function page() {
-  return (
-    <div>
-      <FollowUpPage/>
-    </div>
-  )
+export default function Page() {
+  return <FollowUpPage />;
 }
-
-export default page

@@ -1,175 +1,75 @@
 'use client';
-import { useState, useMemo } from 'react';
+
+import { useMemo, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useThemeStore } from '@/lib/store/useThemeStore';
-import { useLoanStore } from '@/lib/store/loanStore';
+import { changeFollowUpApplicationStatus, formatFollowUpApplicationForUI, getFollowUpApplications } from '@/lib/services/followUpApplicationService';
+import useApplicationList from '@/components/crm/application-list/useApplicationList';
+import useStaffBranch from '@/components/crm/application-list/useStaffBranch';
+import ApplicationListFilters from '@/components/crm/application-list/ApplicationListFilters';
+import FollowUpTable from '@/components/crm/follow-up/FollowUpTable';
+import StatusUpdateModal from '@/components/crm/application-modals/StatusUpdateModal';
 import PageHeader from '@/components/crm/ui/PageHeader';
-import SearchBar from '@/components/crm/ui/SearchBar';
-import DateFilter from '@/components/crm/ui/DateFilter';
-import DataTable from '@/components/crm/ui/DataTable';
-import ExportButton from '@/components/crm/ui/ExportButton';
-import FollowUpTableRow from '@/components/crm/follow-up/FollowUpTableRow';
 import toast from 'react-hot-toast';
 
 export default function FollowUpPage() {
-  const { theme } = useThemeStore();
-  const isDark = theme === 'dark';
-  const { applications } = useLoanStore();
-
-  // Get only FOLLOW_UP applications
-  const followUpApps = useMemo(() => {
-    return applications.filter(app => app.status === 'FOLLOW_UP');
-  }, [applications]);
-
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [searchFilters, setSearchFilters] = useState({ field: '', term: '' });
-  const [dateFilters, setDateFilters] = useState({ dateRange: { start: '', end: '' } });
-
-  const searchOptions = [
-    { value: 'id', label: 'App ID' },
-    { value: 'name', label: 'Name' },
-    { value: 'mobile', label: 'Mobile' },
-  ];
-
-  // Calculate days pending for each application
-  const enrichedData = useMemo(() => {
-    return followUpApps.map(app => {
-      const createdAt = app.timeline?.createdAt || app.createdAt;
-      const daysPending = createdAt 
-        ? Math.floor((new Date() - new Date(createdAt)) / (1000 * 60 * 60 * 24))
-        : 0;
-      return { ...app, daysPending };
-    });
-  }, [followUpApps]);
-
-  const filteredData = useMemo(() => {
-    let data = [...enrichedData];
-    
-    if (searchFilters.term && searchFilters.field) {
-      data = data.filter(app => {
-        const value = app[searchFilters.field] || app.customer?.[searchFilters.field] || '';
-        return String(value).toLowerCase().includes(searchFilters.term.toLowerCase());
-      });
-    }
-    
-    if (dateFilters.dateRange.start) {
-      data = data.filter(app => {
-        const date = new Date(app.timeline?.createdAt || app.createdAt);
-        return date >= new Date(dateFilters.dateRange.start);
-      });
-    }
-    if (dateFilters.dateRange.end) {
-      data = data.filter(app => {
-        const date = new Date(app.timeline?.createdAt || app.createdAt);
-        return date <= new Date(dateFilters.dateRange.end);
-      });
-    }
-    
-    return data;
-  }, [enrichedData, searchFilters, dateFilters]);
-
-  const totalItems = filteredData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
-
-  const handleRefresh = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      toast.success('Follow-up list refreshed');
-    }, 500);
-  };
-
-  const handleExport = async () => {
-    toast.success('Export started');
-  };
-
-  const columns = [
-    { key: 'srNo', label: 'SR No', width: '70px' },
-    { key: 'call', label: 'Call', width: '80px' },
-    { key: 'id', label: 'App ID', width: '110px' },
-    { key: 'crnNo', label: 'CRN No', width: '110px' },
-    { key: 'name', label: 'Name', width: '160px' },
-    { key: 'mobile', label: 'Mobile', width: '120px' },
-    { key: 'daysPending', label: 'Days Pending', width: '110px' },
-    { key: 'purpose', label: 'Purpose', width: '140px' },
-    { key: 'status', label: 'Status', width: '110px' },
-    { key: 'actions', label: 'Actions', width: '140px' },
-  ];
-
-  return (
-    <div className={`min-h-screen transition-colors duration-300 ${
-      isDark ? 'bg-gray-900' : 'bg-gold-50/30'
-    }`}>
-      <div className="p-4 md:p-6">
-        <PageHeader
-          title="Follow-Up"
-          count={totalItems}
-          isDark={isDark}
-          actions={
-            <>
-              <button
-                onClick={handleRefresh}
-                disabled={loading}
-                className={`px-4 py-2 rounded font-medium transition-all duration-200 flex items-center gap-2 cursor-pointer ${
-                  isDark
-                    ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                    : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                }`}
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </button>
-              <ExportButton
-                data={filteredData}
-                filename="follow-up-applications"
-                headers={['App ID', 'Name', 'Mobile', 'Days Pending', 'Status']}
-                isDark={isDark}
-                disabled={filteredData.length === 0}
-                onExport={handleExport}
-              />
-            </>
-          }
-        />
-
-        <DateFilter onFilterChange={setDateFilters} isDark={isDark} />
-
-       <div className='grid grid-cols-1 md:grid-cols-2'>
-        <SearchBar
-          searchOptions={searchOptions}
-          onSearch={setSearchFilters}
-          placeholder="Search follow-up applications..."
-          buttonText="Search"
-          isDark={isDark}
-        />
-        </div>  
-
-        <DataTable
-          columns={columns}
-          data={paginatedData}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={setItemsPerPage}
-          itemsPerPage={itemsPerPage}
-          pageSizeOptions={[10, 20, 50, 100]}
-          totalItems={totalItems}
-          isDark={isDark}
-          emptyMessage="No follow-up applications found"
-          renderRow={(app, index) => (
-            <FollowUpTableRow
-              key={app.id}
-              application={app}
-              index={index}
-              isDark={isDark}
-              startIndex={startIndex}
-            />
-          )}
-        />
-      </div>
-    </div>
+  const isDark = useThemeStore((state) => state.theme) === 'dark';
+  const list = useApplicationList(getFollowUpApplications);
+  const branch = useStaffBranch();
+  const [statusApplication, setStatusApplication] = useState(null);
+  const [refreshIconKey, setRefreshIconKey] = useState(0);
+  const tableApplications = useMemo(
+    () => list.applications.map(formatFollowUpApplicationForUI),
+    [list.applications]
   );
+  const changeStatus = async (id, status, remark) => {
+    await changeFollowUpApplicationStatus(id, status, remark);
+    toast.success('Application status changed');
+    list.refresh();
+  };
+
+  return <div className={`min-h-screen w-full min-w-0 max-w-full overflow-x-hidden p-3 sm:p-4 md:p-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-gold-50/30 text-gray-900'}`}>
+    <PageHeader title="Follow-up" count={list.pagination.total} isDark={isDark} actions={
+      <button type="button" onClick={() => { setRefreshIconKey((key) => key + 1); list.refresh(); }} disabled={list.loading} aria-label="Refresh follow-up applications" className={`inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded border px-4 py-2 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${isDark ? 'border-gold-600 text-gold-300 hover:bg-gold-500/10' : 'border-gold-300 bg-white text-gold-700 hover:bg-gold-50'}`}>
+        <RefreshCw key={refreshIconKey} className={`h-4 w-4 ${refreshIconKey > 0 ? 'animate-[spin_600ms_ease-in-out_1]' : ''}`} />Refresh
+      </button>
+    } />
+    <ApplicationListFilters list={list} isDark={isDark} branchName={branch} matchPendingStyle searchOptions={[
+      { value: 'application_no', label: 'Application No.' },
+      { value: 'name', label: 'Name' },
+      { value: 'mobile', label: 'Mobile' },
+      { value: 'email', label: 'Email' },
+      { value: 'all', label: 'All fields' },
+    ]} />
+    {list.error && <p role="alert" className="mb-4 text-red-600">{list.error}</p>}
+    <FollowUpTable
+      applications={tableApplications}
+      currentPage={list.page}
+      totalPages={list.pagination.total_pages}
+      totalItems={list.pagination.total}
+      itemsPerPage={list.perPage}
+      loading={list.loading}
+      isDark={isDark}
+      onPageChange={list.setPage}
+      onPageSizeChange={list.setPerPage}
+      onStatusClick={setStatusApplication}
+    />
+    <StatusUpdateModal
+      isOpen={Boolean(statusApplication)}
+      application={statusApplication}
+      onClose={() => setStatusApplication(null)}
+      onStatusUpdate={changeStatus}
+      statusOptions={[
+        { value: 'REJECTED', label: 'Reject' },
+        { value: 'EVALUATING', label: 'Gold Evaluation', disabled: !statusApplication?.kycVerified },
+      ]}
+      isDark={isDark}
+      accent="gold"
+      initialStatus=""
+      requiredRemarkStatuses={['REJECTED']}
+      showCurrentStatus
+      showSuccessToast={false}
+      preventSameStatus
+    />
+  </div>;
 }

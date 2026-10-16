@@ -2,13 +2,14 @@
 import { CheckCircle, XCircle } from 'lucide-react';
 
 const CHECKS = [
-  { key: 'documentsVerified', label: 'Documents Verified' },
-  { key: 'goldCorrect', label: 'Gold Valuation Correct' },
-  { key: 'ltvWithinLimit', label: 'LTV Within Limit' },
-  { key: 'customerEligible', label: 'Customer Eligible' },
+  { key: 'kycChecked', label: 'KYC Checked' },
+  { key: 'goldEvaluationChecked', label: 'Gold Assessment Checked' },
+  { key: 'eligibilityChecked', label: 'Eligibility Checked' },
+  { key: 'offerChecked', label: 'Offer Checked' },
+  { key: 'bankDetailsChecked', label: 'Payout Details Checked' },
 ];
 
-export default function CreditChecklist({ checks, setChecks, isDark = false }) {
+export default function CreditChecklist({ checks, setChecks, isDark = false, disabled = false }) {
   const allChecked = CHECKS.every((c) => checks[c.key]);
 
   return (
@@ -46,6 +47,7 @@ export default function CreditChecklist({ checks, setChecks, isDark = false }) {
               <input
                 type="checkbox"
                 checked={isChecked}
+                disabled={disabled}
                 onChange={(e) => setChecks({ ...checks, [item.key]: e.target.checked })}
                 className="w-4 h-4 accent-emerald-500 cursor-pointer"
               />

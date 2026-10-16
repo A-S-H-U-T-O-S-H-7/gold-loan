@@ -5,8 +5,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { CheckCircle, Phone, MapPin, User, Mail, Calendar, AlertCircle, Building2, Map } from 'lucide-react';
 import Swal from 'sweetalert2';
-
-const branches = ['Noida', 'Bhadrak', 'Bhubaneswar', 'Cuttack'];
+import { createPublicApplication, getPublicBranches } from '@/lib/services/publicApplicationService';
 
 const stateCityMap = {
   Odisha: ['Bhadrak', 'Bhubaneswar', 'Cuttack', 'Balasore'],
@@ -22,37 +21,54 @@ const validationSchema = Yup.object({
   mobile: Yup.string()
     .matches(/^[6-9]\d{9}$/, 'Enter valid 10-digit mobile number')
     .required('Mobile number is required'),
-  dob: Yup.string().required('Date of birth is required'),
-  branch: Yup.string().required('Please select nearest branch'),
-  state: Yup.string().required('Please select your state'),
-  city: Yup.string().required('Please select your city'),
+  dob: Yup.string(),
+  branch_id: Yup.string(),
+  state: Yup.string(),
+  city: Yup.string(),
   pin: Yup.string()
-    .matches(/^\d{6}$/, 'Enter valid 6-digit PIN code')
-    .required('PIN code is required'),
+    .matches(/^\d{6}$/, { message: 'Enter valid 6-digit PIN code', excludeEmptyString: true }),
   email: Yup.string()
-    .email('Enter a valid email address')
-    .required('Email is required'),
+    .email('Enter a valid email address'),
 });
 
 export default function ApplyFormComponent() {
-  const [showOTP, setShowOTP] = useState(false);
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isMobileValid, setIsMobileValid] = useState(false);
+  const [branches, setBranches] = useState([]);
+
+  useEffect(() => {
+    getPublicBranches().then(setBranches).catch(() => setBranches([]));
+  }, []);
 
   const formik = useFormik({
     initialValues: {
       name: '',
       mobile: '',
       dob: '',
-      branch: '',
+      branch_id: '',
       state: '',
       city: '',
       pin: '',
       email: '',
     },
     validationSchema,
-    onSubmit: async () => {
-      setShowOTP(true);
+    onSubmit: async (values, { resetForm }) => {
+      try {
+        const application = await createPublicApplication(values);
+        await Swal.fire({
+          title: 'Application submitted',
+          text: `Your reference number is ${application.applicationNo}. Our team will contact you soon.`,
+          icon: 'success',
+          confirmButtonColor: '#d97706',
+        });
+        resetForm();
+      } catch (error) {
+        await Swal.fire({
+          title: 'Could not submit application',
+          text: error.message,
+          icon: 'error',
+          confirmButtonColor: '#d97706',
+        });
+      }
     },
   });
 
@@ -71,26 +87,6 @@ export default function ApplyFormComponent() {
     }
   }, [availableCities, formik.values.city]);
 
-  const handleOTPChange = (index, value) => {
-    if (value.length <= 1 && /^\d*$/.test(value)) {
-      const newOtp = [...otp];
-      newOtp[index] = value;
-      setOtp(newOtp);
-
-      if (value && index < 5) {
-        const nextInput = document.getElementById(`otp-${index + 1}`);
-        if (nextInput) nextInput.focus();
-      }
-    }
-  };
-
-  const handleKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      const prevInput = document.getElementById(`otp-${index - 1}`);
-      if (prevInput) prevInput.focus();
-    }
-  };
-
   const handleMobileChange = (e) => {
     const sanitized = e.target.value.replace(/\D/g, '').slice(0, 10);
     formik.setFieldValue('mobile', sanitized);
@@ -99,40 +95,6 @@ export default function ApplyFormComponent() {
   const handlePinChange = (e) => {
     const sanitized = e.target.value.replace(/\D/g, '').slice(0, 6);
     formik.setFieldValue('pin', sanitized);
-  };
-
-  const verifyOTP = async (enteredOtp) => {
-    if (enteredOtp === '123456') {
-      Swal.fire({
-        title: 'Success!',
-        text: 'Application submitted successfully!',
-        icon: 'success',
-        iconColor: '#d97706',
-        confirmButtonColor: '#d97706',
-        confirmButtonText: 'OK',
-        customClass: {
-          popup: 'rounded-2xl',
-          title: 'text-2xl font-bold text-gray-900',
-          confirmButton: 'px-6 py-3 rounded-xl font-bold'
-        }
-      });
-
-      setShowOTP(false);
-      formik.resetForm();
-      setOtp(['', '', '', '', '', '']);
-    } else {
-      Swal.fire({
-        title: 'Error!',
-        text: 'Invalid OTP. Try 123456 for demo',
-        icon: 'error',
-        confirmButtonColor: '#ef4444',
-        confirmButtonText: 'Try Again',
-        customClass: {
-          popup: 'rounded-2xl',
-          title: 'text-2xl font-bold text-gray-900'
-        }
-      });
-    }
   };
 
   const getInputClass = (fieldName) =>
@@ -149,68 +111,6 @@ export default function ApplyFormComponent() {
         {formik.errors[fieldName]}
       </div>
     ) : null;
-
-  if (showOTP) {
-    return (
-      <div className="rounded-2xl bg-white p-4 shadow-2xl md:p-8">
-        <div className="mb-6 text-center md:mb-8">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-yellow-500 shadow-lg md:h-20 md:w-20">
-            <Phone className="h-8 w-8 text-white md:h-10 md:w-10" />
-          </div>
-          <h3 className="mb-2 text-xl font-bold text-gray-900 md:text-2xl">
-            Verify Mobile Number
-          </h3>
-          <p className="text-sm text-gray-600 md:text-base">
-            Enter OTP sent to <span className="font-bold text-amber-600">{formik.values.mobile}</span>
-          </p>
-          <p className="mt-2 inline-block rounded-lg bg-amber-50 p-2 text-xs text-gray-500 md:text-sm">
-            Demo OTP: <span className="font-bold text-amber-600">123456</span>
-          </p>
-        </div>
-
-        <div className="mb-6 md:mb-8">
-          <div className="mb-6 flex justify-center space-x-2 md:space-x-3">
-            {otp.map((digit, index) => (
-              <input
-                key={index}
-                id={`otp-${index}`}
-                type="text"
-                maxLength="1"
-                value={digit}
-                onChange={(e) => handleOTPChange(index, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(index, e)}
-                className="h-12 w-12 rounded-xl border-2 border-gray-300 text-center text-xl font-bold text-gray-900 transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 md:h-14 md:w-14 md:text-2xl"
-              />
-            ))}
-          </div>
-
-          <button
-            onClick={() => verifyOTP(otp.join(''))}
-            disabled={otp.some((digit) => digit === '')}
-            className={`w-full rounded-xl py-3 text-lg font-bold transition-all md:py-4 ${
-              otp.every((digit) => digit !== '')
-                ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-white hover:shadow-lg'
-                : 'cursor-not-allowed bg-gray-200 text-gray-500'
-            }`}
-          >
-            Verify & Submit Application
-          </button>
-        </div>
-
-        <div className="space-y-4 text-center">
-          <button
-            onClick={() => setShowOTP(false)}
-            className="mx-auto flex cursor-pointer items-center justify-center font-medium text-gray-600 hover:text-gray-700"
-          >
-            <svg className="mr-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Edit mobile number
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-2xl">
@@ -305,20 +205,20 @@ export default function ApplyFormComponent() {
               Nearest Branch
             </label>
             <select
-              name="branch"
-              value={formik.values.branch}
+              name="branch_id"
+              value={formik.values.branch_id}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`${getInputClass('branch')} px-4 py-3`}
+              className={`${getInputClass('branch_id')} px-4 py-3`}
             >
               <option value="">Select nearest branch</option>
               {branches.map((branch) => (
-                <option key={branch} value={branch}>
-                  {branch}
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
                 </option>
               ))}
             </select>
-            {renderError('branch')}
+            {renderError('branch_id')}
           </div>
 
           <div>
@@ -423,7 +323,7 @@ export default function ApplyFormComponent() {
           ) : (
             <div className="flex items-center justify-center">
               <Phone className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-              Submit & Get OTP
+              Submit Application
             </div>
           )}
         </button>

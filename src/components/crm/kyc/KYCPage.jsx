@@ -1,11 +1,11 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Formik } from 'formik';
+import { Formik, setIn } from 'formik';
 import { ArrowLeft, Check } from 'lucide-react';
 import { useThemeStore } from '@/lib/store/useThemeStore';
-import { useLoanStore } from '@/lib/store/loanStore';
-import { applicationValidationSchema } from '@/lib/schema/applicationValidationSchema';
+import { getApplicationKyc, saveApplicationKyc, uploadKycDocument, verifyApplicationKyc } from '@/lib/services/applicationKycService';
+import { applicationValidationSchema, draftKycValidationSchema } from '@/lib/schema/applicationValidationSchema';
 import PersonalDetails from '@/components/crm/kyc/PersonalDetails';
 import AddressDetails from '@/components/crm/kyc/AddressDetails';
 import BankDetails from '@/components/crm/kyc/BankDetails';
@@ -15,38 +15,46 @@ import GuarantorDetails from '@/components/crm/kyc/GuarantorDetails';
 import StatusBadge from '@/components/crm/ui/StatusBadge';
 import toast from 'react-hot-toast';
 
-// Status options for dropdown
-const statusOptions = [
-  { value: 'KYC_VERIFIED', label: 'KYC Verified', color: 'bg-emerald-100 text-emerald-700' },
-  { value: 'UNDER_REVIEW', label: 'Under Review', color: 'bg-blue-100 text-blue-700' },
-  { value: 'PENDING', label: 'Pending', color: 'bg-yellow-100 text-yellow-700' },
-  { value: 'REJECTED', label: 'Rejected', color: 'bg-red-100 text-red-700' },
-  { value: 'FOLLOW_UP', label: 'Follow Up', color: 'bg-pink-100 text-pink-700' },
-];
-
 export default function KYCPage() {
   const { id } = useParams();
   const router = useRouter();
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
-  const { applications, updateApplication, setStatus } = useLoanStore();
   
   const [loading, setLoading] = useState(false);
   const [application, setApplication] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState('');
 
   useEffect(() => {
-    if (id) {
-      const app = applications.find(a => a.id === id);
-      if (app) {
-        setApplication(app);
-        setSelectedStatus(app.status || 'PENDING');
-      } else {
-        toast.error('Application not found');
-        router.push('/crm/create-customer');
-      }
-    }
-  }, [id, applications, router]);
+    if (!id) return undefined;
+
+    let active = true;
+    getApplicationKyc(id)
+      .then((record) => {
+        if (!active) return;
+        const documents = Object.fromEntries((record.kyc?.documents || []).map((document) => [document.documentType, document.fileKey]));
+        setApplication({
+          id: String(record.id),
+          status: record.status,
+          kycVerified: Number(record.kyc?.isVerified) === 1,
+          customer: {
+            name: record.name,
+            mobile: record.mobile,
+            email: record.email || '',
+            dob: record.dob ? (() => { const [year, month, day] = record.dob.split('-'); return { day: String(Number(day)), month: String(Number(month)), year }; })() : undefined,
+            currentAddress: { state: record.state || '', city: record.city || '', pinCode: record.pin || '' },
+            ...(record.kyc?.details || {}),
+            documents,
+          },
+        });
+      })
+      .catch((error) => {
+        if (!active) return;
+        toast.error(error.response?.data?.message || error.message || 'Could not load application');
+        router.back();
+      });
+
+    return () => { active = false; };
+  }, [id, router]);
 
   // Map application data to form initial values
   const getInitialValues = () => {
@@ -58,6 +66,8 @@ export default function KYCPage() {
       email: customer.email || '',
       phoneNo: customer.mobile || '',
       alternativePhone: customer.alternativePhone || '',
+      pan: customer.pan || '',
+      aadhaar: customer.aadhaar || '',
       gender: customer.gender || '',
       dob: customer.dob || { day: '', month: '', year: '' },
       personalRemark: customer.remark || '',
@@ -83,6 +93,7 @@ export default function KYCPage() {
       // Bank Details
       bankName: customer.bankDetails?.bankName || '',
       branchName: customer.bankDetails?.branchName || '',
+      accountHolderName: customer.bankDetails?.accountHolderName || '',
       accountType: customer.bankDetails?.accountType || '',
       accountNo: customer.bankDetails?.accountNumber || '',
       ifscCode: customer.bankDetails?.ifscCode || '',
@@ -113,20 +124,21 @@ export default function KYCPage() {
     };
   };
 
-  const handleStatusChange = (e) => {
-    setSelectedStatus(e.target.value);
+  const fallbackPath = { PENDING: '/crm/create-customer', FOLLOW_UP: '/crm/follow-up', REJECTED: '/crm/rejected-applications', GOLD_EVALUATION: '/crm/gold-evaluation', LOAN_OFFER: '/crm/loan-offer', CREDIT_APPROVAL: '/crm/credit-approval' }[application?.status] || '/crm/create-customer';
+  const navigateBack = () => {
+    if (window.history.length > 1) router.back();
+    else router.replace(fallbackPath);
   };
 
-  const handleSubmit = async (values, { setSubmitting }) => {
-    try {
-      setLoading(true);
-      
+  const saveDetails = async (values, setFieldValue) => {
       // Build customer object from form values
       const customerData = {
         name: values.name,
         email: values.email,
         mobile: values.phoneNo,
         alternativePhone: values.alternativePhone,
+        pan: values.pan.trim().toUpperCase(),
+        aadhaar: values.aadhaar.trim(),
         gender: values.gender,
         dob: values.dob,
         remark: values.personalRemark,
@@ -154,18 +166,11 @@ export default function KYCPage() {
         bankDetails: {
           bankName: values.bankName,
           branchName: values.branchName,
+          accountHolderName: values.accountHolderName,
           accountType: values.accountType,
           accountNumber: values.accountNo,
           ifscCode: values.ifscCode,
           remark: values.bankRemark,
-        },
-        
-        documents: {
-          aadhaarFront: values.aadhaarFront,
-          aadhaarBack: values.aadhaarBack,
-          panCard: values.panCard,
-          photo: values.photo,
-          addressProof: values.addressProof,
         },
         
         nominee: {
@@ -187,45 +192,60 @@ export default function KYCPage() {
         },
       };
 
-      // Update application with customer data
-      await updateApplication(id, { customer: customerData });
-      
-      // Set status based on dropdown selection
-      await setStatus(id, selectedStatus);
-      
-      // Show success message with next step
-      const statusMessages = {
-        'KYC_VERIFIED': 'KYC verified successfully! Moving to Gold Evaluation.',
-        'UNDER_REVIEW': 'KYC submitted for review.',
-        'PENDING': 'KYC data saved as pending.',
-        'REJECTED': 'KYC rejected.',
-        'FOLLOW_UP': 'Application moved to Follow-Up.',
-      };
-
-      toast.success(statusMessages[selectedStatus] || 'KYC updated successfully!');
-
-      // Redirect based on status
-      if (selectedStatus === 'KYC_VERIFIED') {
-        router.push('/crm/gold-evaluation');
-      } else if (selectedStatus === 'REJECTED') {
-        router.push('/crm/rejected-applications');
-      } else if (selectedStatus === 'FOLLOW_UP') {
-        router.push('/crm/follow-up');
-      } else {
-        router.push('/crm/create-customer');
+      const documentFields = ['aadhaarFront', 'aadhaarBack', 'panCard', 'photo', 'addressProof'];
+      const documents = [];
+      for (const field of documentFields) {
+        const file = values[field];
+        if (!file) continue;
+        const fileKey = typeof file === 'string' ? file : await uploadKycDocument(id, field, file);
+        documents.push({ document_type: field, file_key: fileKey });
+        if (typeof file !== 'string') setFieldValue(field, fileKey, false);
       }
+      await saveApplicationKyc(id, customerData, documents);
+  };
+
+  const handleSubmit = async (values, { setSubmitting, setFieldValue }) => {
+    let saved = false;
+    try {
+      setLoading(true);
+      await saveDetails(values, setFieldValue);
+      saved = true;
+      await verifyApplicationKyc(id);
+      toast.success('KYC verified. Application status has not changed.');
+      navigateBack();
     } catch (error) {
-      toast.error('Failed to submit KYC. Please try again.');
-      console.error('KYC Submit Error:', error);
+      const reason = error.response?.data?.message || error.message || 'Please try again.';
+      toast.error(saved ? `Details saved, but KYC verification failed: ${reason}` : `Could not save KYC: ${reason}`);
     } finally {
       setLoading(false);
       setSubmitting(false);
     }
   };
 
-  // Get status display info
-  const getStatusInfo = (status) => {
-    return statusOptions.find(opt => opt.value === status);
+  const saveDraft = async (formik) => {
+    try {
+      await draftKycValidationSchema.validate(formik.values, { abortEarly: false });
+      setLoading(true);
+      await saveDetails(formik.values, formik.setFieldValue);
+      toast.success('KYC draft saved. Application status has not changed.');
+      navigateBack();
+    } catch (error) {
+      if (error.inner) {
+        let fieldErrors = {};
+        let touchedFields = {};
+        error.inner.forEach((item) => {
+          if (item.path) {
+            fieldErrors = setIn(fieldErrors, item.path, item.message);
+            touchedFields = setIn(touchedFields, item.path, true);
+          }
+        });
+        formik.setErrors(fieldErrors);
+        formik.setTouched(touchedFields);
+        toast.error('Correct the highlighted fields before saving.');
+      } else {
+        toast.error(error.response?.data?.message || error.message || 'Could not save draft.');
+      }
+    } finally { setLoading(false); }
   };
 
   if (!application) {
@@ -243,11 +263,9 @@ export default function KYCPage() {
     );
   }
 
-  const statusInfo = getStatusInfo(selectedStatus);
-
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
-      isDark ? 'bg-gray-900' : 'bg-gold-50/30'
+      isDark ? 'bg-gray-900 text-gray-100' : 'bg-gold-50/30 text-gray-900'
     }`}>
       <div className="p-4 md:p-6">
         <Formik
@@ -268,8 +286,8 @@ export default function KYCPage() {
     <div className="flex items-center space-x-4">
       <button
         type="button"
-        onClick={() => router.back()}
-        className={`p-2 rounded-xl transition-all duration-200 hover:scale-105 ${
+        onClick={navigateBack}
+        className={`cursor-pointer p-2 rounded-xl transition-all duration-200 hover:scale-105 ${
           isDark
             ? 'hover:bg-gray-800 bg-gray-800/50 border border-gold-600/30'
             : 'hover:bg-gold-50 bg-gold-50/50 border border-gold-200'
@@ -301,35 +319,9 @@ export default function KYCPage() {
         )}
       </div>
 
-      <div className="w-px h-6 bg-gold-300/50 dark:bg-gold-700/50"></div>
-
-      <div className="flex items-center gap-2">
-        <select
-          value={selectedStatus}
-          onChange={handleStatusChange}
-          className={`px-3 py-1.5 rounded border-2 transition-all duration-200 text-sm font-medium ${
-            isDark
-              ? 'bg-gray-700 border-gold-600/50 text-white focus:border-gold-400'
-              : 'bg-white border-gold-300 text-gray-900 focus:border-gold-500'
-          } focus:ring-2 focus:ring-gold-500/20 focus:outline-none cursor-pointer`}
-        >
-          {statusOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-
-        {selectedStatus && (
-          <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-            {selectedStatus === 'KYC_VERIFIED' && '→ Gold Evaluation'}
-            {selectedStatus === 'UNDER_REVIEW' && '→ Review'}
-            {selectedStatus === 'PENDING' && '→ Pending'}
-            {selectedStatus === 'REJECTED' && '→ Rejected'}
-            {selectedStatus === 'FOLLOW_UP' && '→ Follow-Up'}
-          </span>
-        )}
-      </div>
+      <span className={`text-sm font-semibold ${application.kycVerified ? 'text-emerald-600' : 'text-amber-600'}`}>
+        {application.kycVerified ? 'KYC Verified' : 'KYC Not Verified'}
+      </span>
     </div>
   </div>
 </div>
@@ -359,6 +351,7 @@ export default function KYCPage() {
 
                 <div className="space-y-6">
                   <DocumentUpload
+                    applicationId={id}
                     formik={formik}
                     isDark={isDark}
                     errors={formik.errors}
@@ -383,7 +376,7 @@ export default function KYCPage() {
               <div className="mt-8 flex gap-4 justify-end">
                 <button
                   type="button"
-                  onClick={() => router.push('/crm/create-customer')}
+                  onClick={navigateBack}
                   className={`px-6 py-2.5 rounded font-medium transition-all duration-200 cursor-pointer ${
                     isDark
                       ? 'bg-gray-700 hover:bg-gray-600 text-white border border-gray-600'
@@ -391,6 +384,10 @@ export default function KYCPage() {
                   }`}
                 >
                   Cancel
+                </button>
+                <button type="button" disabled={loading || formik.isSubmitting} onClick={() => saveDraft(formik)} className={`inline-flex cursor-pointer items-center gap-2 rounded border border-gold-500 px-6 py-2.5 font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${isDark ? 'text-gold-300 hover:bg-gold-500/10' : 'text-gold-700 hover:bg-gold-50'}`}>
+                  {loading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />}
+                  {loading ? 'Saving Draft...' : 'Save Draft'}
                 </button>
                 <button
                   type="submit"
@@ -411,7 +408,7 @@ export default function KYCPage() {
                   ) : (
                     <>
                       <Check className="w-4 h-4" />
-                      <span>Submit KYC</span>
+                      <span>Save and Verify KYC</span>
                     </>
                   )}
                 </button>

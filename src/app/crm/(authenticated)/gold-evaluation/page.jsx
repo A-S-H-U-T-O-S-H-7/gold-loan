@@ -1,12 +1,5 @@
-import GoldEvaluationListPage from '@/components/crm/gold-evaluation/GoldEvaluation'
-import React from 'react'
+import GoldEvaluationPage from '@/components/crm/gold-evaluation/GoldEvaluation';
 
-function page() {
-  return (
-    <div>
-      <GoldEvaluationListPage/>
-    </div>
-  )
+export default function Page() {
+  return <GoldEvaluationPage />;
 }
-
-export default page

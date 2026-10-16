@@ -1,147 +1,60 @@
 'use client';
-import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useThemeStore } from '@/lib/store/useThemeStore';
-import { useLoanStore } from '@/lib/store/loanStore';
-import PageHeader from '@/components/crm/ui/PageHeader';
-import SearchBar from '@/components/crm/ui/SearchBar';
-import DataTable from '@/components/crm/ui/DataTable';
-import ExportButton from '@/components/crm/ui/ExportButton';
-import CreditApprovalTableRow from '@/components/crm/credit-approval/CreditApprovalTableRow';
+import { useState } from 'react';
+import Link from 'next/link';
 import { RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useThemeStore } from '@/lib/store/useThemeStore';
+import api from '@/utils/axiosInsatnce';
+import useApplicationList from '@/components/crm/application-list/useApplicationList';
+import useStaffBranch from '@/components/crm/application-list/useStaffBranch';
+import ApplicationListFilters from '@/components/crm/application-list/ApplicationListFilters';
+import DataTable from '@/components/crm/ui/DataTable';
+import Pagination from '@/components/crm/ui/Pagination';
+import PageHeader from '@/components/crm/ui/PageHeader';
+import ApplicationStatusButton from '@/components/crm/application-status/ApplicationStatusButton';
+import StatusUpdateModal from '@/components/crm/application-modals/StatusUpdateModal';
+
+const getCreditApplications = (params = {}) => api.get('/crm/applications', { params: { ...params, status: 'CREDIT_APPROVAL' } });
+const money = (value) => value == null ? '-' : `₹${Number(value).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+const reviewLabel = { AWAITING_REVIEW: 'Awaiting Review', APPROVED: 'Approved', REJECTED: 'Rejected', NEEDS_REVIEW: 'Needs Review' };
 
 export default function CreditApprovalListPage() {
-  const { theme } = useThemeStore();
-  const isDark = theme === 'dark';
-  const router = useRouter();
-  const { applications } = useLoanStore();
-
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [searchFilters, setSearchFilters] = useState({ field: '', term: '' });
-
-  const searchOptions = [
-    { value: 'id', label: 'App ID' },
-    { value: 'name', label: 'Name' },
-    { value: 'mobile', label: 'Mobile' },
-  ];
-
-  // Get applications ready for credit approval
-  const eligibleApps = useMemo(() => {
-    return applications.filter(app => app.status === 'OFFER_ACCEPTED');
-  }, [applications]);
-
-  const filteredData = useMemo(() => {
-    let data = [...eligibleApps];
-    if (searchFilters.term && searchFilters.field) {
-      data = data.filter(app => {
-        const value = app[searchFilters.field] || app.customer?.[searchFilters.field] || '';
-        return String(value).toLowerCase().includes(searchFilters.term.toLowerCase());
-      });
-    }
-    return data;
-  }, [eligibleApps, searchFilters]);
-
-  const totalItems = filteredData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
-
-  const handleRefresh = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      toast.success('List refreshed');
-    }, 500);
-  };
-
-  const handleExport = async () => {
-    toast.success('Export started');
-  };
-
-  const handleReview = (appId) => {
-    router.push(`/crm/credit-approval/${appId}`);
-  };
-
+  const isDark = useThemeStore((state) => state.theme) === 'dark';
+  const list = useApplicationList(getCreditApplications);
+  const branch = useStaffBranch();
+  const [statusApplication, setStatusApplication] = useState(null);
+  async function openStatus(app) {
+    try {
+      const result = (await api.get(`/crm/applications/credit-review/${app.id}`)).data;
+      if (result.application.status !== 'CREDIT_APPROVAL') { list.refresh(); toast.error('Application has left Credit Approval.'); return; }
+      setStatusApplication({ ...app, creditReviewDecision: result.currentReview?.decision, creditReviewValid: result.reviewValid });
+    } catch (error) { toast.error(error.response?.data?.message || 'Could not load credit review.'); }
+  }
+  async function updateStatus(id, status, remark) {
+    await api.patch(`/crm/applications/status/${id}`, { status, remark });
+    toast.success('Application status updated'); list.refresh();
+  }
+  const status = (app) => <ApplicationStatusButton application={app} onClick={openStatus} />;
+  const action = (app) => <Link href={`/crm/credit-approval/${app.id}`} className="cursor-pointer font-semibold text-gold-600 underline">Review</Link>;
   const columns = [
-    { key: 'srNo', label: 'SR No', width: '70px' },
-    { key: 'id', label: 'App ID', width: '110px' },
-    { key: 'name', label: 'Customer', width: '160px' },
-    { key: 'mobile', label: 'Mobile', width: '120px' },
-    { key: 'offered', label: 'Offered', width: '120px' },
-    { key: 'eligible', label: 'Eligible', width: '120px' },
-    { key: 'status', label: 'Status', width: '110px' },
-    { key: 'actions', label: 'Actions', width: '100px' },
+    { key: 'applicationNo', label: 'Application No.', width: '145px' },
+    { key: 'name', label: 'Name / Mobile', width: '180px', render: (app) => <div><div className="font-medium">{app.name}</div><div className="text-xs opacity-70">{app.mobile}</div></div> },
+    { key: 'branchName', label: 'Branch', width: '130px', render: (app) => app.branchName || 'Unassigned' },
+    { key: 'eligibleAmount', label: 'Eligible Amount', width: '130px', render: (app) => money(app.eligibleAmount) },
+    { key: 'offeredAmount', label: 'Offered Amount', width: '130px', render: (app) => money(app.offeredAmount) },
+    { key: 'offerDecision', label: 'Offer Decision', width: '120px', render: (app) => app.offerDecision === 'ACCEPTED' ? 'Accepted' : app.offerDecision || '-' },
+    { key: 'creditReviewDecision', label: 'Credit Review', width: '140px', render: (app) => app.creditReviewDecision && !app.creditReviewValid ? 'Review expired' : reviewLabel[app.creditReviewDecision] || 'Awaiting Review' },
+    { key: 'status', label: 'Application Status', width: '160px', render: status },
+    { key: 'actions', label: 'Actions', width: '100px', render: action },
   ];
-
-  return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-gray-900' : 'bg-gold-50/30'}`}>
-      <div className="p-4 md:p-6">
-        <PageHeader
-          title="Credit Approval"
-          count={totalItems}
-          isDark={isDark}
-          actions={
-            <div className="flex gap-2">
-              <button
-                onClick={handleRefresh}
-                disabled={loading}
-                className={`px-4 py-2 rounded font-medium transition-all duration-200 flex items-center gap-2 cursor-pointer ${
-                  isDark
-                    ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                    : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                }`}
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </button>
-              <ExportButton
-                data={filteredData}
-                filename="credit-approval-applications"
-                headers={['App ID', 'Name', 'Mobile', 'Offered', 'Eligible', 'Status']}
-                isDark={isDark}
-                disabled={filteredData.length === 0}
-                onExport={handleExport}
-              />
-            </div>
-          }
-        />
-       <div className='grid grid-cols-1 md:grid-cols-2'>
-        <SearchBar
-          searchOptions={searchOptions}
-          onSearch={setSearchFilters}
-          placeholder="Search applications..."
-          buttonText="Search"
-          isDark={isDark}
-        />
-        </div>
-
-        <DataTable
-          columns={columns}
-          data={paginatedData}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={setItemsPerPage}
-          itemsPerPage={itemsPerPage}
-          pageSizeOptions={[10, 20, 50, 100]}
-          totalItems={totalItems}
-          isDark={isDark}
-          emptyMessage="No applications ready for credit approval"
-          renderRow={(app, index) => (
-            <CreditApprovalTableRow
-              key={app.id}
-              application={app}
-              index={index}
-              isDark={isDark}
-              startIndex={startIndex}
-              onReview={handleReview}
-            />
-          )}
-        />
-      </div>
-    </div>
-  );
+  return <div className={`min-h-screen p-4 md:p-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-gold-50/30 text-gray-900'}`}>
+    <PageHeader title="Credit Approval" count={list.pagination.total} isDark={isDark} actions={<button type="button" onClick={list.refresh} disabled={list.loading} className="cursor-pointer flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 font-semibold text-white disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${list.loading ? 'animate-spin' : ''}`} />Refresh</button>} />
+    <ApplicationListFilters list={list} isDark={isDark} branchName={branch} searchOptions={[{ value: 'application_no', label: 'Application No.' }, { value: 'name', label: 'Name' }, { value: 'mobile', label: 'Mobile' }, { value: 'all', label: 'All fields' }]} />
+    {list.error && <p role="alert" className="mb-4 text-red-600">{list.error}</p>}
+    <div className="hidden lg:block"><DataTable columns={columns} data={list.applications} currentPage={list.page} totalPages={list.pagination.total_pages} totalItems={list.pagination.total} itemsPerPage={list.perPage} pageSizeOptions={[10, 20, 50, 100]} onPageChange={list.setPage} onPageSizeChange={list.setPerPage} isDark={isDark} emptyMessage={list.loading ? 'Loading applications...' : 'No Credit Approval applications found.'} /></div>
+    <div className="lg:hidden">{list.applications.length === 0 ? <p className="rounded-xl border p-8 text-center">No Credit Approval applications found.</p> : <div className="grid gap-3 sm:grid-cols-2">{list.applications.map((app) => <article key={app.id} className={`space-y-2 rounded-xl border p-4 ${isDark ? 'border-gold-700 bg-gray-800' : 'border-gold-200 bg-white'}`}><h2 className="font-semibold">#{app.applicationNo} · {app.name}</h2><p>{app.mobile} · {app.branchName || 'Unassigned'}</p><p>Eligible: {money(app.eligibleAmount)}</p><p>Offered: {money(app.offeredAmount)}</p><p>Offer: {app.offerDecision === 'ACCEPTED' ? 'Accepted' : '-'}</p><p>Review: {reviewLabel[app.creditReviewDecision] || 'Awaiting Review'}</p><div className="flex items-center gap-3">{status(app)}{action(app)}</div></article>)}</div>}{list.pagination.total_pages > 0 && <Pagination currentPage={list.page} totalPages={list.pagination.total_pages} totalItems={list.pagination.total} itemsPerPage={list.perPage} pageSizeOptions={[10, 20, 50, 100]} onPageChange={list.setPage} onPageSizeChange={list.setPerPage} isDark={isDark} />}</div>
+    <StatusUpdateModal isOpen={Boolean(statusApplication)} application={statusApplication} onClose={() => setStatusApplication(null)} onStatusUpdate={updateStatus}
+      statusOptions={[{ value: 'DISBURSE', label: 'Disburse', disabled: !statusApplication?.creditReviewValid || statusApplication?.creditReviewDecision !== 'APPROVED' }, { value: 'REJECTED', label: 'Reject', disabled: !statusApplication?.creditReviewValid || statusApplication?.creditReviewDecision !== 'REJECTED' }, { value: 'LOAN_OFFER', label: 'Loan Offer', disabled: !statusApplication?.creditReviewValid || statusApplication?.creditReviewDecision !== 'NEEDS_REVIEW' }]}
+      isDark={isDark} accent="gold" initialStatus="" requiredRemarkStatuses={['REJECTED']} showCurrentStatus showSuccessToast={false} preventSameStatus submitLabel="Confirm" />
+  </div>;
 }

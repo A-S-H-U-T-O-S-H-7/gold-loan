@@ -11,7 +11,6 @@ import SendToCourierModal from "../application-modals/SendToCourierModal";
 import CourierPickedModal from "../application-modals/CourierPickedModal";
 import OriginalDocumentsModal from "../application-modals/OriginalDocumentsModal";
 import DisburseEmandateModal from "../application-modals/DisburseEmandateModal";
-import ChangeStatusModal from "../application-modals/StatusModal";
 import RefundPDCModal from "../application-modals/RefundPdcModal";
 import StatusUpdateModal from "../application-modals/StatusUpdateModal";
 import { useThemeStore } from "@/lib/store/useThemeStore";
@@ -50,8 +49,6 @@ const SanctionPage = () => {
   const [currentOriginalDocumentsApplication, setCurrentOriginalDocumentsApplication] = useState(null);
   const [disburseEmandateModalOpen, setDisburseEmandateModalOpen] = useState(false);
   const [currentDisburseEmandateApplication, setCurrentDisburseEmandateApplication] = useState(null);
-  const [changeStatusModalOpen, setChangeStatusModalOpen] = useState(false);
-  const [currentChangeStatusApplication, setCurrentChangeStatusApplication] = useState(null);
   const [refundPDCModalOpen, setRefundPDCModalOpen] = useState(false);
   const [currentRefundPDCApplication, setCurrentRefundPDCApplication] = useState(null);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
@@ -290,19 +287,6 @@ const handleDeleteEmandate = async (applicationId) => {
     }
   };
 
-  const handleChangeStatusSubmit = async (updateData) => {
-    try {
-      await sanctionService.updateStatusChange(
-        currentChangeStatusApplication.id, 
-        updateData
-      );
-      fetchApplications();
-    } catch (error) {
-      toast.error('Failed to update status');
-      throw error;
-    }
-  };
-
   const handleStatusUpdate = async (applicationId, status, remark) => {
   try {
     await sanctionService.updateLoanStatus(applicationId, status, remark);
@@ -359,16 +343,6 @@ const handleDeleteEmandate = async (applicationId) => {
       console.error('Error saving refund PDC status:', error);
       throw error;
     }
-  };
-
-  const handleChangeStatusModalOpen = (application) => {
-    setCurrentChangeStatusApplication(application);
-    setChangeStatusModalOpen(true);
-  };
-
-  const handleChangeStatusModalClose = () => {
-    setChangeStatusModalOpen(false);
-    setCurrentChangeStatusApplication(null);
   };
 
   const handleDisburseEmandateModalOpen = (application) => {
@@ -865,7 +839,6 @@ const handleDeleteEmandate = async (applicationId) => {
           onCourierPickedModalOpen={handleCourierPickedModalOpen}
           onOriginalDocumentsModalOpen={handleOriginalDocumentsModalOpen}
           onDisburseEmandateModalOpen={handleDisburseEmandateModalOpen}
-          onChangeStatusClick={handleChangeStatusModalOpen}
           onRefundPDCClick={handleRefundPDCModalOpen}
           onFileView={handleFileView}
           fileLoading={fileLoading} 
@@ -941,17 +914,6 @@ const handleDeleteEmandate = async (applicationId) => {
           isDark={isDark}
           customerName={currentDisburseEmandateApplication.name}
           loanNo={currentDisburseEmandateApplication.loanNo}
-        />
-      )}
-
-      {currentChangeStatusApplication && (
-        <ChangeStatusModal
-          isOpen={changeStatusModalOpen}
-          onClose={handleChangeStatusModalClose}
-          onSubmit={handleChangeStatusSubmit}
-          isDark={isDark}
-          customerName={currentChangeStatusApplication.name}
-          loanNo={currentChangeStatusApplication.loanNo}
         />
       )}
 

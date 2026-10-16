@@ -52,6 +52,7 @@ export default function PersonalDetails({ formik, isDark, errors = {}, touched =
   }`;
 
   const hasError = (fieldName) => {
+    if (fieldName === 'dob') return Boolean(touched.dob && errors.dob && (typeof errors.dob === 'string' || Object.values(errors.dob).some(Boolean)));
     return errors[fieldName] && touched[fieldName];
   };
 
@@ -60,15 +61,7 @@ export default function PersonalDetails({ formik, isDark, errors = {}, touched =
   };
 
   // ✅ FIXED: Properly handle nested field changes
-  const handleNestedChange = (parent, field, value) => {
-    // Get current dob object
-    const currentDob = formik.values.dob || {};
-    // Update only the specific field
-    formik.setFieldValue('dob', {
-      ...currentDob,
-      [field]: value
-    });
-  };
+  const dobError = typeof errors.dob === 'string' ? errors.dob : Object.values(errors.dob || {}).find((value) => typeof value === 'string');
 
   return (
     <div className={`rounded-xl shadow-lg border-2 overflow-hidden ${
@@ -207,8 +200,9 @@ export default function PersonalDetails({ formik, isDark, errors = {}, touched =
             </label>
             <div className="grid grid-cols-3 gap-2">
               <select
+                name="dob.day"
                 value={formik.values.dob?.day || ''}
-                onChange={(e) => handleNestedChange('dob', 'day', e.target.value)}
+                onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 className={hasError('dob') ? errorSelectClassName : selectClassName}
               >
@@ -218,8 +212,9 @@ export default function PersonalDetails({ formik, isDark, errors = {}, touched =
                 ))}
               </select>
               <select
+                name="dob.month"
                 value={formik.values.dob?.month || ''}
-                onChange={(e) => handleNestedChange('dob', 'month', e.target.value)}
+                onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 className={hasError('dob') ? errorSelectClassName : selectClassName}
               >
@@ -232,8 +227,9 @@ export default function PersonalDetails({ formik, isDark, errors = {}, touched =
                 ))}
               </select>
               <select
+                name="dob.year"
                 value={formik.values.dob?.year || ''}
-                onChange={(e) => handleNestedChange('dob', 'year', e.target.value)}
+                onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 className={hasError('dob') ? errorSelectClassName : selectClassName}
               >
@@ -247,9 +243,26 @@ export default function PersonalDetails({ formik, isDark, errors = {}, touched =
             {hasError('dob') && (
               <div className={errorTextClassName}>
                 <AlertTriangle className="w-3 h-3" />
-                <span>{getFieldError('dob')}</span>
+                <span>{dobError}</span>
               </div>
             )}
+          </div>
+
+          <div>
+            <label className={hasError('pan') ? errorLabelClassName : labelClassName}>PAN Number</label>
+            <input type="text" name="pan" maxLength={10} value={formik.values.pan || ''}
+              onChange={(event) => formik.setFieldValue('pan', event.target.value.toUpperCase())}
+              onBlur={formik.handleBlur} className={hasError('pan') ? errorInputClassName : inputClassName}
+              placeholder="ABCDE1234F" autoComplete="off" />
+            {hasError('pan') && <div className={errorTextClassName}><AlertTriangle className="w-3 h-3" /><span>{getFieldError('pan')}</span></div>}
+          </div>
+          <div>
+            <label className={hasError('aadhaar') ? errorLabelClassName : labelClassName}>Aadhaar Number</label>
+            <input type="text" inputMode="numeric" name="aadhaar" maxLength={12} value={formik.values.aadhaar || ''}
+              onChange={formik.handleChange} onBlur={formik.handleBlur}
+              className={hasError('aadhaar') ? errorInputClassName : inputClassName}
+              placeholder="12-digit Aadhaar number" autoComplete="off" />
+            {hasError('aadhaar') && <div className={errorTextClassName}><AlertTriangle className="w-3 h-3" /><span>{getFieldError('aadhaar')}</span></div>}
           </div>
 
           {/* Remark */}

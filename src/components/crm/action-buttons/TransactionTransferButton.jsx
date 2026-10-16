@@ -2,7 +2,8 @@
 import { CreditCard } from 'lucide-react';
 
 export default function TransactionTransferButton({ onClick, isDark = false, status }) {
-  const isTransferred = status === 'TRANSFERRED';
+  const isTransferred = status === 'SUCCESS' || status === 'TRANSFERRED';
+  const label = isTransferred ? 'View History' : status === 'FAILED' ? 'Retry' : ['PENDING', 'UNKNOWN'].includes(status) ? 'Check Status' : 'Transfer';
 
   return (
     <button
@@ -18,7 +19,7 @@ export default function TransactionTransferButton({ onClick, isDark = false, sta
       } border`}
     >
       <CreditCard className="w-3.5 h-3.5" />
-      {isTransferred ? 'View' : 'Transfer'}
+      {label}
     </button>
   );
 }

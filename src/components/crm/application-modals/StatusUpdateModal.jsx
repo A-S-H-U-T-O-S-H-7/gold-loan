@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
+import StatusBadge from '@/components/crm/ui/StatusBadge';
 
 const StatusUpdateModal = ({
   isOpen,
@@ -8,20 +9,30 @@ const StatusUpdateModal = ({
   application,
   statusOptions = [],
   onStatusUpdate,
-  isDark
+  isDark,
+  accent = 'emerald',
+  initialStatus,
+  requiredRemarkStatuses = [],
+  showCurrentStatus = false,
+  showSuccessToast = true,
+  preventSameStatus = false,
+  submitLabel = 'Update Status',
+  readOnlyMessage = '',
 }) => {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   
   const modalRef = useRef(null);
 
   useEffect(() => {
     if (isOpen && application) {
-      setSelectedStatus(application.status || "");
+      setSelectedStatus(initialStatus ?? application.status ?? "");
       setRemark("");
+      setError('');
     }
-  }, [isOpen, application]);
+  }, [isOpen, application, initialStatus]);
 
   // Outside click, escape key, and scroll lock functionality
   useEffect(() => {
@@ -37,6 +48,7 @@ const StatusUpdateModal = ({
       }
     };
 
+    const previousOverflow = document.body.style.overflow;
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleEscapeKey);
@@ -46,35 +58,29 @@ const StatusUpdateModal = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscapeKey);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = previousOverflow;
     };
   }, [isOpen, loading]);
 
-  // In StatusUpdateModal.js
 const handleSubmit = async (e) => {
   e.preventDefault();
-  
-  if (!selectedStatus) {
-    toast.error('Please select a status.', {
-      style: {
-        background: isDark ? "#1f2937" : "#ffffff",
-        color: isDark ? "#f9fafb" : "#111827",
-        border: isDark ? "1px solid #374151" : "1px solid #e5e7eb"
-      },
-      iconTheme: {
-        primary: '#ef4444',
-        secondary: '#f9fafb',
-      }
-    });
+  if (!selectedStatus || loading) return;
+  if (statusOptions.find((option) => option.value === selectedStatus)?.disabled) {
+    setError(statusOptions.find((option) => option.value === selectedStatus)?.disabledReason || 'This status is not available yet.');
+    return;
+  }
+  if (requiredRemarkStatuses.includes(selectedStatus) && !remark.trim()) {
+    setError('A reason is required.');
     return;
   }
 
   try {
     setLoading(true);
     
-    await onStatusUpdate(application.id, selectedStatus, remark);
+    setError('');
+    await onStatusUpdate(application.id, selectedStatus, remark.trim());
     
-    toast.success('Application status has been updated successfully.', {
+    if (showSuccessToast) toast.success('Application status has been updated successfully.', {
       style: {
         background: isDark ? "#1f2937" : "#ffffff",
         color: isDark ? "#f9fafb" : "#111827",
@@ -86,7 +92,7 @@ const handleSubmit = async (e) => {
       }
     });
 
-    handleClose();
+    onClose();
     
   } catch (error) {
     console.error("Status update error:", error);
@@ -95,7 +101,7 @@ const handleSubmit = async (e) => {
     let errorMessage = 'Failed to update status. Please try again.';
     
     if (error.response) {
-      const errorData = error.response;
+      const errorData = error.response.data || error.response;
       
       if (errorData.message) {
         errorMessage = errorData.message;
@@ -115,6 +121,7 @@ const handleSubmit = async (e) => {
       errorMessage = error.message || errorMessage;
     }
     
+    setError(errorMessage);
     toast.error(errorMessage, {
       style: {
         background: isDark ? "#1f2937" : "#ffffff",
@@ -139,11 +146,19 @@ const handleSubmit = async (e) => {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !application) return null;
+
+  const isGold = accent === 'gold';
+  const accentText = isGold ? (isDark ? 'text-gold-400' : 'text-gold-700') : (isDark ? 'text-emerald-400' : 'text-emerald-600');
+  const focusRing = isGold ? 'focus:ring-gold-500' : 'focus:ring-emerald-500';
+  const submitColor = isGold ? 'bg-gold-600 hover:bg-gold-700' : 'bg-emerald-600 hover:bg-emerald-700';
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4"
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="status-update-title"
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[80] p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget && !loading) {
           handleClose();
@@ -159,20 +174,27 @@ const handleSubmit = async (e) => {
         <div className={`p-6 border-b ${
           isDark ? "border-gray-700" : "border-gray-200"
         }`}>
-          <h2 className={`text-xl font-bold ${
-            isDark ? "text-emerald-400" : "text-emerald-600"
-          }`}>
+          <h2 id="status-update-title" className={`text-xl font-bold ${accentText}`}>
             Status Update
           </h2>
           <p className={`mt-1 text-sm ${
             isDark ? "text-gray-300" : "text-gray-600"
           }`}>
-            {application?.name} ({application?.crnNo})
+            {application.name || 'Customer'} ({application.applicationNo || application.crnNo || application.loanNo || application.id})
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6">
-          <div className="space-y-4">
+          {showCurrentStatus && (
+            <div className="mb-5 flex items-center gap-2 text-sm font-medium">
+              <span>Current status:</span>
+              <StatusBadge status={application.status || 'PENDING'} />
+            </div>
+          )}
+          {readOnlyMessage ? <>
+            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{readOnlyMessage}</p>
+            <button type="button" onClick={handleClose} className={`mt-6 w-full px-4 py-2 rounded-lg border cursor-pointer ${isDark ? 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}`}>Close</button>
+          </> : <><div className="space-y-4">
             {/* Status Selection */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${
@@ -182,9 +204,9 @@ const handleSubmit = async (e) => {
               </label>
               <select
                 value={selectedStatus}
-                onChange={(e) => !loading && setSelectedStatus(e.target.value)}
+                onChange={(e) => { setSelectedStatus(e.target.value); setError(''); }}
                 disabled={loading}
-                className={`w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                className={`w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 ${focusRing} ${
                   loading ? 'opacity-50 cursor-not-allowed' : ''
                 } ${
                   isDark 
@@ -195,11 +217,14 @@ const handleSubmit = async (e) => {
               >
                 <option value="">Select Status</option>
                 {statusOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
+                  <option key={option.value} value={option.value} disabled={option.disabled}>
                     {option.label}
                   </option>
                 ))}
               </select>
+              {statusOptions.filter((option) => option.disabled && option.disabledReason).map((option) => (
+                <p key={option.value} className="mt-2 text-sm text-amber-600">{option.disabledReason}</p>
+              ))}
             </div>
 
             {/* Remark */}
@@ -207,15 +232,16 @@ const handleSubmit = async (e) => {
               <label className={`block text-sm font-medium mb-2 ${
                 isDark ? "text-gray-300" : "text-gray-700"
               }`}>
-                Remark
+                Remark {requiredRemarkStatuses.includes(selectedStatus) && '*'}
               </label>
               <textarea
                 value={remark}
-                onChange={(e) => !loading && setRemark(e.target.value)}
+                onChange={(e) => { setRemark(e.target.value); setError(''); }}
                 disabled={loading}
+                required={requiredRemarkStatuses.includes(selectedStatus)}
                 rows={3}
                 placeholder="Add any remarks or notes..."
-                className={`w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                className={`w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 ${focusRing} ${
                   loading ? 'opacity-50 cursor-not-allowed' : ''
                 } ${
                   isDark 
@@ -225,6 +251,7 @@ const handleSubmit = async (e) => {
               />
             </div>
           </div>
+          {error && <p role="alert" className="mt-3 text-sm text-red-500">{error}</p>}
 
           {/* Actions */}
           <div className="flex space-x-3 mt-6">
@@ -232,7 +259,7 @@ const handleSubmit = async (e) => {
               type="button"
               onClick={handleClose}
               disabled={loading}
-              className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+              className={`flex-1 cursor-pointer px-4 py-2 rounded-lg border transition-colors ${
                 loading ? 'opacity-50 cursor-not-allowed' : ''
               } ${
                 isDark
@@ -244,16 +271,16 @@ const handleSubmit = async (e) => {
             </button>
             <button
               type="submit"
-              disabled={loading}
-              className={`flex-1 px-4 py-2 rounded-lg text-white transition-colors ${
+              disabled={loading || !selectedStatus || (preventSameStatus && selectedStatus === application.status) || statusOptions.find((option) => option.value === selectedStatus)?.disabled}
+              className={`flex-1 cursor-pointer px-4 py-2 rounded-lg text-white transition-colors disabled:cursor-not-allowed ${
                 loading
-                  ? "bg-emerald-400 cursor-not-allowed"
-                  : "bg-emerald-600 hover:bg-emerald-700"
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : submitColor
               }`}
             >
-              {loading ? "Updating..." : "Update Status"}
+              {loading ? 'Updating...' : submitLabel}
             </button>
-          </div>
+          </div></>}
         </form>
       </div>
     </div>

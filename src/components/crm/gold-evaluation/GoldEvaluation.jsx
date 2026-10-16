@@ -1,149 +1,76 @@
 'use client';
-import React, { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { useThemeStore } from '@/lib/store/useThemeStore';
-import { useLoanStore } from '@/lib/store/loanStore';
-import PageHeader from '@/components/crm/ui/PageHeader';
-import SearchBar from '@/components/crm/ui/SearchBar';
-import DataTable from '@/components/crm/ui/DataTable';
-import StatusBadge from '@/components/crm/ui/StatusBadge';
-import ExportButton from '@/components/crm/ui/ExportButton';
-import GoldEvaluationTableRow from '@/components/crm/gold-evaluation/GoldEvaluationTableRow';
+
+import { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useThemeStore } from '@/lib/store/useThemeStore';
+import { changeEvaluationApplicationStatus, getEvaluation, getGoldEvaluationApplications } from '@/lib/services/goldEvaluationService';
+import useApplicationList from '@/components/crm/application-list/useApplicationList';
+import useStaffBranch from '@/components/crm/application-list/useStaffBranch';
+import ApplicationListFilters from '@/components/crm/application-list/ApplicationListFilters';
+import GoldEvaluationTable from '@/components/crm/gold-evaluation/GoldEvaluationTable';
+import StatusUpdateModal from '@/components/crm/application-modals/StatusUpdateModal';
+import PageHeader from '@/components/crm/ui/PageHeader';
 
-export default function GoldEvaluationListPage() {
-  const { theme } = useThemeStore();
-  const isDark = theme === 'dark';
-  const router = useRouter();
-  const { applications } = useLoanStore();
+export default function GoldEvaluationPage() {
+  const isDark = useThemeStore((state) => state.theme) === 'dark';
+  const list = useApplicationList(getGoldEvaluationApplications);
+  const branch = useStaffBranch();
+  const [statusApplication, setStatusApplication] = useState(null);
+  const [checkingStatus, setCheckingStatus] = useState(false);
+  const [refreshIconKey, setRefreshIconKey] = useState(0);
 
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [searchFilters, setSearchFilters] = useState({ field: '', term: '' });
-
-  const searchOptions = [
-    { value: 'id', label: 'App ID' },
-    { value: 'name', label: 'Name' },
-    { value: 'mobile', label: 'Mobile' },
-    { value: 'email', label: 'Email' },
-  ];
-
-  const eligibleApps = useMemo(() => {
-    return applications.filter(app => app.status === 'KYC_VERIFIED');
-  }, [applications]);
-
-  const filteredData = useMemo(() => {
-    let data = [...eligibleApps];
-    if (searchFilters.term && searchFilters.field) {
-      data = data.filter(app => {
-        const value = app[searchFilters.field] || app.customer?.[searchFilters.field] || '';
-        return String(value).toLowerCase().includes(searchFilters.term.toLowerCase());
-      });
+  const openStatus = async (application) => {
+    setCheckingStatus(true);
+    try {
+      const result = await getEvaluation(application.id);
+      const current = result.application;
+      if (current.status !== 'GOLD_EVALUATION') {
+        list.refresh();
+        toast.error('Application has left the evaluation queue.');
+        return;
+      }
+      setStatusApplication({ ...application, ...current, evaluationStatus: result.evaluation?.status || null });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not check the current evaluation status.');
+    } finally {
+      setCheckingStatus(false);
     }
-    return data;
-  }, [eligibleApps, searchFilters]);
-
-  const totalItems = filteredData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
-
-  const handleRefresh = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      toast.success('List refreshed');
-    }, 500);
   };
 
-  const handleExport = async () => {
-    toast.success('Export started');
+  const changeStatus = async (id, status, remark) => {
+    await changeEvaluationApplicationStatus(id, status, remark);
+    toast.success('Application moved to the selected queue');
+    list.refresh();
   };
 
-  const handleEvaluate = (appId) => {
-    router.push(`/crm/gold-evaluation/${appId}`);
-  };
-
-  const columns = [
-    { key: 'srNo', label: 'SR No', width: '70px' },
-    { key: 'id', label: 'App ID', width: '110px' },
-    { key: 'name', label: 'Name', width: '160px' },
-    { key: 'mobile', label: 'Mobile', width: '120px' },
-    { key: 'email', label: 'Email', width: '180px' },
-    { key: 'kycDate', label: 'KYC Date', width: '130px' },
-    { key: 'status', label: 'Status', width: '110px' },
-    { key: 'actions', label: 'Actions', width: '120px' },
-  ];
-
-  return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-gray-900' : 'bg-gold-50/30'}`}>
-      <div className="p-4 md:p-6">
-        <PageHeader
-          title="Gold Evaluation"
-          count={totalItems}
-          isDark={isDark}
-          actions={
-            <div className="flex gap-2">
-              <button
-                onClick={handleRefresh}
-                disabled={loading}
-                className={`px-4 py-2 rounded font-medium transition-all duration-200 flex items-center gap-2 cursor-pointer ${
-                  isDark
-                    ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                    : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                }`}
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </button>
-              <ExportButton
-                data={filteredData}
-                filename="gold-evaluation-applications"
-                headers={['App ID', 'Name', 'Mobile', 'Email', 'Status']}
-                isDark={isDark}
-                disabled={filteredData.length === 0}
-                onExport={handleExport}
-              />
-            </div>
-          }
-        />
-
-       <div className='grid grid-cols-1 md:grid-cols-2'>
-        <SearchBar
-          searchOptions={searchOptions}
-          onSearch={setSearchFilters}
-          placeholder="Search applications..."
-          buttonText="Search"
-          isDark={isDark}
-        />
-        </div>
-
-        <DataTable
-          columns={columns}
-          data={paginatedData}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={setItemsPerPage}
-          itemsPerPage={itemsPerPage}
-          pageSizeOptions={[10, 20, 50, 100]}
-          totalItems={totalItems}
-          isDark={isDark}
-          emptyMessage="No applications ready for gold evaluation"
-          renderRow={(app, index) => (
-            <GoldEvaluationTableRow
-              key={app.id}
-              application={app}
-              index={index}
-              isDark={isDark}
-              startIndex={startIndex}
-              onEvaluate={handleEvaluate}
-            />
-          )}
-        />
-      </div>
+  return <div className={`min-h-screen w-full min-w-0 max-w-full overflow-x-hidden transition-colors duration-300 ${isDark ? 'bg-gray-900 text-white' : 'bg-gold-50/30 text-gray-900'}`}>
+    <div className="w-full min-w-0 max-w-full p-3 sm:p-4 md:p-6">
+    <PageHeader title="Gold Evaluation" count={list.pagination.total} isDark={isDark} actions={
+      <button type="button" onClick={() => { setRefreshIconKey((key) => key + 1); list.refresh(); }} disabled={list.loading} aria-label="Refresh gold evaluation applications"
+        className={`inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded border px-4 py-2 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${isDark ? 'border-gold-600 text-gold-300 hover:bg-gold-500/10' : 'border-gold-300 bg-white text-gold-700 hover:bg-gold-50'}`}>
+        <RefreshCw key={refreshIconKey} className={`h-4 w-4 shrink-0 ${refreshIconKey > 0 ? 'animate-[spin_600ms_ease-in-out_1]' : ''}`} />Refresh
+      </button>
+    } />
+    <ApplicationListFilters list={list} isDark={isDark} branchName={branch} matchPendingStyle
+      searchOptions={[
+        { value: 'application_no', label: 'Application No.' },
+        { value: 'name', label: 'Name' },
+        { value: 'mobile', label: 'Mobile' },
+        { value: 'email', label: 'Email' },
+        { value: 'all', label: 'All fields' },
+      ]} />
+    {list.error && <p role="alert" className="mb-4 text-red-600">{list.error}</p>}
+    {checkingStatus && <p role="status" className={`mb-3 text-sm ${isDark ? 'text-gold-300' : 'text-gold-700'}`}>Checking evaluation status...</p>}
+    <GoldEvaluationTable list={list} isDark={isDark} onStatusClick={openStatus} />
+    <StatusUpdateModal isOpen={Boolean(statusApplication)} application={statusApplication}
+      onClose={() => setStatusApplication(null)} onStatusUpdate={changeStatus}
+      statusOptions={[
+        { value: 'REJECTED', label: 'Reject' },
+        { value: 'LOAN_OFFER', label: 'Loan Offer', disabled: statusApplication?.evaluationStatus !== 'FINALIZED' || !statusApplication?.kycVerified, disabledReason: statusApplication?.evaluationStatus !== 'FINALIZED' ? 'Finalize gold evaluation first.' : 'Verify KYC before moving to Loan Offer.' },
+      ]}
+      isDark={isDark} accent="gold" initialStatus="" requiredRemarkStatuses={['REJECTED', 'LOAN_OFFER']}
+      showCurrentStatus showSuccessToast={false} preventSameStatus submitLabel="Confirm Status Change" />
     </div>
-  );
+  </div>;
 }

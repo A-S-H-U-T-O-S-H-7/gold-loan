@@ -52,7 +52,7 @@ export default function Pagination({
           <select
             value={itemsPerPage}
             onChange={(e) => onPageSizeChange(parseInt(e.target.value))}
-            className={`px-2 py-1.5 rounded text-sm border focus:outline-none focus:ring-2 focus:ring-gold-500 ${
+            className={`cursor-pointer px-2 py-1.5 rounded text-sm border focus:outline-none focus:ring-2 focus:ring-gold-500 ${
               isDark 
                 ? 'bg-gray-700 text-gray-200 border-gold-600/50' 
                 : 'bg-white text-gray-700 border-gold-300'
@@ -73,11 +73,11 @@ export default function Pagination({
         </div>
       </div>
 
-      <div className="flex items-center space-x-1">
+      <div className="flex max-w-full flex-wrap items-center justify-center gap-1">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1 || totalItems === 0}
-          className={`p-2 rounded transition-colors ${
+          className={`p-2 rounded cursor-pointer transition-colors ${
             currentPage === 1 || totalItems === 0
               ? 'opacity-50 cursor-not-allowed'
               : isDark
@@ -93,7 +93,7 @@ export default function Pagination({
             key={index}
             onClick={() => typeof page === 'number' && onPageChange(page)}
             disabled={page === '...'}
-            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${page === '...' ? 'cursor-default' : 'cursor-pointer'} ${
               page === currentPage
                 ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-md'
                 : page === '...'
@@ -110,7 +110,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages || totalItems === 0}
-          className={`p-2 rounded transition-colors ${
+          className={`p-2 rounded cursor-pointer transition-colors ${
             currentPage === totalPages || totalItems === 0
               ? 'opacity-50 cursor-not-allowed'
               : isDark

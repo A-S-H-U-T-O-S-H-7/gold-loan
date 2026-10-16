@@ -11,8 +11,10 @@ import Footer from '@/components/crm/Footer';
 
 export default function CRMLayout({ children }) {
   const { theme } = useThemeStore();
-  const { isAuthenticated, loading } = useAdminAuthStore();
+  const { isAuthenticated, loading, restoreSession } = useAdminAuthStore();
   const router = useRouter();
+
+  useEffect(() => { restoreSession(); }, [restoreSession]);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {

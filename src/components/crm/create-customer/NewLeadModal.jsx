@@ -3,19 +3,23 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function NewLeadModal({ isOpen, onClose, onSave, isDark = false }) {
+export default function NewLeadModal({ isOpen, onClose, onSave, branches = [], defaultBranchId, isDark = false }) {
+  const [isSaving, setIsSaving] = useState(false);
   const [lead, setLead] = useState({
     name: '',
     mobile: '',
+    branch_id: '',
+    requested_amount: '',
     email: '',
     purpose: ''
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!lead.name || !lead.mobile) {
-      toast.error('Name and Mobile are required');
+    const selectedBranchId = lead.branch_id || String(defaultBranchId || (branches.length === 1 ? branches[0].id : ''));
+    if (!lead.name.trim() || !lead.mobile || !selectedBranchId) {
+      toast.error('Name, Mobile and Branch are required');
       return;
     }
     
@@ -24,9 +28,16 @@ export default function NewLeadModal({ isOpen, onClose, onSave, isDark = false }
       return;
     }
     
-    onSave(lead);
-    setLead({ name: '', mobile: '', email: '', purpose: '' });
-    onClose();
+    try {
+      setIsSaving(true);
+      await onSave({ ...lead, name: lead.name.trim(), branch_id: selectedBranchId });
+      setLead({ name: '', mobile: '', branch_id: '', requested_amount: '', email: '', purpose: '' });
+      onClose();
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || 'Could not save lead');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -47,7 +58,7 @@ export default function NewLeadModal({ isOpen, onClose, onSave, isDark = false }
           isDark ? 'border-gold-700/30 bg-gray-800' : 'border-gold-200 bg-white'
         }`}>
           <h3 className={`text-lg font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
-            New Lead
+            Create Application
           </h3>
           <button
             type="button"
@@ -101,6 +112,37 @@ export default function NewLeadModal({ isOpen, onClose, onSave, isDark = false }
           </div>
 
           <div>
+            <label htmlFor="new-application-branch" className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Branch <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="new-application-branch"
+              value={lead.branch_id || String(defaultBranchId || (branches.length === 1 ? branches[0].id : ''))}
+              onChange={(e) => setLead({ ...lead, branch_id: e.target.value })}
+              disabled={branches.length === 1}
+              required
+              className={`w-full px-4 py-2.5 rounded-lg border-2 ${isDark ? 'bg-gray-700 border-gold-600/50 text-white' : 'bg-white border-gold-300 text-gray-900'}`}
+            >
+              <option value="">Select branch</option>
+              {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="new-application-amount" className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Requested amount</label>
+            <input
+              id="new-application-amount"
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={lead.requested_amount}
+              onChange={(e) => setLead({ ...lead, requested_amount: e.target.value })}
+              className={`w-full px-4 py-2.5 rounded-lg border-2 ${isDark ? 'bg-gray-700 border-gold-600/50 text-white' : 'bg-white border-gold-300 text-gray-900'}`}
+              placeholder="Optional"
+            />
+          </div>
+
+          <div>
             <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               Email
             </label>
@@ -148,13 +190,14 @@ export default function NewLeadModal({ isOpen, onClose, onSave, isDark = false }
             </button>
             <button
               type="submit"
+              disabled={isSaving}
               className={`flex-1 px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 hover:scale-105 cursor-pointer text-white shadow-lg hover:shadow-xl ${
                 isDark
                   ? 'bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500'
                   : 'bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700'
               }`}
             >
-              Save Lead
+              {isSaving ? 'Saving...' : 'Create Application'}
             </button>
           </div>
         </form>

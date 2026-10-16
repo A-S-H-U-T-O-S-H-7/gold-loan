@@ -9,7 +9,8 @@ export default function ExportButton({
   headers,
   isDark = false,
   disabled = false,
-  onExport
+  onExport,
+  label = 'Export'
 }) {
   const [exporting, setExporting] = useState(false);
 
@@ -46,7 +47,7 @@ export default function ExportButton({
       }`}
     >
       <Download className={`w-4 h-4 ${exporting ? 'animate-bounce' : ''}`} />
-      <span>{exporting ? 'Exporting...' : 'Export'}</span>
+      <span>{exporting ? 'Exporting...' : label}</span>
     </button>
   );
 }

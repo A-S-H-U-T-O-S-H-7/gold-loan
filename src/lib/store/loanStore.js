@@ -65,6 +65,42 @@ export const useLoanStore = create(
         return application;
       },
 
+      importPendingApplication: (record) => {
+        const id = String(record.id ?? record.application_id ?? record.applicationId ?? '');
+        if (!id) return null;
+
+        const existing = get().applications.find((application) => application.id === id);
+        if (existing) return existing;
+
+        const dobParts = typeof record.dob === 'string' ? record.dob.slice(0, 10).split('-') : [];
+        const application = {
+          id,
+          status: record.status || 'PENDING',
+          source: record.source,
+          branchId: record.branchId ?? record.branch_id ?? null,
+          customer: {
+            name: record.name || '',
+            mobile: record.mobile || '',
+            email: record.email || '',
+            dob: dobParts.length === 3
+              ? { year: dobParts[0], month: dobParts[1], day: dobParts[2] }
+              : { day: '', month: '', year: '' },
+            currentAddress: {
+              state: record.state || '',
+              city: record.city || '',
+              pinCode: record.pin || '',
+            },
+          },
+          timeline: { createdAt: record.createdAt || record.created_at || now() },
+          followUp: { count: 0, lastCall: null, nextFollowUp: null, history: [] },
+          payments: [],
+          repaymentSchedule: [],
+        };
+
+        set((state) => ({ applications: [application, ...state.applications] }));
+        return application;
+      },
+
       updateApplication: (id, patch) => {
         set((state) => ({
           applications: state.applications.map((item) =>

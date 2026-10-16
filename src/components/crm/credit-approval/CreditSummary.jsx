@@ -10,31 +10,31 @@ export default function CreditSummary({ application, isDark = false }) {
     { label: 'Gold Value', value: formatCurrency(totals.goldValue || 0) },
     { label: 'Eligible Amount', value: formatCurrency(totals.eligibleAmount || 0) },
     { label: 'Offered Amount', value: formatCurrency(loan.offeredAmount || loan.amount || 0) },
-    { label: 'Interest Rate', value: `${loan.rate || 0}%` },
-    { label: 'Tenure', value: `${loan.tenure || 0} months` },
+    { label: 'Interest Rate', value: `${loan.rate || 0}% ${loan.ratePeriod?.toLowerCase() || ''}` },
+    { label: 'Tenure', value: `${loan.tenure || 0} ${loan.tenureUnit?.toLowerCase() || 'months'}` },
     { label: 'Repayment Type', value: loan.repaymentType || '—' },
   ];
 
   return (
-    <div className={`rounded-xl border-2 p-5 ${
-      isDark ? 'bg-gray-800/50 border-gold-700/30' : 'bg-white/50 border-gold-200'
+    <div className={`min-w-0 rounded-xl border-2 p-5 shadow-lg ${
+      isDark ? 'border-gold-700/50 bg-gray-800 shadow-gold-900/20' : 'border-gold-200 bg-white shadow-gold-500/10'
     }`}>
-      <h3 className={`text-sm font-semibold mb-4 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+      <h3 className={`mb-4 text-lg font-semibold ${isDark ? 'text-gold-400' : 'text-gold-600'}`}>
         Loan Summary
       </h3>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2">
         {items.map((item, index) => (
           <div
             key={index}
-            className={`p-3 rounded-lg ${
-              isDark ? 'bg-gray-700/50' : 'bg-gold-50/50'
+            className={`min-w-0 rounded-lg border p-3 ${
+              isDark ? 'border-gold-700/40 bg-gray-900/30' : 'border-gold-200 bg-gold-50/40'
             }`}
           >
-            <p className={`text-[10px] uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
               {item.label}
             </p>
-            <p className={`text-sm font-semibold mt-1 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+            <p className={`mt-1 break-words text-sm font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
               {item.value}
             </p>
           </div>

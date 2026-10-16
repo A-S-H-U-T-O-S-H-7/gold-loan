@@ -1,135 +1,63 @@
 'use client';
-import CallButton from '../ui/CallButton';
-import KYCVerificationButton from '../action-buttons/KYCVerificationButton';
-import StatusBadge from '@/components/crm/ui/StatusBadge';
 
-export default function FollowUpTableRow({
-  application,
-  index,
-  isDark = false,
-  startIndex = 0
-}) {
-  const srNo = startIndex + index + 1;
-  const name = application.customer?.name || application.name || '—';
-  const mobile = application.customer?.mobile || application.mobile || '—';
-  const purpose = application.customer?.purpose || application.purpose || '—';
-  const status = application.status || 'FOLLOW_UP';
-  const daysPending = application.daysPending || 0;
+import CallButton from '@/components/crm/ui/CallButton';
+import KYCVerificationButton from '@/components/crm/action-buttons/KYCVerificationButton';
+import ApplicationStatusButton from '@/components/crm/application-status/ApplicationStatusButton';
+import KycVerificationBadge from '@/components/crm/ui/KycVerificationBadge';
 
-  // Cell styles
-  const cellBase = "px-3 py-3 text-center border-r last:border-r-0";
-  const cellBorder = isDark ? "border-gold-600/80" : "border-gold-300/90";
-  const cellStyle = `${cellBase} ${cellBorder}`;
+const missing = '\u2014';
+const amountText = (value) => value == null ? missing : `\u20B9${Number(value).toLocaleString('en-IN')}`;
 
-  const textPrimary = isDark ? "text-gray-100" : "text-gray-900";
-  const textSecondary = isDark ? "text-gray-400" : "text-gray-600";
-
-  // Priority badge based on days pending
-  const getPriorityBadge = () => {
-    if (daysPending > 5) {
-      return {
-        label: 'Urgent',
-        className: isDark 
-          ? 'bg-red-900/40 text-red-300 border border-red-700'
-          : 'bg-red-100 text-red-700 border border-red-300'
-      };
-    } else if (daysPending > 2) {
-      return {
-        label: 'Normal',
-        className: isDark 
-          ? 'bg-yellow-900/40 text-yellow-300 border border-yellow-700'
-          : 'bg-yellow-100 text-yellow-700 border border-yellow-300'
-      };
-    } else {
-      return {
-        label: 'New',
-        className: isDark 
-          ? 'bg-green-900/40 text-green-300 border border-green-700'
-          : 'bg-green-100 text-green-700 border border-green-300'
-      };
-    }
-  };
-
-  const priority = getPriorityBadge();
+export default function FollowUpTableRow({ application, index, isDark, onStatusClick }) {
+  const cellStyle = `px-3 py-3 text-center border-r last:border-r-0 ${
+    isDark ? 'border-gold-600/80' : 'border-gold-300/90'
+  }`;
+  const primaryText = isDark ? 'text-gray-100' : 'text-gray-900';
+  const secondaryText = isDark ? 'text-gray-400' : 'text-gray-600';
+  const rowStyle = index % 2 === 0
+    ? isDark ? 'bg-gray-800/50' : 'bg-white'
+    : isDark ? 'bg-gray-800/30' : 'bg-gold-50/30';
 
   return (
-    <tr
-      className={`border-b transition-all duration-200 hover:shadow-md ${
-        isDark
-          ? "border-gold-700/30 hover:bg-gray-700/50"
-          : "border-gold-100 hover:bg-gold-50/50"
-      } ${
-        index % 2 === 0
-          ? isDark
-            ? "bg-gray-800/50"
-            : "bg-white"
-          : isDark
-            ? "bg-gray-800/30"
-            : "bg-gold-50/30"
-      }`}
-    >
-      {/* SR No */}
+    <tr className={`border-b transition-colors ${rowStyle} ${
+      isDark ? 'border-gold-700/30 hover:bg-gray-700/50' : 'border-gold-100 hover:bg-gold-50/50'
+    }`}>
       <td className={cellStyle}>
-        <span className={`font-medium ${textPrimary}`}>
-          {srNo}
+        <span className="font-mono text-sm font-semibold text-gold-600 dark:text-gold-400">
+          {application.applicationNo || missing}
         </span>
       </td>
-
-      {/* Call */}
       <td className={cellStyle}>
-        <CallButton mobile={mobile} isDark={isDark} />
+        <span className={`text-sm ${secondaryText}`}>{application.source || missing}</span>
       </td>
-
-      {/* App ID */}
       <td className={cellStyle}>
-        <span className={`font-mono text-sm font-medium text-gold-600 dark:text-gold-400`}>
-          {application.id || '—'}
-        </span>
+        <CallButton mobile={application.mobile} isDark={isDark} />
       </td>
-
-      {/* CRN No */}
       <td className={cellStyle}>
-        <span className={`font-mono text-sm ${textSecondary}`}>
-          {application.crnNo || '—'}
-        </span>
+        <span className={`text-sm ${secondaryText}`}>{application.branchName || 'Unassigned'}</span>
       </td>
-
-      {/* Name */}
       <td className={cellStyle}>
-        <span className={`font-medium text-sm ${textPrimary}`}>
-          {name}
-        </span>
+        <span className={`text-sm font-medium ${primaryText}`}>{application.name || missing}</span>
       </td>
-
-      {/* Mobile */}
       <td className={cellStyle}>
-        <span className={`font-mono text-sm ${textSecondary}`}>
-          {mobile}
-        </span>
+        <span className={`font-mono text-sm ${secondaryText}`}>{application.mobile || missing}</span>
       </td>
-
-      {/* Days Pending */}
       <td className={cellStyle}>
-        <span className={`text-sm ${textSecondary}`}>
-          {daysPending} days
-        </span>
+        <span className={`text-sm ${secondaryText}`}>{application.currentAddress || missing}</span>
       </td>
-
-
-      {/* Purpose */}
       <td className={cellStyle}>
-        <span className={`text-sm ${textSecondary}`}>
-          {purpose}
-        </span>
+        <span className={`whitespace-nowrap text-sm ${secondaryText}`}>{amountText(application.requestedAmount)}</span>
       </td>
-
-      {/* Status */}
       <td className={cellStyle}>
-        <StatusBadge status={status} />
+        <span className={`text-sm ${secondaryText}`}>{application.followUpRemark || missing}</span>
       </td>
-
-      {/* Actions - Only KYC Verification Button (No Reject) */}
-      <td className={`px-3 py-3 text-center border-r last:border-r-0 ${cellBorder}`}>
+      <td className={cellStyle}>
+        <KycVerificationBadge verified={application.kycVerified} />
+      </td>
+      <td className={cellStyle}>
+        <ApplicationStatusButton application={application} onClick={onStatusClick} />
+      </td>
+      <td className={cellStyle}>
         <KYCVerificationButton applicationId={application.id} isDark={isDark} />
       </td>
     </tr>

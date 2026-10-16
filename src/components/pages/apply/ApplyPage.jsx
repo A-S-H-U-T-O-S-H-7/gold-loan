@@ -20,7 +20,7 @@ export default function ApplyPage() {
         <div className="text-center mb-8 md:mb-12">
           <div className="inline-flex  items-center px-4 md:px-6 py-3 bg-linear-to-r from-gray-400 to-gray-600 text-white rounded-full font-semibold mb-6 shadow-lg">
             <Zap className="h-5 w-5 mr-2" />
-            <span>Get Pre-approved in 30 Seconds</span>
+            <span>Start your application online</span>
           </div>
           <h1 className="text-4xl md:text-5xl  font-bold text-gray-900 mb-4 md:mb-6">
             Apply online for{' '}
@@ -29,8 +29,8 @@ export default function ApplyPage() {
             </span>
           </h1>
           <p className="text-gray-600 text-md md:text-lg max-w-3xl mx-auto mb-8">
-            Start your application online, visit branch with gold, and get cash in 60 minutes.
-            No commitment until you accept the final offer.
+            Share your contact details and our team will contact you about the next steps.
+            No commitment until you accept a final offer.
           </p>
           
           
@@ -60,8 +60,8 @@ export default function ApplyPage() {
                     <CheckCircle className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 text-md md:text-lg mb-1">Pre-approval</h4>
-                    <p className="text-gray-600 text-sm">Know your eligibility instantly</p>
+                    <h4 className="font-bold text-gray-900 text-md md:text-lg mb-1">Quick enquiry</h4>
+                    <p className="text-gray-600 text-sm">Our team will review your details and contact you</p>
                   </div>
                 </div>
 

@@ -4,17 +4,47 @@ import { useState } from 'react';
 export default function DateFilter({
   onFilterChange,
   isDark = false,
+  dateFormat = 'native',
   buttonLabels = { apply: "Apply", clear: "Clear" }
 }) {
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
-  const currentDate = new Date().toISOString().split('T')[0];
+  const [dateError, setDateError] = useState('');
+  const today = new Date();
+  const currentDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  const parseDisplayDate = (value) => {
+    if (!value) return '';
+    const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+    if (!match) return null;
+    const [, day, month, year] = match;
+    const date = new Date(0);
+    date.setFullYear(Number(year), Number(month) - 1, Number(day));
+    if (date.getFullYear() !== Number(year) || date.getMonth() !== Number(month) - 1 || date.getDate() !== Number(day)) return null;
+    return `${year}-${month}-${day}`;
+  };
 
   const handleApply = () => {
-    onFilterChange({ dateRange });
+    if (dateFormat === 'native') {
+      onFilterChange({ dateRange });
+      return;
+    }
+    const start = parseDisplayDate(dateRange.start);
+    const end = parseDisplayDate(dateRange.end);
+    if (start === null || end === null) {
+      setDateError('Enter dates as dd/mm/yyyy.');
+      return;
+    }
+    if ((start && start > currentDate) || (end && end > currentDate) || (start && end && start > end)) {
+      setDateError('Choose a valid date range up to today.');
+      return;
+    }
+    setDateError('');
+    onFilterChange({ dateRange: { start, end } });
   };
 
   const handleClear = () => {
     setDateRange({ start: "", end: "" });
+    setDateError('');
     onFilterChange({ dateRange: { start: "", end: "" } });
   };
 
@@ -32,10 +62,14 @@ export default function DateFilter({
             From Date
           </label>
           <input
-            type="date"
+            type={dateFormat === 'native' ? 'date' : 'text'}
+            inputMode={dateFormat === 'native' ? undefined : 'numeric'}
+            placeholder={dateFormat === 'native' ? undefined : 'dd/mm/yyyy'}
+            maxLength={dateFormat === 'native' ? undefined : 10}
+            aria-label="From date"
             value={dateRange.start}
-            max={currentDate}
-            onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+            max={dateFormat === 'native' ? currentDate : undefined}
+            onChange={(e) => { setDateError(''); setDateRange(prev => ({ ...prev, start: e.target.value })); }}
             className={`w-full px-4 py-2.5 rounded-lg border-2 font-medium cursor-pointer ${
               isDark
                 ? 'bg-gray-700 border-gold-600/50 text-white hover:border-gold-500 focus:border-gold-400'
@@ -49,11 +83,15 @@ export default function DateFilter({
             To Date
           </label>
           <input
-            type="date"
+            type={dateFormat === 'native' ? 'date' : 'text'}
+            inputMode={dateFormat === 'native' ? undefined : 'numeric'}
+            placeholder={dateFormat === 'native' ? undefined : 'dd/mm/yyyy'}
+            maxLength={dateFormat === 'native' ? undefined : 10}
+            aria-label="To date"
             value={dateRange.end}
-            min={dateRange.start || undefined}
-            max={currentDate}
-            onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+            min={dateFormat === 'native' ? dateRange.start || undefined : undefined}
+            max={dateFormat === 'native' ? currentDate : undefined}
+            onChange={(e) => { setDateError(''); setDateRange(prev => ({ ...prev, end: e.target.value })); }}
             className={`w-full px-4 py-2.5 rounded-lg border-2 font-medium cursor-pointer ${
               isDark
                 ? 'bg-gray-700 border-gold-600/50 text-white hover:border-gold-500 focus:border-gold-400'
@@ -87,6 +125,7 @@ export default function DateFilter({
           </button>
         </div>
       </div>
+      {dateError && <p role="alert" className="mt-2 text-sm text-red-500">{dateError}</p>}
     </div>
   );
 }

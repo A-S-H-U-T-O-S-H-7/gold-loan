@@ -6,7 +6,7 @@ This document describes how the **frontend product should work** from the moment
 
 ## Important current-state note
 
-The CRM screens already show the workflow below, but several of them currently use a local Zustand mock store (`src/lib/store/loanStore.js`). The public **Apply** form also uses a demo OTP (`123456`) and does not create a lead yet. A production backend must become the source of truth for all application, loan, payment, and audit data.
+The public **Apply** form saves an application through `POST /api/public/applications`. The CRM **Create Customer** page lists pending applications through `GET /api/crm/applications` and creates them through `POST /api/crm/applications`. Both creation routes save to the same MySQL table. KYC, Follow-up, Rejected, Gold Evaluation, Loan Offer, and the Credit Approval queue now read this backend application flow. Loan Offer terms and decisions are saved as versioned records. The demo OTP has been removed; real phone verification is still future work. Credit review, disbursement, and servicing need separate backend integration.
 
 ## People in the system
 
@@ -185,8 +185,8 @@ The frontend already contains client calls for parts of this contract in `src/li
 
 ## Frontend integration order
 
-1. Replace demo OTP and lead submission on the public Apply page.
-2. Replace CRM mock-store lead/KYC flow with real application APIs.
+1. Add real server-side OTP verification or CAPTCHA to the public Apply flow before launching it broadly. The direct application submission is already connected.
+2. Connect the CRM KYC flow to the saved applications. The Create Customer pending queue and CRM creation are already connected.
 3. Integrate gold evaluation and offer/credit decisions.
 4. Integrate disbursement, transactions, and payment posting with idempotency.
 5. Integrate dashboard, reporting, vault, audit, and permission-driven visibility.

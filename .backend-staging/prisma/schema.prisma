@@ -1,0 +1,241 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         String   @default("user") @db.VarChar(30)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  @@map("users")
+}
+
+model Branch {
+  id        BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  name      String   @db.VarChar(100)
+  address   String?  @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+  admins    Admin[]
+  applications Application[]
+
+  @@map("branches")
+}
+
+model Admin {
+  id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  branchId     BigInt   @map("branch_id") @db.UnsignedBigInt
+  name         String   @db.VarChar(100)
+  username     String   @db.VarChar(100)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         String   @default("admin") @db.VarChar(30)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  branch       Branch   @relation(fields: [branchId], references: [id])
+  applications Application[]
+  verifiedKycs ApplicationKyc[] @relation("KycVerifier")
+  statusChanges ApplicationStatusHistory[]
+  appraisedEvaluations GoldEvaluation[] @relation("EvaluationAppraiser")
+  sessions     AdminSession[]
+
+  @@unique([branchId, username], map: "unique_admin_login")
+  @@map("admins")
+}
+
+model AdminSession {
+  id         String    @id @db.Char(36)
+  adminId    BigInt    @map("admin_id") @db.UnsignedBigInt
+  tokenHash  String    @map("token_hash") @db.Char(64)
+  expiresAt  DateTime  @map("expires_at") @db.Timestamp(0)
+  lastUsedAt DateTime  @default(now()) @map("last_used_at") @db.Timestamp(0)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamp(0)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  admin      Admin     @relation(fields: [adminId], references: [id])
+
+  @@index([adminId, expiresAt])
+  @@map("admin_sessions")
+}
+
+enum ApplicationStatus {
+  PENDING
+  FOLLOW_UP
+  REJECTED
+  GOLD_EVALUATION
+  LOAN_OFFER
+  LOAN_OFFER
+}
+
+enum ApplicationSource {
+  WEB
+  CRM
+}
+
+model Application {
+  id               BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  applicationNo    String            @unique @map("application_no") @db.VarChar(40)
+  name             String            @db.VarChar(100)
+  mobile           String            @db.VarChar(10)
+  email            String?           @db.VarChar(255)
+  dob              DateTime?         @db.Date
+  preferredBranch  String?           @map("preferred_branch") @db.VarChar(100)
+  state            String?           @db.VarChar(100)
+  city             String?           @db.VarChar(100)
+  pin              String?           @db.VarChar(6)
+  purpose          String?           @db.VarChar(255)
+  requestedAmount  Decimal?          @map("requested_amount") @db.Decimal(14, 2)
+  status           ApplicationStatus @default(PENDING) @map("application_status")
+  source           ApplicationSource
+  createdByAdminId BigInt?           @map("created_by_admin_id") @db.UnsignedBigInt
+  branchId         BigInt?           @map("branch_id") @db.UnsignedBigInt
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime          @updatedAt @map("updated_at") @db.Timestamp(0)
+  createdByAdmin   Admin?            @relation(fields: [createdByAdminId], references: [id])
+  branch           Branch?           @relation(fields: [branchId], references: [id])
+  kyc              ApplicationKyc?
+  goldEvaluation   GoldEvaluation?
+  statusHistory    ApplicationStatusHistory[]
+  evaluation       GoldEvaluation?
+
+  @@index([status, createdAt])
+  @@index([branchId, status, createdAt])
+  @@index([mobile])
+  @@index([email])
+  @@map("applications")
+}
+
+model ApplicationStatusHistory {
+  id               BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  applicationId    BigInt            @map("application_id") @db.UnsignedBigInt
+  fromStatus       ApplicationStatus @map("from_status")
+  toStatus         ApplicationStatus @map("to_status")
+  remark           String?           @db.VarChar(1000)
+  changedByAdminId BigInt            @map("changed_by_admin_id") @db.UnsignedBigInt
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  application      Application       @relation(fields: [applicationId], references: [id])
+  changedByAdmin   Admin              @relation(fields: [changedByAdminId], references: [id])
+
+  @@index([applicationId, createdAt])
+  @@map("application_status_history")
+}
+
+model ApplicationKyc {
+  id                BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  applicationId     BigInt        @unique @map("application_id") @db.UnsignedBigInt
+  details           Json?
+  isVerified        Int           @default(0) @map("is_verified") @db.TinyInt
+  verifiedByAdminId BigInt?       @map("verified_by_admin_id") @db.UnsignedBigInt
+  verifiedAt        DateTime?     @map("verified_at") @db.Timestamp(0)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamp(0)
+  application       Application   @relation(fields: [applicationId], references: [id])
+  verifiedByAdmin   Admin?         @relation("KycVerifier", fields: [verifiedByAdminId], references: [id])
+  documents         KycDocument[]
+
+  @@map("application_kyc")
+}
+
+model GoldRateConfig {
+  id            Int      @id @default(1)
+  rates         Json
+  ltvPercentage Decimal  @map("ltv_percentage") @db.Decimal(5, 2)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("gold_rate_config")
+}
+
+model GoldEvaluation {
+  id               BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  applicationId    BigInt      @unique @map("application_id") @db.UnsignedBigInt
+  items            Json
+  remarks          String?     @db.Text
+  rateSnapshot     Json?       @map("rate_snapshot")
+  ltvPercentage    Decimal?    @map("ltv_percentage") @db.Decimal(5, 2)
+  totalGrossWeight Decimal     @default(0) @map("total_gross_weight") @db.Decimal(12, 3)
+  totalStoneWeight Decimal     @default(0) @map("total_stone_weight") @db.Decimal(12, 3)
+  totalNetWeight   Decimal     @default(0) @map("total_net_weight") @db.Decimal(12, 3)
+  goldValue        Decimal?    @map("gold_value") @db.Decimal(14, 2)
+  eligibleAmount   Decimal?    @map("eligible_amount") @db.Decimal(14, 2)
+  evaluated        Int         @default(0) @db.TinyInt
+  evaluatedAt      DateTime?   @map("evaluated_at") @db.Timestamp(0)
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime    @updatedAt @map("updated_at") @db.Timestamp(0)
+  application      Application @relation(fields: [applicationId], references: [id])
+
+  @@map("gold_evaluations")
+}
+
+model KycDocument {
+  id                BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  kycId             BigInt         @map("kyc_id") @db.UnsignedBigInt
+  documentType      String         @map("document_type") @db.VarChar(50)
+  fileKey           String         @map("file_key") @db.VarChar(500)
+  isVerified        Int            @default(0) @map("is_verified") @db.TinyInt
+  verificationNote  String?        @map("verification_note") @db.VarChar(500)
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
+  kyc               ApplicationKyc @relation(fields: [kycId], references: [id])
+
+  @@index([kycId])
+  @@map("kyc_documents")
+}
+
+model GoldEvaluation {
+  id                BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  applicationId     BigInt   @unique @map("application_id") @db.UnsignedBigInt
+  status            String   @default("DRAFT") @db.VarChar(20)
+  goldRate          Decimal? @map("gold_rate") @db.Decimal(14, 2)
+  ltvPercentage     Decimal? @map("ltv_percentage") @db.Decimal(5, 2)
+  totalGrossWeight  Decimal  @default(0) @map("total_gross_weight") @db.Decimal(14, 3)
+  totalDeductionWeight Decimal @default(0) @map("total_deduction_weight") @db.Decimal(14, 3)
+  totalNetWeight    Decimal  @default(0) @map("total_net_weight") @db.Decimal(14, 3)
+  totalValuation    Decimal  @default(0) @map("total_valuation") @db.Decimal(16, 2)
+  eligibleAmount    Decimal  @default(0) @map("eligible_amount") @db.Decimal(16, 2)
+  remarks           String?  @db.VarChar(1000)
+  appraiserId       BigInt?  @map("appraiser_id") @db.UnsignedBigInt
+  finalizedAt       DateTime? @map("finalized_at") @db.Timestamp(0)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+  application       Application @relation(fields: [applicationId], references: [id])
+  appraiser         Admin? @relation("EvaluationAppraiser", fields: [appraiserId], references: [id])
+  items             GoldItem[]
+
+  @@map("gold_evaluations")
+}
+
+model GoldItem {
+  id              BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  evaluationId    BigInt @map("evaluation_id") @db.UnsignedBigInt
+  name            String @db.VarChar(100)
+  itemType        String @map("item_type") @db.VarChar(50)
+  quantity        Int @default(1)
+  purity          String @db.VarChar(20)
+  grossWeight     Decimal @map("gross_weight") @db.Decimal(14, 3)
+  deductionWeight Decimal @map("deduction_weight") @db.Decimal(14, 3)
+  netWeight       Decimal @map("net_weight") @db.Decimal(14, 3)
+  rateUsed        Decimal @map("rate_used") @db.Decimal(14, 2)
+  valuation       Decimal @db.Decimal(16, 2)
+  description     String? @db.VarChar(500)
+  evaluation      GoldEvaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  images          GoldItemImage[]
+
+  @@index([evaluationId])
+  @@map("gold_items")
+}
+
+model GoldItemImage {
+  id          BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  goldItemId  BigInt @map("gold_item_id") @db.UnsignedBigInt
+  fileKey     String @map("file_key") @db.VarChar(500)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  item        GoldItem @relation(fields: [goldItemId], references: [id], onDelete: Cascade)
+
+  @@index([goldItemId])
+  @@map("gold_item_images")
+}

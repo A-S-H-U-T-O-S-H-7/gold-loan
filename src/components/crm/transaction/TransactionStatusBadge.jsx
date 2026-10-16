@@ -2,6 +2,10 @@
 
 export default function TransactionStatusBadge({ status }) {
   const statusMap = {
+    'NOT_STARTED': { label: 'Not Started', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-300' },
+    'PENDING': { label: 'Pending', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-300' },
+    'UNKNOWN': { label: 'Unknown', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-300' },
+    'SUCCESS': { label: 'Success', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-300' },
     'READY_FOR_TRANSFER': { 
       label: 'Pending', 
       bg: 'bg-amber-50', 

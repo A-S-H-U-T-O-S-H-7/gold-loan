@@ -21,7 +21,6 @@ const SanctionTable = ({
   onCourierPickedModalOpen,
   onOriginalDocumentsModalOpen,
   onDisburseEmandateModalOpen,
-  onChangeStatusClick,
   onRemarksClick,
   onRefundPDCClick,
   fileLoading,
@@ -89,7 +88,6 @@ const SanctionTable = ({
     { label: "ICICI Emandate Status", width: "180px" },
     
     { label: "Loan Status", width: "100px" },
-    { label: "Change Status", width: "170px" },
     { label: "Action", width: "140px" },
     
     { label: "Appraisal Report", width: "120px" },
@@ -137,7 +135,6 @@ const SanctionTable = ({
                   onCourierPickedModalOpen={onCourierPickedModalOpen}
                   onOriginalDocumentsModalOpen={onOriginalDocumentsModalOpen}
                   onDisburseEmandateModalOpen={onDisburseEmandateModalOpen}
-                  onChangeStatusClick={onChangeStatusClick}
                   onRemarksClick={onRemarksClick}
                   onRefundPDCClick={onRefundPDCClick}
                   onStatusClick={onStatusClick}

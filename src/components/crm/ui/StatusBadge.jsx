@@ -26,6 +26,36 @@ export default function StatusBadge({ status }) {
       text: 'text-emerald-700',
       border: 'border-emerald-300'
     },
+    'GOLD_EVALUATION': {
+      label: 'Evaluating',
+      bg: 'bg-purple-50',
+      text: 'text-purple-700',
+      border: 'border-purple-300'
+    },
+    'LOAN_OFFER': {
+      label: 'Loan Offer',
+      bg: 'bg-indigo-50',
+      text: 'text-indigo-700',
+      border: 'border-indigo-300'
+    },
+    'CREDIT_APPROVAL': {
+      label: 'Credit Approval',
+      bg: 'bg-blue-50',
+      text: 'text-blue-700',
+      border: 'border-blue-300'
+    },
+    'DISBURSE': {
+      label: 'Disburse',
+      bg: 'bg-teal-50',
+      text: 'text-teal-700',
+      border: 'border-teal-300'
+    },
+    'DISBURSED': {
+      label: 'Disbursed',
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-700',
+      border: 'border-emerald-300'
+    },
     'GOLD_EVALUATED': { 
       label: 'Gold Evaluated', 
       bg: 'bg-purple-50', 

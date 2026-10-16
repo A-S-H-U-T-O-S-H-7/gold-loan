@@ -8,13 +8,15 @@ import { useAdminAuthStore } from '@/lib/store/authAdminStore';
 
 export default function AdminLogin() {
   const { theme, toggleTheme } = useThemeStore();
-  const { isAuthenticated, loading, error, login } = useAdminAuthStore();
+  const { isAuthenticated, loading, error, login, restoreSession } = useAdminAuthStore();
   const router = useRouter();
   const [formData, setFormData] = useState({
     branch_id: '',
     username: '',
     password: ''
   });
+
+  useEffect(() => { restoreSession(); }, [restoreSession]);
 
   useEffect(() => {
     if (isAuthenticated) {
