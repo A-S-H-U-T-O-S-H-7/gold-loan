@@ -1,41 +1,26 @@
 'use client';
 
-export default function TransactionStatusBadge({ status }) {
-  const statusMap = {
-    'NOT_STARTED': { label: 'Not Started', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-300' },
-    'PENDING': { label: 'Pending', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-300' },
-    'UNKNOWN': { label: 'Unknown', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-300' },
-    'SUCCESS': { label: 'Success', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-300' },
-    'READY_FOR_TRANSFER': { 
-      label: 'Pending', 
-      bg: 'bg-amber-50', 
-      text: 'text-amber-700',
-      border: 'border-amber-300'
-    },
-    'TRANSFERRED': { 
-      label: 'Transferred', 
-      bg: 'bg-emerald-50', 
-      text: 'text-emerald-700',
-      border: 'border-emerald-300'
-    },
-    'FAILED': { 
-      label: 'Failed', 
-      bg: 'bg-red-50', 
-      text: 'text-red-700',
-      border: 'border-red-300'
-    },
-  };
+const tones = {
+  amber: { light: 'border-amber-300 bg-amber-50 text-amber-700', dark: 'border-amber-700 bg-amber-900/30 text-amber-300' },
+  emerald: { light: 'border-emerald-300 bg-emerald-50 text-emerald-700', dark: 'border-emerald-700 bg-emerald-900/30 text-emerald-300' },
+  red: { light: 'border-red-300 bg-red-50 text-red-700', dark: 'border-red-700 bg-red-900/30 text-red-300' },
+  gray: { light: 'border-gray-300 bg-gray-50 text-gray-700', dark: 'border-gray-600 bg-gray-700/50 text-gray-300' },
+};
 
-  const { label, bg, text, border } = statusMap[status] || { 
-    label: status || 'Unknown', 
-    bg: 'bg-gray-100', 
-    text: 'text-gray-700',
-    border: 'border-gray-300'
-  };
+const statusMap = {
+  NOT_STARTED: { label: 'Not Started', tone: 'amber' },
+  PENDING: { label: 'Pending', tone: 'amber' },
+  UNKNOWN: { label: 'Unknown', tone: 'amber' },
+  SUCCESS: { label: 'Success', tone: 'emerald' },
+  FAILED: { label: 'Failed', tone: 'red' },
+};
+
+export default function TransactionStatusBadge({ status, isDark = false }) {
+  const { label, tone } = statusMap[status] || { label: status || 'Unknown', tone: 'gray' };
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${bg} ${text} ${border}`}>
-      <span className="w-1.5 h-1.5 rounded-full mr-1.5 bg-current opacity-60"></span>
+    <span className={`inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-semibold ${tones[tone][isDark ? 'dark' : 'light']}`}>
+      <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-current opacity-60" />
       {label}
     </span>
   );

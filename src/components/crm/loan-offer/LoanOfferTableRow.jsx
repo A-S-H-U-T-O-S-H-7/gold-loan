@@ -1,98 +1,82 @@
 'use client';
-import StatusBadge from '@/components/crm/ui/StatusBadge';
-import LoanOfferButton from '@/components/crm/action-buttons/LoanOfferButton';
-import { formatCurrency } from '@/lib/utils/format';
 
-export default function LoanOfferTableRow({
-  application,
-  index,
-  isDark = false,
-  startIndex = 0,
-  onOffer,
-  suggestedAmount
-}) {
-  const srNo = startIndex + index + 1;
-  const name = application.customer?.name || '—';
-  const mobile = application.customer?.mobile || '—';
-  const status = application.status || 'GOLD_EVALUATED';
-  const gold = application.gold 
-    ? `${application.gold.netWeight || 0}g ${application.gold.purity || ''}` 
-    : '—';
-  const eligible = suggestedAmount(application);
+import Link from 'next/link';
+import { FileText } from 'lucide-react';
+import CallButton from '@/components/crm/ui/CallButton';
+import KycVerificationBadge from '@/components/crm/ui/KycVerificationBadge';
+import KYCVerificationButton from '@/components/crm/action-buttons/KYCVerificationButton';
+import ApplicationStatusButton from '@/components/crm/application-status/ApplicationStatusButton';
+import GoldEvaluateButton from '@/components/crm/action-buttons/GoldEvalutionButton';
 
-  const cellBase = "px-3 py-3 text-center border-r last:border-r-0";
-  const cellBorder = isDark ? "border-gold-600/80" : "border-gold-300/90";
-  const cellStyle = `${cellBase} ${cellBorder}`;
+const money = (value) => value == null ? '—' : `₹${Number(value).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+const decisionLabel = (value) => ({ AWAITING_DECISION: 'Awaiting Decision', ACCEPTED: 'Accepted', DECLINED: 'Declined' })[value] || 'Awaiting Decision';
 
-  const textPrimary = isDark ? "text-gray-100" : "text-gray-900";
-  const textSecondary = isDark ? "text-gray-400" : "text-gray-600";
+export default function LoanOfferTableRow({ application, index, isDark, onStatusClick }) {
+  const cell = `border-r px-3 py-3 text-center text-sm last:border-r-0 ${isDark ? 'border-gold-600/80' : 'border-gold-300/90'}`;
+  const secondaryText = isDark ? 'text-gray-400' : 'text-gray-600';
+  const stripe = index % 2 === 0
+    ? isDark ? 'bg-gray-800/50' : 'bg-white'
+    : isDark ? 'bg-gray-800/30' : 'bg-gold-50/30';
 
   return (
-    <tr
-      className={`border-b transition-all duration-200 hover:shadow-md ${
-        isDark
-          ? "border-gold-700/30 hover:bg-gray-700/50"
-          : "border-gold-100 hover:bg-gold-50/50"
-      } ${
-        index % 2 === 0
-          ? isDark
-            ? "bg-gray-800/50"
-            : "bg-white"
-          : isDark
-            ? "bg-gray-800/30"
-            : "bg-gold-50/30"
-      }`}
-    >
-      {/* SR No */}
-      <td className={cellStyle}>
-        <span className={`font-medium ${textPrimary}`}>
-          {srNo}
+    <tr className={`border-b transition-colors ${stripe} ${
+      isDark ? 'border-gold-700/30 hover:bg-gray-700/50' : 'border-gold-100 hover:bg-gold-50/50'
+    }`}>
+      <td className={cell}>
+        <span className="font-mono font-semibold text-gold-600 dark:text-gold-400">
+          {application.applicationNo || '—'}
         </span>
       </td>
-
-      {/* App ID */}
-      <td className={cellStyle}>
-        <span className={`font-mono text-sm font-medium text-gold-600 dark:text-gold-400`}>
-          {application.id || '—'}
-        </span>
+      <td className={cell}>
+        <span className={secondaryText}>{application.source || '—'}</span>
       </td>
-
-      {/* Name */}
-      <td className={cellStyle}>
-        <span className={`font-medium text-sm ${textPrimary}`}>
-          {name}
-        </span>
+      <td className={cell}>
+        <CallButton mobile={application.mobile} isDark={isDark} />
       </td>
-
-      {/* Mobile */}
-      <td className={cellStyle}>
-        <span className={`font-mono text-sm ${textSecondary}`}>
-          {mobile}
-        </span>
+      <td className={cell}>
+        <span className={secondaryText}>{application.branchName || 'Unassigned'}</span>
       </td>
-
-      {/* Gold */}
-      <td className={cellStyle}>
-        <span className={`text-sm ${textSecondary}`}>
-          {gold}
-        </span>
+      <td className={cell}>
+        <span className="font-medium">{application.name || '—'}</span>
       </td>
-
-      {/* Eligible Amount */}
-      <td className={cellStyle}>
-        <span className={`text-sm font-semibold ${textPrimary}`}>
-          {formatCurrency(eligible)}
-        </span>
+      <td className={cell}>
+        <span className={`font-mono ${secondaryText}`}>{application.mobile || '—'}</span>
       </td>
-
-      {/* Status */}
-      <td className={cellStyle}>
-        <StatusBadge status={status} />
+      <td className={cell}>
+        <span className={secondaryText}>{application.email || '—'}</span>
       </td>
-
-      {/* Actions */}
-      <td className={`px-3 py-3 text-center border-r last:border-r-0 ${cellBorder}`}>
-        <LoanOfferButton onClick={() => onOffer(application)} isDark={isDark} />
+      <td className={cell}>
+        <span className={secondaryText}>{money(application.eligibleAmount)}</span>
+      </td>
+      <td className={cell}>
+        <span className={secondaryText}>{money(application.offeredAmount)}</span>
+      </td>
+      <td className={cell}>
+        <span className={secondaryText}>{decisionLabel(application.offerDecision)}</span>
+      </td>
+      <td className={cell}>
+        <ApplicationStatusButton application={application} onClick={onStatusClick} />
+      </td>
+      <td className={cell}>
+        <div className="flex flex-col items-center gap-2">
+          <KycVerificationBadge verified={application.kycVerified} />
+          <KYCVerificationButton
+            applicationId={application.id}
+            isDark={isDark}
+            label={application.kycVerified ? 'View KYC' : 'KYC Verification'}
+          />
+        </div>
+      </td>
+      <td className={cell}>
+        <GoldEvaluateButton applicationId={application.id} isDark={isDark} evaluated />
+      </td>
+      <td className={cell}>
+        <Link href={`/crm/loan-offer/${application.id}`}
+          className={`inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded border px-3 py-1.5 text-xs font-semibold transition-all duration-200 hover:scale-105 ${isDark
+            ? 'border-indigo-700 bg-indigo-900/40 text-indigo-300 hover:bg-indigo-800'
+            : 'border-indigo-300 bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}>
+          <FileText className="h-3.5 w-3.5" />Loan Offer
+        </Link>
       </td>
     </tr>
   );

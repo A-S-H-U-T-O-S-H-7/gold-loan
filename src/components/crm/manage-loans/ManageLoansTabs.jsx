@@ -2,36 +2,30 @@
 
 const TABS = ['All', 'Active', 'Overdue', 'Closed'];
 
-export default function ManageLoansTabs({ activeTab, onTabChange, counts, isDark = false }) {
+export default function ManageLoansTabs({ activeTab, onTabChange, isDark = false }) {
   return (
-    <div className="flex flex-wrap gap-2 mb-4">
-      {TABS.map((tab) => (
-        <button
-          key={tab}
-          type="button"
-          onClick={() => onTabChange(tab)}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-            activeTab === tab
-              ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-md'
-              : isDark
-                ? 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800'
-          }`}
-        >
-          {tab}
-          {counts && counts[tab] !== undefined && (
-            <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${
-              activeTab === tab
-                ? 'bg-white/20 text-white'
+    <div role="tablist" aria-label="Loan status" className="mb-5 flex gap-2 overflow-x-auto pb-1">
+      {TABS.map((tab) => {
+        const isActive = activeTab === tab;
+        return (
+          <button
+            key={tab}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => onTabChange(tab)}
+            className={`shrink-0 cursor-pointer rounded-lg border px-4 py-2 text-sm font-semibold transition-colors ${
+              isActive
+                ? 'border-gold-600 bg-gold-600 text-white'
                 : isDark
-                  ? 'bg-gray-600 text-gray-300'
-                  : 'bg-gray-200 text-gray-600'
-            }`}>
-              {counts[tab]}
-            </span>
-          )}
-        </button>
-      ))}
+                  ? 'border-gold-700/50 bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  : 'border-gold-200 bg-white text-gray-700 hover:bg-gold-50'
+            }`}
+          >
+            {tab}
+          </button>
+        );
+      })}
     </div>
   );
 }

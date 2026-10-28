@@ -82,7 +82,8 @@ export default function LoanOfferDetailPage() {
     setBusy(true); setError('');
     try {
       await recordOfferDecision(current.id, { decision, acceptanceMethod: decision === 'ACCEPTED' ? acceptanceMethod : undefined, decisionRemark });
-      await load(); setDecisionRemark(''); toast.success(`Offer ${decision.toLowerCase()}`);
+      toast.success(`Offer ${decision.toLowerCase()}`);
+      navigateBack();
     } catch (requestError) { setError(requestError.response?.data?.message || 'Could not record the decision.'); }
     finally { setBusy(false); }
   }

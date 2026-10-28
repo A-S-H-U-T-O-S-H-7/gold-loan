@@ -222,8 +222,9 @@ const handleSubmit = async (e) => {
                   </option>
                 ))}
               </select>
-              {statusOptions.filter((option) => option.disabled && option.disabledReason).map((option) => (
-                <p key={option.value} className="mt-2 text-sm text-amber-600">{option.disabledReason}</p>
+              {/* Several options can share a reason; show each reason once. */}
+              {[...new Set(statusOptions.filter((option) => option.disabled && option.disabledReason).map((option) => option.disabledReason))].map((reason) => (
+                <p key={reason} className="mt-2 text-sm text-amber-600">{reason}</p>
               ))}
             </div>
 

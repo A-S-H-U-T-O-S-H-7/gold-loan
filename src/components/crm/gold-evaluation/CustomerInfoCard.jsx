@@ -38,17 +38,18 @@ export default function CustomerInfoCard({ customerDetails, isDark, defaultShowK
   
   if (!customerDetails) return null;
 
-  const infoCardClassName = `p-4 rounded-xl border ${
+  const infoCardClassName = `min-w-0 p-4 rounded-xl border ${
     isDark ? 'bg-gray-800/50 border-gold-700/30' : 'bg-white/50 border-gold-200'
   }`;
 
   const labelClassName = `text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`;
-  const valueClassName = `text-sm font-semibold mt-1 ${isDark ? 'text-gray-200' : 'text-gray-800'}`;
+  // Long emails and addresses have no spaces to break on, so allow wrapping anywhere.
+  const valueClassName = `text-sm font-semibold mt-1 wrap-anywhere ${isDark ? 'text-gray-200' : 'text-gray-800'}`;
 
   const InfoRow = ({ label, value }) => (
-    <div className={`flex justify-between py-2 ${isDark ? 'border-b border-gray-700' : 'border-b border-gray-100'}`}>
-      <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{label}</span>
-      <span className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{value || '—'}</span>
+    <div className={`flex justify-between gap-3 py-2 ${isDark ? 'border-b border-gray-700' : 'border-b border-gray-100'}`}>
+      <span className={`shrink-0 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{label}</span>
+      <span className={`min-w-0 text-right text-sm font-medium wrap-anywhere ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{value || '—'}</span>
     </div>
   );
 
@@ -67,7 +68,7 @@ export default function CustomerInfoCard({ customerDetails, isDark, defaultShowK
         </div>{kycHref && <div className="flex items-center gap-3"><span className={`text-xs font-semibold ${customerDetails.kycVerified ? 'text-emerald-600' : 'text-amber-600'}`}>{customerDetails.kycVerified ? 'KYC Verified' : 'KYC Not Verified'}</span><Link href={kycHref} className="cursor-pointer text-sm font-medium text-gold-600 underline">View KYC</Link></div>}</div>
 
         {/* Basic Info Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <div className={infoCardClassName}>
             <div className="flex items-center gap-2">
               <User className={`w-4 h-4 ${isDark ? 'text-gold-400' : 'text-gold-600'}`} />
@@ -108,7 +109,7 @@ export default function CustomerInfoCard({ customerDetails, isDark, defaultShowK
             <p className={valueClassName}>{customer.kycDate || 'N/A'}</p>
           </div>
 
-          <div className={infoCardClassName}>
+          <div className={`${infoCardClassName} sm:col-span-2`}>
             <div className="flex items-center gap-2">
               <MapPin className={`w-4 h-4 ${isDark ? 'text-gold-400' : 'text-gold-600'}`} />
               <p className={labelClassName}>Address</p>
@@ -142,7 +143,7 @@ export default function CustomerInfoCard({ customerDetails, isDark, defaultShowK
           </button>
 
           {showKyc && (
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 [&>*]:min-w-0">
               {/* Personal Details */}
               <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gold-50/50'}`}>
                 <h4 className={`text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? 'text-gold-400' : 'text-gold-600'}`}>
