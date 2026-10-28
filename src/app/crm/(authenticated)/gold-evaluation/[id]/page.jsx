@@ -102,7 +102,7 @@ export default function GoldEvaluationDetailPage() {
     try {
       const fileKey = await uploadGoldItemImage(id, file);
       setItems((current) => current.map((candidate) => candidate.clientKey === item.clientKey
-        ? { ...candidate, images: [...candidate.images, { fileKey }] } : candidate));
+        ? { ...candidate, images: [...candidate.images, { fileKey, previewUrl: URL.createObjectURL(file) }] } : candidate));
       setDirty(true);
       toast.success('Photo uploaded; save the draft to attach it to the item');
     } catch (error) {
@@ -133,15 +133,17 @@ export default function GoldEvaluationDetailPage() {
     try {
       await action();
       toast.success(success);
+      return true;
     } catch (error) {
       toast.error(errorText(error));
+      return false;
     } finally {
       setBusy(false);
     }
   };
 
   const finalize = async () => {
-    await run(async () => {
+    const finalized = await run(async () => {
       if (!goldRate || !ltvPercentage || items.some((item) => !item.rateUsed)) {
         throw new Error('Backend gold rates and LTV are needed for every item.');
       }
@@ -149,6 +151,7 @@ export default function GoldEvaluationDetailPage() {
       const result = await finalizeEvaluation(id);
       applyRecord(result);
     }, 'Gold evaluated. Application remains Evaluating.');
+    if (finalized) navigateBack();
   };
 
   const refreshRates = async () => {

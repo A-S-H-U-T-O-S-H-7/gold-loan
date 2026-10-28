@@ -5,7 +5,9 @@ import { ImagePlus, Trash2, X } from 'lucide-react';
 import { getGoldItemImage } from '@/lib/services/goldEvaluationService';
 
 function Photo({ image, onRemove }) {
-  const [url, setUrl] = useState('');
+  const [fetchedUrl, setUrl] = useState('');
+  // Unsaved uploads have no id yet, so preview them from the local file.
+  const url = image.id ? fetchedUrl : image.previewUrl;
   useEffect(() => {
     if (!image.id) return undefined;
     let active = true;
