@@ -35,6 +35,7 @@ export default function GoldEvaluationDetailPage() {
   const [remarks, setRemarks] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [rateRefreshError, setRateRefreshError] = useState('');
   const [busy, setBusy] = useState(false);
   const [dirty, setDirty] = useState(false);
 
@@ -53,7 +54,31 @@ export default function GoldEvaluationDetailPage() {
     let active = true;
     setLoading(true);
     setLoadError('');
-    getEvaluation(id).then((result) => { if (active) applyRecord(result); })
+    setRateRefreshError('');
+    getEvaluation(id).then(async (result) => {
+      if (!active) return;
+      const needsInitialRates = result.application?.status === 'GOLD_EVALUATION'
+        && result.evaluation?.status === 'DRAFT'
+        && !result.evaluation.goldRateSettingId
+        && result.todayRatesAvailable;
+      if (!needsInitialRates) {
+        applyRecord(result);
+        return;
+      }
+      try {
+        const refreshed = await refreshEvaluationRates(id);
+        if (active) applyRecord({
+          ...refreshed,
+          todayRatesAvailable: true,
+          currentRateSettingId: refreshed.evaluation?.goldRateSettingId,
+        });
+      } catch (error) {
+        if (active) {
+          applyRecord(result);
+          setRateRefreshError(errorText(error));
+        }
+      }
+    })
       .catch((error) => { if (active) setLoadError(errorText(error)); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -131,6 +156,7 @@ export default function GoldEvaluationDetailPage() {
       if (dirty) throw new Error('Save draft changes before refreshing rates.');
       const result = await refreshEvaluationRates(id);
       applyRecord({ ...result, todayRatesAvailable: true, currentRateSettingId: result.evaluation?.goldRateSettingId });
+      setRateRefreshError('');
     }, 'Draft rates and valuation refreshed');
   };
 
@@ -214,6 +240,7 @@ export default function GoldEvaluationDetailPage() {
       <div className="mt-4 rounded-xl bg-gold-600 p-4 text-white"><p className="text-sm">Eligible Loan Amount</p><p className="mt-1 text-2xl font-bold">{money(eligible)}</p></div>
       {dirty && <p className="mt-3 text-xs text-amber-600">Preview has unsaved changes. Save to confirm the backend calculation.</p>}
       {!record.todayRatesAvailable && evaluation?.status !== 'FINALIZED' && <p className="mt-3 text-sm text-amber-600">Today’s gold rates have not been set.</p>}
+      {rateRefreshError && <p role="alert" className="mt-3 text-sm text-red-600">Could not load today’s rates into this draft: {rateRefreshError}</p>}
       {evaluation?.status === 'DRAFT' && record.currentRateSettingId && evaluation.goldRateSettingId !== record.currentRateSettingId && <p className="mt-3 text-sm text-amber-600">New rates are available. Refresh this draft before finalisation.</p>}
     </section>
     <section className={card}>

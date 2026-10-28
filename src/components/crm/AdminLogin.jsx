@@ -12,7 +12,7 @@ export default function AdminLogin() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     branch_id: '',
-    username: '',
+    username: '', 
     password: ''
   });
 

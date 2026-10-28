@@ -9,15 +9,35 @@ const emptySession = {
   permissions: null,
   branch_id: null,
   isAuthenticated: false,
+  // Local-clock timestamps (ms) for when the server will end the session.
+  idleExpiresAt: null,
+  sessionExpiresAt: null,
+  lastRenewedAt: null,
 };
 
 let renewalPromise = null;
 let restorePromise = null;
 
+// Keeps session deadlines and logout in step across open CRM tabs.
+const sessionChannel = typeof window !== 'undefined' && 'BroadcastChannel' in window
+  ? new BroadcastChannel('crm-session')
+  : null;
+
 function authData(response) {
   const data = response?.data || response || {};
   if (!data.admin || !data.accessToken) throw new Error('Login response is incomplete');
   return data;
+}
+
+// Converts server deadlines to this browser's clock, which may be off.
+function localDeadlines(data) {
+  const skew = data.serverTime ? Date.now() - Date.parse(data.serverTime) : 0;
+  const toLocal = (value) => (value ? Date.parse(value) + skew : null);
+  return {
+    idleExpiresAt: toLocal(data.idleExpiresAt),
+    sessionExpiresAt: toLocal(data.sessionExpiresAt ?? data.expiresAt),
+    lastRenewedAt: Date.now(),
+  };
 }
 
 export const useAdminAuthStore = create((set, get) => ({
@@ -27,8 +47,10 @@ export const useAdminAuthStore = create((set, get) => ({
   error: null,
 
   acceptSession: (response) => {
-    const { admin, accessToken } = authData(response);
+    const data = authData(response);
+    const { admin, accessToken } = data;
     const { permissions = {}, ...user } = admin;
+    const deadlines = localDeadlines(data);
     set({
       token: accessToken,
       user,
@@ -38,7 +60,9 @@ export const useAdminAuthStore = create((set, get) => ({
       loading: false,
       sessionChecked: true,
       error: null,
+      ...deadlines,
     });
+    sessionChannel?.postMessage({ type: 'renewed', ...deadlines });
     return accessToken;
   },
 
@@ -96,7 +120,13 @@ export const useAdminAuthStore = create((set, get) => ({
       // The local session is cleared even if the server is unavailable.
     } finally {
       get().clearSession();
+      sessionChannel?.postMessage({ type: 'logout' });
     }
+  },
+
+  expireSession: async () => {
+    await get().logout();
+    set({ error: 'Your session has expired. Please sign in again.' });
   },
 
   setUser: (user) => set({ user }),
@@ -111,3 +141,16 @@ export const useAdminAuthStore = create((set, get) => ({
   getBranchId: () => get().branch_id,
   refreshUser: () => get().renewSession(),
 }));
+
+if (sessionChannel) {
+  sessionChannel.onmessage = ({ data }) => {
+    const store = useAdminAuthStore.getState();
+    if (!store.isAuthenticated) return;
+    if (data?.type === 'logout') {
+      store.clearSession();
+    } else if (data?.type === 'renewed') {
+      const { idleExpiresAt, sessionExpiresAt, lastRenewedAt } = data;
+      useAdminAuthStore.setState({ idleExpiresAt, sessionExpiresAt, lastRenewedAt });
+    }
+  };
+}

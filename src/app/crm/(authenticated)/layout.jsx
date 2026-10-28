@@ -8,6 +8,7 @@ import { useAdminAuthStore } from '@/lib/store/authAdminStore';
 import AdminHeader from '@/components/crm/Header';
 import Sidebar from '@/components/crm/Sidebar';
 import Footer from '@/components/crm/Footer';
+import SessionTimeoutGuard from '@/components/crm/SessionTimeoutGuard';
 
 export default function CRMLayout({ children }) {
   const { theme } = useThemeStore();
@@ -50,6 +51,7 @@ export default function CRMLayout({ children }) {
         }}
       />
       
+      <SessionTimeoutGuard />
       <AdminHeader />
       <Sidebar />
       
