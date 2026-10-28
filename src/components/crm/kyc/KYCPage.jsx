@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Formik, setIn } from 'formik';
 import { ArrowLeft, Check } from 'lucide-react';
@@ -23,6 +23,8 @@ export default function KYCPage() {
   
   const [loading, setLoading] = useState(false);
   const [application, setApplication] = useState(null);
+  // Reuses finished uploads when a failed save is retried.
+  const uploadedKeys = useRef(new WeakMap());
 
   useEffect(() => {
     if (!id) return undefined;
@@ -197,11 +199,16 @@ export default function KYCPage() {
       for (const field of documentFields) {
         const file = values[field];
         if (!file) continue;
-        const fileKey = typeof file === 'string' ? file : await uploadKycDocument(id, field, file);
+        let fileKey = typeof file === 'string' ? file : uploadedKeys.current.get(file);
+        if (!fileKey) {
+          fileKey = await uploadKycDocument(id, field, file);
+          uploadedKeys.current.set(file, fileKey);
+        }
         documents.push({ document_type: field, file_key: fileKey });
-        if (typeof file !== 'string') setFieldValue(field, fileKey, false);
       }
       await saveApplicationKyc(id, customerData, documents);
+      // Previews load saved keys from the server, so switch to them only after saving.
+      for (const document of documents) setFieldValue(document.document_type, document.file_key, false);
   };
 
   const handleSubmit = async (values, { setSubmitting, setFieldValue }) => {
