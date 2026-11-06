@@ -61,7 +61,7 @@ export default function NomineeDetails({ formik, isDark, errors = {}, touched = 
 
   const relationOptions = [
     'Spouse', 'Father', 'Mother', 'Brother', 'Sister', 
-    'Son', 'Daughter', 'Friend', 'Colleague', 'Other'
+    'Son', 'Daughter'
   ];
 
   return (

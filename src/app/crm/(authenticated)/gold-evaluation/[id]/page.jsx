@@ -181,6 +181,9 @@ export default function GoldEvaluationDetailPage() {
   const totalNet = dirty ? items.reduce((sum, item) => sum + Math.max(0, Number(item.grossWeight || 0) - Number(item.deductionWeight || 0)), 0) : Number(evaluation?.totalNetWeight || 0);
   const valuation = dirty ? items.reduce((sum, item) => sum + Math.max(0, Number(item.grossWeight || 0) - Number(item.deductionWeight || 0)) * Number(item.rateUsed || 0), 0) : Number(evaluation?.totalValuation || 0);
   const eligible = dirty ? valuation * Number(ltvPercentage || 0) / 100 : Number(evaluation?.eligibleAmount || 0);
+  // One rate per purity picked in the items (e.g. 22K and 18K), highest karat first.
+  const selectedPurityRates = [...new Map(items.filter((item) => item.purity).map((item) => [item.purity, item.rateUsed])).entries()]
+    .sort(([a], [b]) => (parseInt(b, 10) || 0) - (parseInt(a, 10) || 0));
 
   return <div className={`min-h-screen w-full min-w-0 max-w-full overflow-x-hidden transition-colors duration-300 ${isDark ? 'bg-gray-900 text-gray-100' : 'bg-gold-50/30 text-gray-900'}`}>
     <div className="space-y-6 p-4 md:p-6">
@@ -233,7 +236,21 @@ export default function GoldEvaluationDetailPage() {
       </div>
       <p className="mt-1 text-xs text-gray-500">Valuation uses each item’s saved purity rate and net weight.</p>
       <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-        <p className="rounded-lg border border-gold-200 p-3"><span className="block text-xs text-gray-500">Reference Gold Rate / g</span><strong>{goldRate ? money(goldRate) : 'Awaiting backend rate'}</strong></p>
+        <div className="rounded-lg border border-gold-200 p-3">
+          <span className="block text-xs text-gray-500">Gold Rate / g (selected purity)</span>
+          {selectedPurityRates.length === 0 ? (
+            <strong>Select item purity</strong>
+          ) : (
+            <ul className="space-y-0.5">
+              {selectedPurityRates.map(([purity, rate]) => (
+                <li key={purity} className="flex justify-between gap-3">
+                  <span>{purity}</span>
+                  <strong>{rate ? money(rate) : 'No rate set'}</strong>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <p className="rounded-lg border border-gold-200 p-3"><span className="block text-xs text-gray-500">Loan to Value</span><strong>{ltvPercentage ? `${ltvPercentage}%` : 'Awaiting backend LTV'}</strong></p>
         <p className="rounded-lg border border-gold-200 p-3"><span className="block text-xs text-gray-500">Gross Weight</span><strong>{totalGross.toFixed(3)} g</strong></p>
         <p className="rounded-lg border border-gold-200 p-3"><span className="block text-xs text-gray-500">Stone / Non-gold Deduction</span><strong>{totalDeduction.toFixed(3)} g</strong></p>

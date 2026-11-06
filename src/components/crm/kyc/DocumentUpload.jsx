@@ -1,17 +1,21 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, FileText, Image, Upload, X } from 'lucide-react';
+import { AlertTriangle, Crop, FileText, Image, Upload, X } from 'lucide-react';
 import { getKycDocument } from '@/lib/services/applicationKycService';
+import ImageCropModal from '@/components/crm/kyc/ImageCropModal';
 import toast from 'react-hot-toast';
 
 const fields = [['aadhaarFront', 'Aadhaar Front'], ['aadhaarBack', 'Aadhaar Back'], ['panCard', 'PAN Card'], ['photo', 'Photo'], ['addressProof', 'Current Address Proof']];
 const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
 const maxSize = 5 * 1024 * 1024;
+// The customer photo opens in a passport-style frame; ID cards and proofs keep their own shape.
+const defaultCropAspect = { photo: 'portrait' };
 
 function DocumentField({ fieldName, label, formik, isDark, error, applicationId }) {
   const inputRef = useRef(null);
   const file = formik.values[fieldName];
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [cropSource, setCropSource] = useState(null);
   const isLocalFile = typeof File !== 'undefined' && file instanceof File;
   const isPdf = isLocalFile ? file.type === 'application/pdf' : typeof file === 'string' && /\.pdf$/i.test(file);
 
@@ -56,15 +60,34 @@ function DocumentField({ fieldName, label, formik, isDark, error, applicationId 
     } catch (caught) { tab?.close(); toast.error(caught.response?.data?.message || 'Could not open document'); }
   };
 
-  const chooseFile = (nextFile) => {
-    if (!nextFile) return;
-    if (!allowedTypes.includes(nextFile.type) || nextFile.size === 0 || nextFile.size > maxSize) {
-      formik.setFieldError(fieldName, 'Use a JPG, PNG or PDF up to 5 MB');
-      formik.setFieldTouched(fieldName, true, false);
-      if (inputRef.current) inputRef.current.value = '';
+  const rejectFile = () => {
+    formik.setFieldError(fieldName, 'Use a JPG, PNG or PDF up to 5 MB');
+    formik.setFieldTouched(fieldName, true, false);
+  };
+
+  const acceptFile = (nextFile) => {
+    if (nextFile.size === 0 || nextFile.size > maxSize) {
+      rejectFile();
       return;
     }
     formik.setFieldValue(fieldName, nextFile);
+  };
+
+  // Images go through the crop view first; the 5 MB limit is checked on the final (cropped) file.
+  const chooseFile = (nextFile) => {
+    if (inputRef.current) inputRef.current.value = '';
+    if (!nextFile) return;
+    if (!allowedTypes.includes(nextFile.type)) {
+      rejectFile();
+      return;
+    }
+    if (nextFile.type.startsWith('image/')) setCropSource(nextFile);
+    else acceptFile(nextFile);
+  };
+
+  const finishCrop = (croppedFile) => {
+    setCropSource(null);
+    acceptFile(croppedFile);
   };
 
   return <div>
@@ -74,6 +97,11 @@ function DocumentField({ fieldName, label, formik, isDark, error, applicationId 
         {previewUrl && !isPdf ? <img src={previewUrl} alt={`${label} preview`} className="h-12 w-12 rounded object-cover" /> : isPdf ? <FileText className="w-5 h-5" /> : <Image className="w-5 h-5" />}
       </div>
       <span className="flex-1 min-w-0 text-sm truncate">{isLocalFile ? file.name : file.split('/').pop()}</span>
+      {isLocalFile && !isPdf && (
+        <button type="button" onClick={() => setCropSource(file)} className={`inline-flex cursor-pointer items-center gap-1 text-xs font-semibold hover:underline ${isDark ? 'text-gold-300' : 'text-gold-700'}`}>
+          <Crop className="h-3.5 w-3.5" />Crop
+        </button>
+      )}
       <button type="button" onClick={viewDocument} className={`cursor-pointer text-xs font-semibold hover:underline ${isDark ? 'text-gold-300' : 'text-gold-700'}`}>View Document</button>
       <button type="button" aria-label={`Remove ${label}`} onClick={() => { formik.setFieldValue(fieldName, null); if (inputRef.current) inputRef.current.value = ''; }} className="cursor-pointer p-1 text-red-500"><X className="w-4 h-4" /></button>
     </div> : <button type="button" onClick={() => inputRef.current?.click()} className={`w-full cursor-pointer p-6 rounded border-2 border-dashed flex flex-col items-center gap-2 ${isDark ? 'border-gold-600/30 bg-gray-700/50 text-gray-200 hover:bg-gray-700' : 'border-gold-300 bg-gray-50 text-gray-700 hover:bg-gold-50'}`}>
@@ -81,6 +109,15 @@ function DocumentField({ fieldName, label, formik, isDark, error, applicationId 
     </button>}
     <input ref={inputRef} type="file" accept="image/jpeg,image/png,application/pdf" onChange={(event) => chooseFile(event.target.files?.[0])} className="hidden" />
     {error && <div className="text-xs mt-1 text-red-500 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /><span>{error}</span></div>}
+    {cropSource && (
+      <ImageCropModal
+        file={cropSource}
+        title={label}
+        defaultAspect={defaultCropAspect[fieldName]}
+        onCancel={() => setCropSource(null)}
+        onDone={finishCrop}
+      />
+    )}
   </div>;
 }
 

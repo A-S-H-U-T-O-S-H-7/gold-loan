@@ -7,6 +7,29 @@ const fileField = () => Yup.mixed()
 
 const optionalPattern = (pattern, message) => Yup.string().test('optional-format', message, (value) => !value || pattern.test(value));
 
+// Letters with spaces, dots, apostrophes and hyphens, e.g. "R. K. D'Souza-Rao"; must contain a letter.
+const ACCOUNT_HOLDER_PATTERN = /^(?=.*[A-Za-z])[A-Za-z .'-]+$/;
+const ACCOUNT_HOLDER_MESSAGE = 'Account holder name can contain only letters, spaces, dots, apostrophes and hyphens';
+
+const ACCOUNT_MISMATCH_MESSAGE = 'Account numbers do not match';
+
+const normalise = (value) => (typeof value === 'string' ? value.trim().toLowerCase() : '');
+
+// Nominee and guarantor contacts must not repeat the customer's; matching each other is allowed.
+function notCustomerPhone(schema, label) {
+  return schema.test('not-customer-phone', `${label} mobile must be different from the customer's number`, function check(value) {
+    const phone = normalise(value);
+    return !phone || ![this.parent.phoneNo, this.parent.alternativePhone].map(normalise).includes(phone);
+  });
+}
+
+function notCustomerEmail(schema, label) {
+  return schema.test('not-customer-email', `${label} email must be different from the customer's email`, function check(value) {
+    const email = normalise(value);
+    return !email || email !== normalise(this.parent.email);
+  });
+}
+
 export const draftKycValidationSchema = Yup.object({
   email: optionalPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email address'),
   phoneNo: optionalPattern(/^[6-9]\d{9}$/, 'Enter a valid mobile number'),
@@ -16,10 +39,16 @@ export const draftKycValidationSchema = Yup.object({
   currentPinCode: optionalPattern(/^\d{6}$/, 'Pin Code must be 6 digits'),
   permanentPinCode: optionalPattern(/^\d{6}$/, 'Pin Code must be 6 digits'),
   ifscCode: optionalPattern(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'Invalid IFSC Code'),
-  nomineeMobile: optionalPattern(/^[6-9]\d{9}$/, 'Invalid nominee mobile'),
-  nomineeEmail: optionalPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid nominee email'),
-  guarantorMobile: optionalPattern(/^[6-9]\d{9}$/, 'Invalid guarantor mobile'),
-  guarantorEmail: optionalPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid guarantor email'),
+  accountHolderName: optionalPattern(ACCOUNT_HOLDER_PATTERN, ACCOUNT_HOLDER_MESSAGE),
+  // Saved numbers count as confirmed when the KYC reopens, so a draft must confirm any number it saves.
+  confirmAccountNo: Yup.string().test('matches-account-no', ACCOUNT_MISMATCH_MESSAGE, function check(value) {
+    const accountNo = (this.parent.accountNo || '').trim();
+    return !accountNo || (value || '').trim() === accountNo;
+  }),
+  nomineeMobile: notCustomerPhone(optionalPattern(/^[6-9]\d{9}$/, 'Invalid nominee mobile'), 'Nominee'),
+  nomineeEmail: notCustomerEmail(optionalPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid nominee email'), 'Nominee'),
+  guarantorMobile: notCustomerPhone(optionalPattern(/^[6-9]\d{9}$/, 'Invalid guarantor mobile'), 'Guarantor'),
+  guarantorEmail: notCustomerEmail(optionalPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid guarantor email'), 'Guarantor'),
   dob: Yup.object({
     day: optionalPattern(/^(?:[1-9]|[12]\d|3[01])$/, 'Invalid day'),
     month: optionalPattern(/^(?:[1-9]|1[0-2])$/, 'Invalid month'),
@@ -83,9 +112,16 @@ export const applicationValidationSchema = Yup.object({
   // ============================================
   bankName: Yup.string().required('Bank Name is required'),
   branchName: Yup.string().required('Branch Name is required'),
-  accountHolderName: Yup.string().required('Account holder name is required'),
+  accountHolderName: Yup.string()
+    .required('Account holder name is required')
+    .matches(ACCOUNT_HOLDER_PATTERN, ACCOUNT_HOLDER_MESSAGE),
   accountType: Yup.string().required('Account Type is required'),
   accountNo: Yup.string().required('Account Number is required'),
+  confirmAccountNo: Yup.string()
+    .required('Confirm the account number')
+    .test('matches-account-no', ACCOUNT_MISMATCH_MESSAGE, function check(value) {
+      return (value || '').trim() === (this.parent.accountNo || '').trim();
+    }),
   ifscCode: Yup.string()
     .required('IFSC Code is required')
     .matches(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'Invalid IFSC Code'),
@@ -105,12 +141,12 @@ export const applicationValidationSchema = Yup.object({
   // ============================================
   nomineeName: Yup.string().nullable(),
   nomineeRelation: Yup.string().nullable(),
-  nomineeMobile: Yup.string()
+  nomineeMobile: notCustomerPhone(Yup.string()
     .matches(/^[0-9]{10}$/, 'Mobile must be 10 digits')
-    .nullable(),
-  nomineeEmail: Yup.string()
+    .nullable(), 'Nominee'),
+  nomineeEmail: notCustomerEmail(Yup.string()
     .email('Invalid email address')
-    .nullable(),
+    .nullable(), 'Nominee'),
   nomineeAddress: Yup.string().nullable(),
   nomineeRemark: Yup.string().nullable(),
 
@@ -119,12 +155,12 @@ export const applicationValidationSchema = Yup.object({
   // ============================================
   guarantorName: Yup.string().nullable(),
   guarantorRelation: Yup.string().nullable(),
-  guarantorMobile: Yup.string()
+  guarantorMobile: notCustomerPhone(Yup.string()
     .matches(/^[0-9]{10}$/, 'Mobile must be 10 digits')
-    .nullable(),
-  guarantorEmail: Yup.string()
+    .nullable(), 'Guarantor'),
+  guarantorEmail: notCustomerEmail(Yup.string()
     .email('Invalid email address')
-    .nullable(),
+    .nullable(), 'Guarantor'),
   guarantorAddress: Yup.string().nullable(),
   guarantorRemark: Yup.string().nullable(),
 });

@@ -98,6 +98,8 @@ export default function KYCPage() {
       accountHolderName: customer.bankDetails?.accountHolderName || '',
       accountType: customer.bankDetails?.accountType || '',
       accountNo: customer.bankDetails?.accountNumber || '',
+      // Only a typing check, never saved; a saved number counts as already confirmed.
+      confirmAccountNo: customer.bankDetails?.accountNumber || '',
       ifscCode: customer.bankDetails?.ifscCode || '',
       bankRemark: customer.bankDetails?.remark || '',
 

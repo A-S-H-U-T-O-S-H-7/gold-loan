@@ -2,10 +2,33 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, AlertTriangle } from 'lucide-react';
 
+// Fields copied by "Same as current address". Remark is a note about one address, so it is not copied.
+const COPIED_FIELDS = ['HouseNo', 'Address', 'State', 'City', 'PinCode', 'AddressType'];
+
+function addressesMatch(values) {
+  const hasCurrentAddress = COPIED_FIELDS.some((field) => values[`current${field}`]);
+  return hasCurrentAddress && COPIED_FIELDS.every((field) => (values[`current${field}`] || '') === (values[`permanent${field}`] || ''));
+}
+
 export default function AddressDetails({ formik, isDark, errors = {}, touched = {} }) {
   const [states, setStates] = useState([]);
   const [currentCities, setCurrentCities] = useState([]);
   const [permanentCities, setPermanentCities] = useState([]);
+  // Starts ticked when a saved KYC already has identical addresses.
+  const [sameAsCurrent, setSameAsCurrent] = useState(() => addressesMatch(formik.values));
+
+  const toggleSameAsCurrent = (checked) => {
+    setSameAsCurrent(checked);
+    if (!checked) return;
+    const copied = Object.fromEntries(COPIED_FIELDS.map((field) => [`permanent${field}`, formik.values[`current${field}`] || '']));
+    formik.setValues({ ...formik.values, ...copied }, true);
+  };
+
+  // Any edit to the current address breaks the copy, so the tick is cleared.
+  const handleCurrentChange = (event) => {
+    formik.handleChange(event);
+    if (sameAsCurrent) setSameAsCurrent(false);
+  };
 
   // Mock states - Replace with API call later
   useEffect(() => {
@@ -117,12 +140,30 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
     const cityField = `${prefix}City`;
     const typeField = `${prefix}AddressType`;
     const remarkField = `${prefix}Remark`;
+    const isPermanent = prefix === 'permanent';
+    // While "Same as current address" is ticked, the copied permanent fields cannot be edited.
+    const locked = isPermanent && sameAsCurrent;
+    const handleChange = isPermanent ? formik.handleChange : handleCurrentChange;
+    const lockedClass = locked ? ' cursor-not-allowed opacity-70' : '';
 
     return (
       <div className="mb-6 last:mb-0">
-        <h4 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-          {title}
-        </h4>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h4 className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+            {title}
+          </h4>
+          {isPermanent && (
+            <label className={`flex cursor-pointer items-center gap-2 text-sm font-medium ${isDark ? 'text-gold-300' : 'text-gold-700'}`}>
+              <input
+                type="checkbox"
+                checked={sameAsCurrent}
+                onChange={(event) => toggleSameAsCurrent(event.target.checked)}
+                className="h-4 w-4 cursor-pointer accent-gold-600"
+              />
+              Same as current address
+            </label>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* House/Building No */}
@@ -134,9 +175,10 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
               type="text"
               name={houseNoField}
               value={formik.values[houseNoField] || ''}
-              onChange={formik.handleChange}
+              onChange={handleChange}
               onBlur={formik.handleBlur}
-              className={hasError(houseNoField) ? errorInputClassName : inputClassName}
+              readOnly={locked}
+              className={`${hasError(houseNoField) ? errorInputClassName : inputClassName}${lockedClass}`}
               placeholder="Enter house/building number"
             />
             {hasError(houseNoField) && (
@@ -157,9 +199,10 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
               name={pinCodeField}
               maxLength={6}
               value={formik.values[pinCodeField] || ''}
-              onChange={formik.handleChange}
+              onChange={handleChange}
               onBlur={formik.handleBlur}
-              className={hasError(pinCodeField) ? errorInputClassName : inputClassName}
+              readOnly={locked}
+              className={`${hasError(pinCodeField) ? errorInputClassName : inputClassName}${lockedClass}`}
               placeholder="Enter 6-digit pin code"
             />
             {hasError(pinCodeField) && (
@@ -179,9 +222,10 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
               rows="2"
               name={addressField}
               value={formik.values[addressField] || ''}
-              onChange={formik.handleChange}
+              onChange={handleChange}
               onBlur={formik.handleBlur}
-              className={hasError(addressField) ? errorTextareaClassName : textareaClassName}
+              readOnly={locked}
+              className={`${hasError(addressField) ? errorTextareaClassName : textareaClassName}${lockedClass}`}
               placeholder="Enter complete address"
             />
             {hasError(addressField) && (
@@ -200,9 +244,10 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
             <select
               name={stateField}
               value={formik.values[stateField] || ''}
-              onChange={formik.handleChange}
+              onChange={handleChange}
               onBlur={formik.handleBlur}
-              className={hasError(stateField) ? errorSelectClassName : selectClassName}
+              disabled={locked}
+              className={`${hasError(stateField) ? errorSelectClassName : selectClassName}${lockedClass}`}
             >
               <option value="">Select State</option>
               {states.map((state) => (
@@ -227,10 +272,10 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
             <select
               name={cityField}
               value={formik.values[cityField] || ''}
-              onChange={formik.handleChange}
+              onChange={handleChange}
               onBlur={formik.handleBlur}
-              className={hasError(cityField) ? errorSelectClassName : selectClassName}
-              disabled={!formik.values[stateField]}
+              className={`${hasError(cityField) ? errorSelectClassName : selectClassName}${lockedClass}`}
+              disabled={locked || !formik.values[stateField]}
             >
               <option value="">Select City</option>
               {(prefix === 'current' ? currentCities : permanentCities).map((city) => (
@@ -255,9 +300,10 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
             <select
               name={typeField}
               value={formik.values[typeField] || ''}
-              onChange={formik.handleChange}
+              onChange={handleChange}
               onBlur={formik.handleBlur}
-              className={hasError(typeField) ? errorSelectClassName : selectClassName}
+              disabled={locked}
+              className={`${hasError(typeField) ? errorSelectClassName : selectClassName}${lockedClass}`}
             >
               <option value="">Select Type</option>
               <option value="OWNED">Owned</option>
