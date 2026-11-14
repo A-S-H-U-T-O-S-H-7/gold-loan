@@ -1,6 +1,7 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, AlertTriangle } from 'lucide-react';
+import { getStates, getCitiesByState } from '@/lib/services/locationService';
 
 // Fields copied by "Same as current address". Remark is a note about one address, so it is not copied.
 const COPIED_FIELDS = ['HouseNo', 'Address', 'State', 'City', 'PinCode', 'AddressType'];
@@ -12,8 +13,11 @@ function addressesMatch(values) {
 
 export default function AddressDetails({ formik, isDark, errors = {}, touched = {} }) {
   const [states, setStates] = useState([]);
-  const [currentCities, setCurrentCities] = useState([]);
-  const [permanentCities, setPermanentCities] = useState([]);
+  const [statesLoading, setStatesLoading] = useState(true);
+  const [locationError, setLocationError] = useState('');
+  // Cities cached per state id, so both address sections share one request per state.
+  const [citiesByState, setCitiesByState] = useState({});
+  const requestedCities = useRef(new Set());
   // Starts ticked when a saved KYC already has identical addresses.
   const [sameAsCurrent, setSameAsCurrent] = useState(() => addressesMatch(formik.values));
 
@@ -30,50 +34,47 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
     if (sameAsCurrent) setSameAsCurrent(false);
   };
 
-  // Mock states - Replace with API call later
+  // Changing the state invalidates the chosen city, so it is cleared.
+  const handleStateChange = (prefix, event) => {
+    formik.setValues({ ...formik.values, [`${prefix}State`]: event.target.value, [`${prefix}City`]: '' }, true);
+    if (prefix === 'current' && sameAsCurrent) setSameAsCurrent(false);
+  };
+
   useEffect(() => {
-    const mockStates = [
-      { id: 1, state_name: 'Maharashtra' },
-      { id: 2, state_name: 'Karnataka' },
-      { id: 3, state_name: 'Tamil Nadu' },
-      { id: 4, state_name: 'Uttar Pradesh' },
-      { id: 5, state_name: 'Delhi' },
-      { id: 6, state_name: 'Rajasthan' },
-      { id: 7, state_name: 'Gujarat' },
-      { id: 8, state_name: 'West Bengal' },
-    ];
-    setStates(mockStates);
+    let cancelled = false;
+    setStatesLoading(true);
+    getStates()
+      .then((data) => { if (!cancelled) { setStates(data || []); setLocationError(''); } })
+      .catch((error) => { if (!cancelled) setLocationError(error.message || 'Could not load states'); })
+      .finally(() => { if (!cancelled) setStatesLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    if (formik.values.currentState) {
-      const mockCities = [
-        { id: 1, city_name: 'Mumbai' },
-        { id: 2, city_name: 'Pune' },
-        { id: 3, city_name: 'Nagpur' },
-        { id: 4, city_name: 'Thane' },
-        { id: 5, city_name: 'Nashik' },
-      ];
-      setCurrentCities(mockCities);
-    } else {
-      setCurrentCities([]);
-    }
-  }, [formik.values.currentState]);
+  // The form stores state and city names, so the state id is looked up by name to fetch its cities.
+  const stateIdFor = (stateName) => {
+    if (!stateName) return null;
+    const target = stateName.trim().toLowerCase();
+    return states.find((state) => state.stateName.trim().toLowerCase() === target)?.id ?? null;
+  };
+
+  const currentStateId = stateIdFor(formik.values.currentState);
+  const permanentStateId = stateIdFor(formik.values.permanentState);
 
   useEffect(() => {
-    if (formik.values.permanentState) {
-      const mockCities = [
-        { id: 1, city_name: 'Mumbai' },
-        { id: 2, city_name: 'Pune' },
-        { id: 3, city_name: 'Nagpur' },
-        { id: 4, city_name: 'Thane' },
-        { id: 5, city_name: 'Nashik' },
-      ];
-      setPermanentCities(mockCities);
-    } else {
-      setPermanentCities([]);
-    }
-  }, [formik.values.permanentState]);
+    [currentStateId, permanentStateId].forEach((stateId) => {
+      if (!stateId || requestedCities.current.has(stateId)) return;
+      requestedCities.current.add(stateId);
+      getCitiesByState(stateId)
+        .then((data) => setCitiesByState((prev) => ({ ...prev, [stateId]: data || [] })))
+        .catch((error) => {
+          requestedCities.current.delete(stateId);
+          setLocationError(error.message || 'Could not load cities');
+        });
+    });
+  }, [currentStateId, permanentStateId]);
+
+  const currentCities = (currentStateId && citiesByState[currentStateId]) || [];
+  const permanentCities = (permanentStateId && citiesByState[permanentStateId]) || [];
 
   const inputClassName = `w-full px-3 py-2 rounded border-2 transition-all duration-200 text-sm ${
     isDark
@@ -145,6 +146,9 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
     const locked = isPermanent && sameAsCurrent;
     const handleChange = isPermanent ? formik.handleChange : handleCurrentChange;
     const lockedClass = locked ? ' cursor-not-allowed opacity-70' : '';
+    const stateId = isPermanent ? permanentStateId : currentStateId;
+    const cities = isPermanent ? permanentCities : currentCities;
+    const citiesLoading = Boolean(stateId) && !citiesByState[stateId];
 
     return (
       <div className="mb-6 last:mb-0">
@@ -244,15 +248,19 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
             <select
               name={stateField}
               value={formik.values[stateField] || ''}
-              onChange={handleChange}
+              onChange={(event) => handleStateChange(prefix, event)}
               onBlur={formik.handleBlur}
               disabled={locked}
               className={`${hasError(stateField) ? errorSelectClassName : selectClassName}${lockedClass}`}
             >
-              <option value="">Select State</option>
+              <option value="">{statesLoading ? 'Loading states...' : 'Select State'}</option>
+              {/* Keeps a saved state visible even if it is not in the master list. */}
+              {formik.values[stateField] && !statesLoading && !stateId && (
+                <option value={formik.values[stateField]}>{formik.values[stateField]}</option>
+              )}
               {states.map((state) => (
-                <option key={state.id} value={state.state_name}>
-                  {state.state_name}
+                <option key={state.id} value={state.stateName}>
+                  {state.stateName}
                 </option>
               ))}
             </select>
@@ -277,10 +285,14 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
               className={`${hasError(cityField) ? errorSelectClassName : selectClassName}${lockedClass}`}
               disabled={locked || !formik.values[stateField]}
             >
-              <option value="">Select City</option>
-              {(prefix === 'current' ? currentCities : permanentCities).map((city) => (
-                <option key={city.id} value={city.city_name}>
-                  {city.city_name}
+              <option value="">{citiesLoading ? 'Loading cities...' : 'Select City'}</option>
+              {/* Keeps a saved city visible even if it is not in the master list. */}
+              {formik.values[cityField] && !citiesLoading && !cities.some((city) => city.cityName === formik.values[cityField]) && (
+                <option value={formik.values[cityField]}>{formik.values[cityField]}</option>
+              )}
+              {cities.map((city) => (
+                <option key={city.id} value={city.cityName}>
+                  {city.cityName}
                 </option>
               ))}
             </select>
@@ -356,6 +368,13 @@ export default function AddressDetails({ formik, isDark, errors = {}, touched = 
             Address Details
           </h3>
         </div>
+
+        {locationError && (
+          <div className={`${errorTextClassName} mb-3`}>
+            <AlertTriangle className="w-3 h-3" />
+            <span>{locationError}</span>
+          </div>
+        )}
 
         {/* Current Address */}
         {renderAddressSection('current', 'Current Address')}
